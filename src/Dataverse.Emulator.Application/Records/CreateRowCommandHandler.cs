@@ -1,20 +1,24 @@
 using Dataverse.Emulator.Application.Abstractions;
 using Dataverse.Emulator.Application.Common;
 using Dataverse.Emulator.Domain.Common;
+using Dataverse.Emulator.Domain.Metadata;
+using Dataverse.Emulator.Domain.Metadata.Specifications;
 using Dataverse.Emulator.Domain.Records;
 using Dataverse.Emulator.Domain.Services;
 using ErrorOr;
 using FluentValidation;
+using Mediator;
 
 namespace Dataverse.Emulator.Application.Records;
 
 public sealed class CreateRowCommandHandler(
-    IMetadataRepository metadataRepository,
-    IRecordRepository recordRepository,
+    IReadRepository<TableDefinition> tableRepository,
+    IRepository<EntityRecord> recordRepository,
     IValidator<CreateRowCommand> validator,
     RecordValidationService recordValidationService)
+    : ICommandHandler<CreateRowCommand, ErrorOr<Guid>>
 {
-    public async ValueTask<ErrorOr<Guid>> HandleAsync(
+    public async ValueTask<ErrorOr<Guid>> Handle(
         CreateRowCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -24,7 +28,10 @@ public sealed class CreateRowCommandHandler(
             return validationResult.ToErrors();
         }
 
-        var table = await metadataRepository.GetTableAsync(command.TableLogicalName, cancellationToken);
+        var table = await tableRepository.SingleOrDefaultAsync(
+            new TableByLogicalNameSpecification(command.TableLogicalName),
+            cancellationToken);
+
         if (table is null)
         {
             return DomainErrors.UnknownTable(command.TableLogicalName);
@@ -47,7 +54,7 @@ public sealed class CreateRowCommandHandler(
             id,
             new RecordValues(values));
 
-        await recordRepository.CreateAsync(record, cancellationToken);
+        await recordRepository.AddAsync(record, cancellationToken);
         return id;
     }
 

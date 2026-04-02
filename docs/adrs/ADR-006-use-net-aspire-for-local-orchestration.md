@@ -31,3 +31,4 @@ The `Host` project remains the runnable web service for the emulator itself. The
 - The Host project should use shared service defaults.
 - New runtime services should be added to the AppHost rather than stitched together ad hoc.
 - Architecture docs and onboarding should treat AppHost as the default developer entry point for local orchestration.
+

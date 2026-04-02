@@ -7,4 +7,10 @@ public class HostAssemblySmokeTests
     {
         Assert.Equal("Dataverse.Emulator.Host", typeof(Program).Assembly.GetName().Name);
     }
+
+    [Fact]
+    public void HostAssemblyContainsGeneratedMediatorType()
+    {
+        Assert.NotNull(typeof(Program).Assembly.GetType("Mediator.Mediator"));
+    }
 }

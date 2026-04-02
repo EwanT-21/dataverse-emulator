@@ -1,6 +1,8 @@
+using Dataverse.Emulator.Domain.Common;
+
 namespace Dataverse.Emulator.Domain.Records;
 
-public sealed class EntityRecord
+public sealed class EntityRecord : IAggregateRoot
 {
     public EntityRecord(
         string tableLogicalName,

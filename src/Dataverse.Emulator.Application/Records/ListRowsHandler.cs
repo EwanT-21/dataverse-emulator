@@ -1,21 +1,25 @@
 using Dataverse.Emulator.Application.Abstractions;
 using Dataverse.Emulator.Application.Common;
 using Dataverse.Emulator.Domain.Common;
+using Dataverse.Emulator.Domain.Metadata;
+using Dataverse.Emulator.Domain.Metadata.Specifications;
 using Dataverse.Emulator.Domain.Queries;
 using Dataverse.Emulator.Domain.Records;
 using Dataverse.Emulator.Domain.Services;
 using ErrorOr;
 using FluentValidation;
+using Mediator;
 
 namespace Dataverse.Emulator.Application.Records;
 
 public sealed class ListRowsHandler(
-    IMetadataRepository metadataRepository,
-    IRecordRepository recordRepository,
+    IReadRepository<TableDefinition> tableRepository,
+    IRecordQueryService recordQueryService,
     IValidator<ListRowsQuery> validator,
     QueryValidationService queryValidationService)
+    : IQueryHandler<ListRowsQuery, ErrorOr<PageResult<EntityRecord>>>
 {
-    public async ValueTask<ErrorOr<PageResult<EntityRecord>>> HandleAsync(
+    public async ValueTask<ErrorOr<PageResult<EntityRecord>>> Handle(
         ListRowsQuery query,
         CancellationToken cancellationToken = default)
     {
@@ -25,7 +29,10 @@ public sealed class ListRowsHandler(
             return validationResult.ToErrors();
         }
 
-        var table = await metadataRepository.GetTableAsync(query.Query.TableLogicalName, cancellationToken);
+        var table = await tableRepository.SingleOrDefaultAsync(
+            new TableByLogicalNameSpecification(query.Query.TableLogicalName),
+            cancellationToken);
+
         if (table is null)
         {
             return DomainErrors.UnknownTable(query.Query.TableLogicalName);
@@ -37,6 +44,6 @@ public sealed class ListRowsHandler(
             return errors.ToList();
         }
 
-        return await recordRepository.ListAsync(query.Query, cancellationToken);
+        return await recordQueryService.ListAsync(query.Query, cancellationToken);
     }
 }

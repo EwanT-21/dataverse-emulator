@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <PackageReference Include="Mediator.SourceGenerator" Version="3.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
     <ProjectReference Include="..\Dataverse.Emulator.Application\Dataverse.Emulator.Application.csproj" />
     <ProjectReference Include="..\Dataverse.Emulator.Protocols\Dataverse.Emulator.Protocols.csproj" />
     <ProjectReference Include="..\Dataverse.Emulator.Persistence.InMemory\Dataverse.Emulator.Persistence.InMemory.csproj" />

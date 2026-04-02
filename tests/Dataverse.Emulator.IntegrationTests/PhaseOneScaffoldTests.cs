@@ -15,7 +15,7 @@ public class PhaseOneScaffoldTests
         var metadataRepository = new InMemoryMetadataRepository();
         var recordRepository = new InMemoryRecordRepository();
 
-        await metadataRepository.StoreAsync(
+        await metadataRepository.AddAsync(
             new TableDefinition(
                 logicalName: "account",
                 entitySetName: "accounts",
@@ -40,7 +40,7 @@ public class PhaseOneScaffoldTests
             new ListRowsQueryValidator(),
             new QueryValidationService());
 
-        var createResult = await createHandler.HandleAsync(
+        var createResult = await createHandler.Handle(
             new CreateRowCommand(
                 "account",
                 new Dictionary<string, object?>
@@ -49,7 +49,7 @@ public class PhaseOneScaffoldTests
                     ["accountnumber"] = "A-100"
                 }));
 
-        var listResult = await listHandler.HandleAsync(
+        var listResult = await listHandler.Handle(
             new ListRowsQuery(
                 new RecordQuery("account")
                 {

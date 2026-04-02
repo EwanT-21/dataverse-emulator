@@ -2,16 +2,19 @@ using Dataverse.Emulator.Application.Abstractions;
 using Dataverse.Emulator.Application.Common;
 using Dataverse.Emulator.Domain.Common;
 using Dataverse.Emulator.Domain.Metadata;
+using Dataverse.Emulator.Domain.Metadata.Specifications;
 using ErrorOr;
 using FluentValidation;
+using Mediator;
 
 namespace Dataverse.Emulator.Application.Metadata;
 
 public sealed class GetTableDefinitionHandler(
-    IMetadataRepository metadataRepository,
+    IReadRepository<TableDefinition> tableRepository,
     IValidator<GetTableDefinitionQuery> validator)
+    : IQueryHandler<GetTableDefinitionQuery, ErrorOr<TableDefinition>>
 {
-    public async ValueTask<ErrorOr<TableDefinition>> HandleAsync(
+    public async ValueTask<ErrorOr<TableDefinition>> Handle(
         GetTableDefinitionQuery query,
         CancellationToken cancellationToken = default)
     {
@@ -21,7 +24,10 @@ public sealed class GetTableDefinitionHandler(
             return validationResult.ToErrors();
         }
 
-        var table = await metadataRepository.GetTableAsync(query.LogicalName, cancellationToken);
+        var table = await tableRepository.SingleOrDefaultAsync(
+            new TableByLogicalNameSpecification(query.LogicalName),
+            cancellationToken);
+
         return table is not null
             ? table
             : DomainErrors.UnknownTable(query.LogicalName);

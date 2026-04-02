@@ -1,6 +1,8 @@
+using Dataverse.Emulator.Domain.Common;
+
 namespace Dataverse.Emulator.Domain.Metadata;
 
-public sealed class TableDefinition
+public sealed class TableDefinition : IAggregateRoot
 {
     private readonly Dictionary<string, ColumnDefinition> columns;
 

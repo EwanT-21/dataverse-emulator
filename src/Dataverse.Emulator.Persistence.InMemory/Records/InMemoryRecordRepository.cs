@@ -1,37 +1,18 @@
-using System.Collections.Concurrent;
+using Ardalis.Specification;
 using Dataverse.Emulator.Application.Abstractions;
 using Dataverse.Emulator.Domain.Queries;
 using Dataverse.Emulator.Domain.Records;
 
 namespace Dataverse.Emulator.Persistence.InMemory.Records;
 
-public sealed class InMemoryRecordRepository : IRecordRepository
+public sealed class InMemoryRecordRepository : InMemoryRepository<EntityRecord>, IRecordQueryService
 {
-    private readonly ConcurrentDictionary<string, InMemoryTableStore> tableStores = new(StringComparer.OrdinalIgnoreCase);
-
-    public ValueTask<EntityRecord?> GetAsync(
-        string tableLogicalName,
-        Guid id,
-        CancellationToken cancellationToken = default)
-    {
-        if (!tableStores.TryGetValue(tableLogicalName, out var tableStore))
-        {
-            return ValueTask.FromResult<EntityRecord?>(null);
-        }
-
-        return ValueTask.FromResult(tableStore.Get(id));
-    }
-
     public ValueTask<PageResult<EntityRecord>> ListAsync(
         RecordQuery query,
         CancellationToken cancellationToken = default)
     {
-        if (!tableStores.TryGetValue(query.TableLogicalName, out var tableStore))
-        {
-            return ValueTask.FromResult(new PageResult<EntityRecord>(Array.Empty<EntityRecord>()));
-        }
-
-        IEnumerable<EntityRecord> records = tableStore.Snapshot();
+        IEnumerable<EntityRecord> records = Snapshot()
+            .Where(record => record.TableLogicalName.Equals(query.TableLogicalName, StringComparison.OrdinalIgnoreCase));
 
         foreach (var condition in query.Conditions)
         {
@@ -55,50 +36,6 @@ public sealed class InMemoryRecordRepository : IRecordRepository
             .ToArray();
 
         return ValueTask.FromResult(new PageResult<EntityRecord>(items));
-    }
-
-    public ValueTask CreateAsync(
-        EntityRecord record,
-        CancellationToken cancellationToken = default)
-    {
-        GetOrCreateStore(record.TableLogicalName).Create(record);
-        return ValueTask.CompletedTask;
-    }
-
-    public ValueTask UpdateAsync(
-        EntityRecord record,
-        CancellationToken cancellationToken = default)
-    {
-        GetOrCreateStore(record.TableLogicalName).Update(record);
-        return ValueTask.CompletedTask;
-    }
-
-    public ValueTask<bool> DeleteAsync(
-        string tableLogicalName,
-        Guid id,
-        CancellationToken cancellationToken = default)
-    {
-        if (!tableStores.TryGetValue(tableLogicalName, out var tableStore))
-        {
-            return ValueTask.FromResult(false);
-        }
-
-        return ValueTask.FromResult(tableStore.Delete(id));
-    }
-
-    public ValueTask ResetAsync(
-        IEnumerable<EntityRecord> records,
-        CancellationToken cancellationToken = default)
-    {
-        tableStores.Clear();
-
-        foreach (var group in records.GroupBy(record => record.TableLogicalName, StringComparer.OrdinalIgnoreCase))
-        {
-            var tableStore = GetOrCreateStore(group.Key);
-            tableStore.Reset(group);
-        }
-
-        return ValueTask.CompletedTask;
     }
 
     private static bool Matches(EntityRecord record, QueryCondition condition)
@@ -197,8 +134,16 @@ public sealed class InMemoryRecordRepository : IRecordRepository
         return new EntityRecord(record.TableLogicalName, record.Id, new RecordValues(values), record.Version);
     }
 
-    private InMemoryTableStore GetOrCreateStore(string tableLogicalName)
+    protected override string GetStorageKey(EntityRecord entity)
+        => $"{entity.TableLogicalName}|{entity.Id:N}";
+
+    protected override bool MatchesId<TId>(EntityRecord entity, TId id)
     {
-        return tableStores.GetOrAdd(tableLogicalName, _ => new InMemoryTableStore());
+        return id switch
+        {
+            Guid guid => entity.Id == guid,
+            string compositeKey => string.Equals(GetStorageKey(entity), compositeKey, StringComparison.OrdinalIgnoreCase),
+            _ => false
+        };
     }
 }

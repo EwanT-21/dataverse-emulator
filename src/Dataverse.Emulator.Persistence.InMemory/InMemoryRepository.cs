@@ -6,7 +6,7 @@ using Dataverse.Emulator.Domain.Common;
 namespace Dataverse.Emulator.Persistence.InMemory;
 
 public abstract class InMemoryRepository<T> : IRepository<T>
-    where T : class, IAggregateRoot
+    where T : AggregateRoot
 {
     private readonly ConcurrentDictionary<string, T> entities = new(StringComparer.OrdinalIgnoreCase);
     private readonly IInMemorySpecificationEvaluator evaluator = InMemorySpecificationEvaluator.Default;
@@ -18,6 +18,8 @@ public abstract class InMemoryRepository<T> : IRepository<T>
         var storageKey = GetStorageKey(entity);
         if (!entities.TryAdd(storageKey, entity))
         {
+            // At this layer a duplicate add means the repository is being misused,
+            // since user-facing conflicts should have been handled before persistence.
             throw new InvalidOperationException($"Entity '{storageKey}' already exists.");
         }
 
@@ -45,6 +47,7 @@ public abstract class InMemoryRepository<T> : IRepository<T>
         var storageKey = GetStorageKey(entity);
         if (!entities.ContainsKey(storageKey))
         {
+            // Missing aggregates here indicate an internal workflow bug, not a normal command outcome.
             throw new InvalidOperationException($"Entity '{storageKey}' does not exist.");
         }
 

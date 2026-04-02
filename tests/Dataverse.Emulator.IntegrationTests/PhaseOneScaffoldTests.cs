@@ -14,19 +14,39 @@ public class PhaseOneScaffoldTests
     {
         var metadataRepository = new InMemoryMetadataRepository();
         var recordRepository = new InMemoryRecordRepository();
+        var idColumn = ColumnDefinition.Create(
+            "accountid",
+            AttributeType.UniqueIdentifier,
+            RequiredLevel.None,
+            isPrimaryId: true);
+        var nameColumn = ColumnDefinition.Create(
+            "name",
+            AttributeType.String,
+            RequiredLevel.ApplicationRequired,
+            isPrimaryName: true);
+        var accountNumberColumn = ColumnDefinition.Create(
+            "accountnumber",
+            AttributeType.String,
+            RequiredLevel.None);
+        var table = TableDefinition.Create(
+            logicalName: "account",
+            entitySetName: "accounts",
+            primaryIdAttribute: "accountid",
+            primaryNameAttribute: "name",
+            columns:
+            [
+                idColumn.Value,
+                nameColumn.Value,
+                accountNumberColumn.Value
+            ]);
+
+        Assert.False(idColumn.IsError);
+        Assert.False(nameColumn.IsError);
+        Assert.False(accountNumberColumn.IsError);
+        Assert.False(table.IsError);
 
         await metadataRepository.AddAsync(
-            new TableDefinition(
-                logicalName: "account",
-                entitySetName: "accounts",
-                primaryIdAttribute: "accountid",
-                primaryNameAttribute: "name",
-                columns:
-                [
-                    new ColumnDefinition("accountid", AttributeType.UniqueIdentifier, RequiredLevel.None, IsPrimaryId: true),
-                    new ColumnDefinition("name", AttributeType.String, RequiredLevel.ApplicationRequired, IsPrimaryName: true),
-                    new ColumnDefinition("accountnumber", AttributeType.String, RequiredLevel.None)
-                ]));
+            table.Value);
 
         var createHandler = new CreateRowCommandHandler(
             metadataRepository,
@@ -49,15 +69,22 @@ public class PhaseOneScaffoldTests
                     ["accountnumber"] = "A-100"
                 }));
 
+        var nameCondition = QueryCondition.Create("name", ConditionOperator.Equal, "Contoso");
+        var nameSort = QuerySort.Create("name", SortDirection.Ascending);
+        var recordQuery = RecordQuery.Create(
+            "account",
+            selectedColumns: ["name", "accountnumber"],
+            conditions: [nameCondition.Value],
+            sorts: [nameSort.Value],
+            top: 10);
+
+        Assert.False(nameCondition.IsError);
+        Assert.False(nameSort.IsError);
+        Assert.False(recordQuery.IsError);
+
         var listResult = await listHandler.Handle(
             new ListRowsQuery(
-                new RecordQuery("account")
-                {
-                    SelectedColumns = ["name", "accountnumber"],
-                    Conditions = [new QueryCondition("name", ConditionOperator.Equal, "Contoso")],
-                    Sorts = [new QuerySort("name", SortDirection.Ascending)],
-                    Top = 10
-                }));
+                recordQuery.Value));
 
         Assert.False(createResult.IsError);
         Assert.False(listResult.IsError);

@@ -121,18 +121,7 @@ public sealed class InMemoryRecordRepository : InMemoryRepository<EntityRecord>,
     }
 
     private static EntityRecord Project(EntityRecord record, IReadOnlyList<string> selectedColumns)
-    {
-        if (selectedColumns.Count == 0)
-        {
-            return record;
-        }
-
-        var values = selectedColumns
-            .Where(record.Values.Contains)
-            .Select(column => new KeyValuePair<string, object?>(column, record.Values[column]));
-
-        return new EntityRecord(record.TableLogicalName, record.Id, new RecordValues(values), record.Version);
-    }
+        => record.Project(selectedColumns);
 
     protected override string GetStorageKey(EntityRecord entity)
         => $"{entity.TableLogicalName}|{entity.Id:N}";

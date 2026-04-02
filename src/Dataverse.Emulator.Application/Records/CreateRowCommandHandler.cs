@@ -4,6 +4,7 @@ using Dataverse.Emulator.Domain.Common;
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Metadata.Specifications;
 using Dataverse.Emulator.Domain.Records;
+using Dataverse.Emulator.Domain.Records.Specifications;
 using Dataverse.Emulator.Domain.Services;
 using ErrorOr;
 using FluentValidation;
@@ -49,12 +50,28 @@ public sealed class CreateRowCommandHandler(
             [table.PrimaryIdAttribute] = id
         };
 
-        var record = new EntityRecord(
-            table.LogicalName,
-            id,
-            new RecordValues(values));
+        var existing = await recordRepository.AnyAsync(
+            new RecordByIdSpecification(table.LogicalName, id),
+            cancellationToken);
 
-        await recordRepository.AddAsync(record, cancellationToken);
+        if (existing)
+        {
+            return DomainErrors.DuplicateRow(table.LogicalName, id);
+        }
+
+        var recordValues = RecordValues.Create(values);
+        if (recordValues.IsError)
+        {
+            return recordValues.Errors;
+        }
+
+        var record = EntityRecord.Create(table.LogicalName, id, recordValues.Value);
+        if (record.IsError)
+        {
+            return record.Errors;
+        }
+
+        await recordRepository.AddAsync(record.Value, cancellationToken);
         return id;
     }
 

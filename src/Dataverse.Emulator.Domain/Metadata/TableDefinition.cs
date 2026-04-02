@@ -1,34 +1,22 @@
 using Dataverse.Emulator.Domain.Common;
+using ErrorOr;
 
 namespace Dataverse.Emulator.Domain.Metadata;
 
-public sealed class TableDefinition : IAggregateRoot
+public sealed class TableDefinition : AggregateRoot
 {
     private readonly Dictionary<string, ColumnDefinition> columns;
 
-    public TableDefinition(
+    internal TableDefinition(
+        Guid aggregateId,
         string logicalName,
         string entitySetName,
         string primaryIdAttribute,
         string? primaryNameAttribute,
         IEnumerable<ColumnDefinition> columns,
         IEnumerable<AlternateKeyDefinition>? alternateKeys = null)
+        : base(aggregateId)
     {
-        if (string.IsNullOrWhiteSpace(logicalName))
-        {
-            throw new ArgumentException("Logical name is required.", nameof(logicalName));
-        }
-
-        if (string.IsNullOrWhiteSpace(entitySetName))
-        {
-            throw new ArgumentException("Entity set name is required.", nameof(entitySetName));
-        }
-
-        if (string.IsNullOrWhiteSpace(primaryIdAttribute))
-        {
-            throw new ArgumentException("Primary id attribute is required.", nameof(primaryIdAttribute));
-        }
-
         LogicalName = logicalName;
         EntitySetName = entitySetName;
         PrimaryIdAttribute = primaryIdAttribute;
@@ -38,26 +26,7 @@ public sealed class TableDefinition : IAggregateRoot
 
         foreach (var column in columns)
         {
-            if (string.IsNullOrWhiteSpace(column.LogicalName))
-            {
-                throw new ArgumentException("Column logical names are required.", nameof(columns));
-            }
-
             this.columns[column.LogicalName] = column;
-        }
-
-        if (!this.columns.ContainsKey(primaryIdAttribute))
-        {
-            throw new ArgumentException(
-                $"Primary id attribute '{primaryIdAttribute}' must exist in the table definition.",
-                nameof(columns));
-        }
-
-        if (!string.IsNullOrWhiteSpace(primaryNameAttribute) && !this.columns.ContainsKey(primaryNameAttribute))
-        {
-            throw new ArgumentException(
-                $"Primary name attribute '{primaryNameAttribute}' must exist in the table definition.",
-                nameof(columns));
         }
 
         AlternateKeys = (alternateKeys ?? Array.Empty<AlternateKeyDefinition>()).ToArray();
@@ -74,6 +43,89 @@ public sealed class TableDefinition : IAggregateRoot
     public IReadOnlyCollection<ColumnDefinition> Columns => columns.Values.ToArray();
 
     public IReadOnlyCollection<AlternateKeyDefinition> AlternateKeys { get; }
+
+    public static ErrorOr<TableDefinition> Create(
+        string logicalName,
+        string entitySetName,
+        string primaryIdAttribute,
+        string? primaryNameAttribute,
+        IEnumerable<ColumnDefinition> columns,
+        IEnumerable<AlternateKeyDefinition>? alternateKeys = null)
+    {
+        if (columns is null)
+        {
+            return DomainErrors.Validation(
+                "Metadata.Table.ColumnsRequired",
+                "Columns are required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(logicalName))
+        {
+            return DomainErrors.Validation(
+                "Metadata.Table.LogicalNameRequired",
+                "Logical name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(entitySetName))
+        {
+            return DomainErrors.Validation(
+                "Metadata.Table.EntitySetNameRequired",
+                "Entity set name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(primaryIdAttribute))
+        {
+            return DomainErrors.Validation(
+                "Metadata.Table.PrimaryIdRequired",
+                "Primary id attribute is required.");
+        }
+
+        var columnArray = columns.ToArray();
+        if (columnArray.Length == 0)
+        {
+            return DomainErrors.Validation(
+                "Metadata.Table.ColumnsRequired",
+                "At least one column is required.");
+        }
+
+        var columnNames = new HashSet<string>(
+            columnArray.Select(column => column.LogicalName),
+            StringComparer.OrdinalIgnoreCase);
+
+        if (!columnNames.Contains(primaryIdAttribute))
+        {
+            return DomainErrors.Validation(
+                "Metadata.Table.PrimaryIdColumnMissing",
+                $"Primary id attribute '{primaryIdAttribute}' must exist in the table definition.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(primaryNameAttribute) && !columnNames.Contains(primaryNameAttribute))
+        {
+            return DomainErrors.Validation(
+                "Metadata.Table.PrimaryNameColumnMissing",
+                $"Primary name attribute '{primaryNameAttribute}' must exist in the table definition.");
+        }
+
+        var alternateKeyArray = (alternateKeys ?? Array.Empty<AlternateKeyDefinition>()).ToArray();
+        foreach (var alternateKey in alternateKeyArray)
+        {
+            if (alternateKey.ColumnLogicalNames.Any(columnName => !columnNames.Contains(columnName)))
+            {
+                return DomainErrors.Validation(
+                    "Metadata.Table.AlternateKeyColumnMissing",
+                    $"Alternate key '{alternateKey.LogicalName}' references one or more unknown columns.");
+            }
+        }
+
+        return new TableDefinition(
+            Guid.NewGuid(),
+            logicalName,
+            entitySetName,
+            primaryIdAttribute,
+            primaryNameAttribute,
+            columnArray,
+            alternateKeyArray);
+    }
 
     public bool HasColumn(string logicalName) => columns.ContainsKey(logicalName);
 

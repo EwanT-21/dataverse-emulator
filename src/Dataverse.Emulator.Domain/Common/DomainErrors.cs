@@ -4,6 +4,9 @@ namespace Dataverse.Emulator.Domain.Common;
 
 public static class DomainErrors
 {
+    public static Error Validation(string code, string description)
+        => Error.Validation(code, description);
+
     public static Error UnknownTable(string logicalName)
         => Error.NotFound(
             code: "Metadata.Table.NotFound",

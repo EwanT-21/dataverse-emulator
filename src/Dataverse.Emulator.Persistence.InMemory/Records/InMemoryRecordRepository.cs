@@ -2,6 +2,7 @@ using Ardalis.Specification;
 using Dataverse.Emulator.Application.Abstractions;
 using Dataverse.Emulator.Domain.Queries;
 using Dataverse.Emulator.Domain.Records;
+using System.Globalization;
 
 namespace Dataverse.Emulator.Persistence.InMemory.Records;
 
@@ -11,7 +12,7 @@ public sealed class InMemoryRecordRepository : InMemoryRepository<EntityRecord>,
         RecordQuery query,
         CancellationToken cancellationToken = default)
     {
-        IEnumerable<EntityRecord> records = Snapshot()
+        var records = Snapshot()
             .Where(record => record.TableLogicalName.Equals(query.TableLogicalName, StringComparison.OrdinalIgnoreCase));
 
         foreach (var condition in query.Conditions)
@@ -19,19 +20,33 @@ public sealed class InMemoryRecordRepository : InMemoryRepository<EntityRecord>,
             records = records.Where(record => Matches(record, condition));
         }
 
-        records = ApplySorting(records, query.Sorts);
+        var sortedRecords = ApplySorting(records, query.Sorts).ToArray();
 
         if (query.Top is int top)
         {
-            records = records.Take(top);
+            sortedRecords = sortedRecords.Take(top).ToArray();
         }
 
         if (query.Page is { } page)
         {
-            records = records.Take(page.Size);
+            var offset = DecodeContinuationToken(page.ContinuationToken);
+            var pagedRecords = sortedRecords
+                .Skip(offset)
+                .Take(page.Size)
+                .ToArray();
+            var nextOffset = offset + pagedRecords.Length;
+            var continuationToken = nextOffset < sortedRecords.Length
+                ? EncodeContinuationToken(nextOffset)
+                : null;
+
+            var pageItems = pagedRecords
+                .Select(record => Project(record, query.SelectedColumns))
+                .ToArray();
+
+            return ValueTask.FromResult(new PageResult<EntityRecord>(pageItems, continuationToken));
         }
 
-        var items = records
+        var items = sortedRecords
             .Select(record => Project(record, query.SelectedColumns))
             .ToArray();
 
@@ -67,6 +82,11 @@ public sealed class InMemoryRecordRepository : InMemoryRepository<EntityRecord>,
         IEnumerable<EntityRecord> records,
         IReadOnlyList<QuerySort> sorts)
     {
+        if (sorts.Count == 0)
+        {
+            return records.OrderBy(record => record.Id);
+        }
+
         IOrderedEnumerable<EntityRecord>? ordered = null;
 
         foreach (var sort in sorts)
@@ -122,6 +142,19 @@ public sealed class InMemoryRecordRepository : InMemoryRepository<EntityRecord>,
 
     private static EntityRecord Project(EntityRecord record, IReadOnlyList<string> selectedColumns)
         => record.Project(selectedColumns);
+
+    private static string EncodeContinuationToken(int offset)
+        => offset.ToString(CultureInfo.InvariantCulture);
+
+    private static int DecodeContinuationToken(string? continuationToken)
+    {
+        var normalizedToken = continuationToken?
+            .Split('|', 2, StringSplitOptions.TrimEntries)[0];
+
+        return int.TryParse(normalizedToken, NumberStyles.None, CultureInfo.InvariantCulture, out var offset) && offset > 0
+            ? offset
+            : 0;
+    }
 
     protected override string GetStorageKey(EntityRecord entity)
         => $"{entity.TableLogicalName}|{entity.Id:N}";

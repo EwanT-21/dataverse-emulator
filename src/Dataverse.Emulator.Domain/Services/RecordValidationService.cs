@@ -27,7 +27,9 @@ public sealed class RecordValidationService
             }
         }
 
-        foreach (var column in table.Columns.Where(column => column.RequiredLevel == RequiredLevel.ApplicationRequired || column.RequiredLevel == RequiredLevel.SystemRequired))
+        foreach (var column in table.Columns.Where(column =>
+                     !column.IsPrimaryId
+                     && (column.RequiredLevel == RequiredLevel.ApplicationRequired || column.RequiredLevel == RequiredLevel.SystemRequired)))
         {
             if (!values.ContainsKey(column.LogicalName))
             {

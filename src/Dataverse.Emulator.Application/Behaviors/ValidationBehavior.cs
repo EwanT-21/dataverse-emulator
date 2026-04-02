@@ -18,8 +18,7 @@ public sealed class ValidationBehavior<TMessage, TResponse>(
     {
         if (validators.Length == 0)
         {
-            throw new InvalidOperationException(
-                $"No validator is registered for mediator message '{typeof(TMessage).FullName}'.");
+            return await next(message, cancellationToken);
         }
 
         var context = new ValidationContext<TMessage>(message);

@@ -1,12 +1,15 @@
 using Dataverse.Emulator.Application;
 using Dataverse.Emulator.Application.Behaviors;
+using Dataverse.Emulator.Host;
 using Dataverse.Emulator.Persistence.InMemory;
+using Dataverse.Emulator.Protocols.WebApi;
 using Mediator;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddDataverseEmulatorApplication();
 builder.Services.AddDataverseEmulatorInMemoryPersistence();
+builder.Services.AddHostedService<DefaultSeedHostedService>();
 builder.Services.AddMediator(options =>
 {
     options.Assemblies = [typeof(Dataverse.Emulator.Application.AssemblyMarker)];
@@ -39,6 +42,7 @@ app.MapGet(
             "Expose validated compatibility slices through protocol adapters."
         }));
 
+app.MapDataverseWebApi();
 app.MapDefaultEndpoints();
 app.Run();
 

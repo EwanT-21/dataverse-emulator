@@ -19,7 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Dataverse.Emulator.Application\Dataverse.Emulator.Application.csproj" />
     <ProjectReference Include="..\..\src\Dataverse.Emulator.Host\Dataverse.Emulator.Host.csproj" />
+    <ProjectReference Include="..\..\src\Dataverse.Emulator.Persistence.InMemory\Dataverse.Emulator.Persistence.InMemory.csproj" />
   </ItemGroup>
 
 </Project>

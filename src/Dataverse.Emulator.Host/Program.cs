@@ -1,4 +1,5 @@
 var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
 
 var app = builder.Build();
 
@@ -14,7 +15,7 @@ app.MapGet(
             ],
             "In-memory persistence")));
 
-app.MapGet("/health", () => Results.Ok(new HealthDescriptor("healthy", DateTimeOffset.UtcNow)));
+app.MapGet("/status", () => Results.Ok(new HealthDescriptor("healthy", DateTimeOffset.UtcNow)));
 
 app.MapGet(
     "/roadmap",
@@ -26,6 +27,7 @@ app.MapGet(
             "Expose validated compatibility slices through protocol adapters."
         }));
 
+app.MapDefaultEndpoints();
 app.Run();
 
 public sealed record EmulatorDescriptor(

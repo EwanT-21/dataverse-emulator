@@ -3,6 +3,7 @@
     <ProjectReference Include="..\Dataverse.Emulator.Application\Dataverse.Emulator.Application.csproj" />
     <ProjectReference Include="..\Dataverse.Emulator.Protocols\Dataverse.Emulator.Protocols.csproj" />
     <ProjectReference Include="..\Dataverse.Emulator.Persistence.InMemory\Dataverse.Emulator.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\Dataverse.Emulator.ServiceDefaults\Dataverse.Emulator.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="..\Dataverse.Emulator.Application\Dataverse.Emulator.Application.csproj" />
+    <ProjectReference Include="..\Dataverse.Emulator.Protocols\Dataverse.Emulator.Protocols.csproj" />
+    <ProjectReference Include="..\Dataverse.Emulator.Persistence.InMemory\Dataverse.Emulator.Persistence.InMemory.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <AssemblyName>Dataverse.Emulator.Host</AssemblyName>
+    <RootNamespace>Dataverse.Emulator.Host</RootNamespace>
+  </PropertyGroup>
+</Project>

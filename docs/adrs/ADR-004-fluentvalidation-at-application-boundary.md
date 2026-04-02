@@ -21,6 +21,8 @@ These inputs need consistent structural validation before domain logic runs. Str
 
 We will use `FluentValidation` for command and query validation in the application layer.
 
+Validation is executed through a shared `Mediator` pipeline behavior before handler orchestration runs.
+
 Examples include:
 
 - required table logical names
@@ -35,9 +37,11 @@ Domain-specific checks such as unknown columns, immutable primary ids, and attri
 - Keeps handler code focused on orchestration.
 - Separates request-shape concerns from emulator-semantic concerns.
 - Works cleanly with `ErrorOr`.
+- Centralizes structural validation instead of repeating the same flow in every handler.
 
 ## Consequences
 
 - Each command/query type should normally have a corresponding validator.
 - Validation errors are converted into `ErrorOr` values before handler logic proceeds.
+- Handlers should not need to inject validators directly when the message is already flowing through Mediator.
 - We should avoid pushing Dataverse domain rules down into FluentValidation rules unless they are simple shape checks.

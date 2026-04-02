@@ -20,7 +20,7 @@ app.MapGet(
     () => Results.Ok(
         new EmulatorDescriptor(
             "Dataverse Emulator",
-            "Scaffold",
+            "Core metadata and records slice implemented",
             [
                 "Dataverse Web API",
                 "XRM-compatible surface"

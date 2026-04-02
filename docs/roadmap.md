@@ -8,10 +8,17 @@
 
 ## Phase 1: Core Metadata And Records
 
+Implemented or underway:
+
 - Define table and attribute metadata.
 - Support seeded entities and deterministic reset behavior.
-- Build in-memory storage abstractions for records and relationships.
-- Implement a narrow CRUD application pipeline.
+- Build in-memory storage abstractions for aggregate persistence and record querying.
+- Implement a narrow CRUD application pipeline with Mediator and validation behaviors.
+
+Still open in this phase:
+
+- Expand metadata and relationship modeling beyond the current table/row slice.
+- Add more compatibility-oriented behaviors on top of the internal CRUD/query workflow.
 
 ## Phase 2: First Compatible HTTP Slice
 

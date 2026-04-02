@@ -37,6 +37,7 @@ Keep this project free from HTTP, SDK, and storage concerns.
 
 Owns orchestration and use cases:
 
+- Mediator commands, queries, handlers, and pipeline behaviors.
 - CRUD and execute-message workflows.
 - Query execution pipeline.
 - Metadata loading and seed application.
@@ -74,20 +75,29 @@ Owns process startup:
 - Protocol registration.
 - Local developer ergonomics such as reset endpoints or seeded startup modes.
 
-## Internal Folders To Introduce Next
+## Current Implementation Shape
 
-As implementation begins, these namespaces will keep the codebase navigable without exploding the number of assemblies too early.
+The current codebase already uses these main namespaces:
 
 - `Domain/Metadata`
-- `Domain/Records`
-- `Domain/Relationships`
 - `Domain/Queries`
-- `Application/Messages`
-- `Application/Queries`
+- `Domain/Records`
+- `Domain/Services`
+- `Application/Abstractions`
+- `Application/Behaviors`
+- `Application/Common`
+- `Application/Metadata`
+- `Application/Records`
 - `Application/Seeding`
+- `Persistence.InMemory/Metadata`
+- `Persistence.InMemory/Records`
+
+Likely next additions remain:
+
+- `Domain/Relationships`
 - `Protocols/WebApi`
 - `Protocols/Xrm`
-- `Persistence.InMemory/Storage`
+- `Persistence.InMemory/Storage` or a similar storage-oriented namespace if the in-memory provider grows more complex
 
 ## Scope Guidance
 

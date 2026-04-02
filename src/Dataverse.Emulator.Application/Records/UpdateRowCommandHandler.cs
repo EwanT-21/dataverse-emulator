@@ -1,5 +1,4 @@
 using Dataverse.Emulator.Application.Abstractions;
-using Dataverse.Emulator.Application.Common;
 using Dataverse.Emulator.Domain.Common;
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Metadata.Specifications;
@@ -7,7 +6,6 @@ using Dataverse.Emulator.Domain.Records;
 using Dataverse.Emulator.Domain.Records.Specifications;
 using Dataverse.Emulator.Domain.Services;
 using ErrorOr;
-using FluentValidation;
 using Mediator;
 
 namespace Dataverse.Emulator.Application.Records;
@@ -15,7 +13,6 @@ namespace Dataverse.Emulator.Application.Records;
 public sealed class UpdateRowCommandHandler(
     IReadRepository<TableDefinition> tableRepository,
     IRepository<EntityRecord> recordRepository,
-    IValidator<UpdateRowCommand> validator,
     RecordValidationService recordValidationService)
     : ICommandHandler<UpdateRowCommand, ErrorOr<EntityRecord>>
 {
@@ -23,12 +20,6 @@ public sealed class UpdateRowCommandHandler(
         UpdateRowCommand command,
         CancellationToken cancellationToken = default)
     {
-        var validationResult = await validator.ValidateAsync(command, cancellationToken);
-        if (!validationResult.IsValid)
-        {
-            return validationResult.ToErrors();
-        }
-
         var table = await tableRepository.SingleOrDefaultAsync(
             new TableByLogicalNameSpecification(command.TableLogicalName),
             cancellationToken);

@@ -1,9 +1,14 @@
+using Dataverse.Emulator.Application;
 using Dataverse.Emulator.Application.Records;
+using Dataverse.Emulator.Application.Behaviors;
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Queries;
 using Dataverse.Emulator.Domain.Services;
+using Dataverse.Emulator.Persistence.InMemory;
 using Dataverse.Emulator.Persistence.InMemory.Metadata;
 using Dataverse.Emulator.Persistence.InMemory.Records;
+using Mediator;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Dataverse.Emulator.IntegrationTests;
 
@@ -51,13 +56,11 @@ public class PhaseOneScaffoldTests
         var createHandler = new CreateRowCommandHandler(
             metadataRepository,
             recordRepository,
-            new CreateRowCommandValidator(),
             new RecordValidationService());
 
         var listHandler = new ListRowsHandler(
             metadataRepository,
             recordRepository,
-            new ListRowsQueryValidator(),
             new QueryValidationService());
 
         var createResult = await createHandler.Handle(
@@ -91,5 +94,29 @@ public class PhaseOneScaffoldTests
         Assert.NotEqual(Guid.Empty, createResult.Value);
         Assert.Single(listResult.Value.Items);
         Assert.Equal("Contoso", listResult.Value.Items[0].Values["name"]);
+    }
+
+    [Fact]
+    public async Task MediatorPipeline_ReturnsValidationErrors_BeforeHandlerExecution()
+    {
+        var services = new ServiceCollection();
+        services.AddDataverseEmulatorApplication();
+        services.AddDataverseEmulatorInMemoryPersistence();
+        services.AddMediator(options =>
+        {
+            options.Assemblies = [typeof(Dataverse.Emulator.Application.AssemblyMarker)];
+            options.PipelineBehaviors = [typeof(ValidationBehavior<,>)];
+        });
+
+        await using var serviceProvider = services.BuildServiceProvider();
+        var mediator = serviceProvider.GetRequiredService<IMediator>();
+
+        var result = await mediator.Send(
+            new CreateRowCommand(
+                string.Empty,
+                null!));
+
+        Assert.True(result.IsError);
+        Assert.Contains(result.Errors, error => error.Code.StartsWith("Validation.", StringComparison.Ordinal));
     }
 }

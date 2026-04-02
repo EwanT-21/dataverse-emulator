@@ -1,5 +1,4 @@
 using Dataverse.Emulator.Application.Abstractions;
-using Dataverse.Emulator.Application.Common;
 using Dataverse.Emulator.Domain.Common;
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Metadata.Specifications;
@@ -7,7 +6,6 @@ using Dataverse.Emulator.Domain.Queries;
 using Dataverse.Emulator.Domain.Records;
 using Dataverse.Emulator.Domain.Services;
 using ErrorOr;
-using FluentValidation;
 using Mediator;
 
 namespace Dataverse.Emulator.Application.Records;
@@ -15,7 +13,6 @@ namespace Dataverse.Emulator.Application.Records;
 public sealed class ListRowsHandler(
     IReadRepository<TableDefinition> tableRepository,
     IRecordQueryService recordQueryService,
-    IValidator<ListRowsQuery> validator,
     QueryValidationService queryValidationService)
     : IQueryHandler<ListRowsQuery, ErrorOr<PageResult<EntityRecord>>>
 {
@@ -23,12 +20,6 @@ public sealed class ListRowsHandler(
         ListRowsQuery query,
         CancellationToken cancellationToken = default)
     {
-        var validationResult = await validator.ValidateAsync(query, cancellationToken);
-        if (!validationResult.IsValid)
-        {
-            return validationResult.ToErrors();
-        }
-
         var table = await tableRepository.SingleOrDefaultAsync(
             new TableByLogicalNameSpecification(query.Query.TableLogicalName),
             cancellationToken);

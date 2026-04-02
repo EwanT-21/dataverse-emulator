@@ -1,4 +1,5 @@
 using Dataverse.Emulator.Application;
+using Dataverse.Emulator.Application.Behaviors;
 using Dataverse.Emulator.Persistence.InMemory;
 using Mediator;
 
@@ -6,7 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddDataverseEmulatorApplication();
 builder.Services.AddDataverseEmulatorInMemoryPersistence();
-builder.Services.AddMediator(options => options.Assemblies = [typeof(Dataverse.Emulator.Application.AssemblyMarker)]);
+builder.Services.AddMediator(options =>
+{
+    options.Assemblies = [typeof(Dataverse.Emulator.Application.AssemblyMarker)];
+    options.PipelineBehaviors = [typeof(ValidationBehavior<,>)];
+});
 
 var app = builder.Build();
 

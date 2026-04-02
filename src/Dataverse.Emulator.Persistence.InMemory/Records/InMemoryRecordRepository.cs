@@ -108,11 +108,12 @@ public sealed class InMemoryRecordRepository : IRecordRepository
             return false;
         }
 
-        return condition.Operator switch
+        if (condition.Operator == ConditionOperator.Equal)
         {
-            ConditionOperator.Equal => AreEqual(currentValue, condition.Value),
-            _ => false
-        };
+            return AreEqual(currentValue, condition.Value);
+        }
+
+        return false;
     }
 
     private static bool AreEqual(object? left, object? right)

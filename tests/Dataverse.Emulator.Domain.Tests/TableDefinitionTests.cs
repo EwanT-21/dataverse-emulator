@@ -8,15 +8,15 @@ public class TableDefinitionTests
     public void FindColumn_IsCaseInsensitive()
     {
         var table = new TableDefinition(
-            logicalName: "account",
-            entitySetName: "accounts",
-            primaryIdAttribute: "accountid",
-            primaryNameAttribute: "name",
-            columns:
-            [
-                new ColumnDefinition("accountid", AttributeType.UniqueIdentifier, IsPrimaryId: true),
-                new ColumnDefinition("name", AttributeType.String, RequiredLevel.ApplicationRequired, IsPrimaryName: true)
-            ]);
+                logicalName: "account",
+                entitySetName: "accounts",
+                primaryIdAttribute: "accountid",
+                primaryNameAttribute: "name",
+                columns:
+                [
+                    new ColumnDefinition("accountid", AttributeType.UniqueIdentifier, RequiredLevel.None, IsPrimaryId: true),
+                    new ColumnDefinition("name", AttributeType.String, RequiredLevel.ApplicationRequired, IsPrimaryName: true)
+                ]);
 
         var column = table.FindColumn("NAME");
 

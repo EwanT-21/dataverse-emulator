@@ -1,29 +1,39 @@
 using Dataverse.Emulator.Application.Abstractions;
+using Dataverse.Emulator.Application.Common;
 using Dataverse.Emulator.Domain.Common;
 using Dataverse.Emulator.Domain.Records;
 using Dataverse.Emulator.Domain.Services;
+using ErrorOr;
+using FluentValidation;
 
 namespace Dataverse.Emulator.Application.Records;
 
 public sealed class CreateRowCommandHandler(
-        IMetadataRepository metadataRepository,
-        IRecordRepository recordRepository,
-        RecordValidationService recordValidationService)
+    IMetadataRepository metadataRepository,
+    IRecordRepository recordRepository,
+    IValidator<CreateRowCommand> validator,
+    RecordValidationService recordValidationService)
 {
-    public async ValueTask<Guid> HandleAsync(
+    public async ValueTask<ErrorOr<Guid>> HandleAsync(
         CreateRowCommand command,
         CancellationToken cancellationToken = default)
     {
+        var validationResult = await validator.ValidateAsync(command, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return validationResult.ToErrors();
+        }
+
         var table = await metadataRepository.GetTableAsync(command.TableLogicalName, cancellationToken);
         if (table is null)
         {
-            throw new InvalidOperationException($"Unknown table '{command.TableLogicalName}'.");
+            return DomainErrors.UnknownTable(command.TableLogicalName);
         }
 
         var errors = recordValidationService.ValidateCreate(table, command.Values);
         if (errors.Count > 0)
         {
-            throw new DomainValidationException(errors);
+            return errors.ToList();
         }
 
         var id = ResolveId(table.PrimaryIdAttribute, command.Values);

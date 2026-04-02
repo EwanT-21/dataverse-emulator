@@ -8,4 +8,8 @@
     <UserSecretsId>d36f756d-8781-45fc-a5df-803250a19f33</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Dataverse.Emulator.Host\Dataverse.Emulator.Host.csproj" />
+  </ItemGroup>
+
 </Project>

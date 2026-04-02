@@ -23,22 +23,24 @@ public class PhaseOneScaffoldTests
                 primaryNameAttribute: "name",
                 columns:
                 [
-                    new ColumnDefinition("accountid", AttributeType.UniqueIdentifier, IsPrimaryId: true),
+                    new ColumnDefinition("accountid", AttributeType.UniqueIdentifier, RequiredLevel.None, IsPrimaryId: true),
                     new ColumnDefinition("name", AttributeType.String, RequiredLevel.ApplicationRequired, IsPrimaryName: true),
-                    new ColumnDefinition("accountnumber", AttributeType.String)
+                    new ColumnDefinition("accountnumber", AttributeType.String, RequiredLevel.None)
                 ]));
 
         var createHandler = new CreateRowCommandHandler(
             metadataRepository,
             recordRepository,
+            new CreateRowCommandValidator(),
             new RecordValidationService());
 
         var listHandler = new ListRowsHandler(
             metadataRepository,
             recordRepository,
+            new ListRowsQueryValidator(),
             new QueryValidationService());
 
-        var id = await createHandler.HandleAsync(
+        var createResult = await createHandler.HandleAsync(
             new CreateRowCommand(
                 "account",
                 new Dictionary<string, object?>
@@ -47,7 +49,7 @@ public class PhaseOneScaffoldTests
                     ["accountnumber"] = "A-100"
                 }));
 
-        var result = await listHandler.HandleAsync(
+        var listResult = await listHandler.HandleAsync(
             new ListRowsQuery(
                 new RecordQuery("account")
                 {
@@ -57,8 +59,10 @@ public class PhaseOneScaffoldTests
                     Top = 10
                 }));
 
-        Assert.NotEqual(Guid.Empty, id);
-        Assert.Single(result.Items);
-        Assert.Equal("Contoso", result.Items[0].Values["name"]);
+        Assert.False(createResult.IsError);
+        Assert.False(listResult.IsError);
+        Assert.NotEqual(Guid.Empty, createResult.Value);
+        Assert.Single(listResult.Value.Items);
+        Assert.Equal("Contoso", listResult.Value.Items[0].Values["name"]);
     }
 }

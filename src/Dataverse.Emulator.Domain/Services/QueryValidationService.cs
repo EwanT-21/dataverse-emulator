@@ -1,21 +1,23 @@
+using Dataverse.Emulator.Domain.Common;
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Queries;
+using ErrorOr;
 
 namespace Dataverse.Emulator.Domain.Services;
 
 public sealed class QueryValidationService
 {
-    public IReadOnlyCollection<string> Validate(
+    public IReadOnlyCollection<Error> Validate(
         TableDefinition table,
         RecordQuery query)
     {
-        var errors = new List<string>();
+        var errors = new List<Error>();
 
         foreach (var selectedColumn in query.SelectedColumns)
         {
             if (!table.HasColumn(selectedColumn))
             {
-                errors.Add($"Selected column '{selectedColumn}' does not exist on table '{table.LogicalName}'.");
+                errors.Add(DomainErrors.UnknownColumn(table.LogicalName, selectedColumn));
             }
         }
 
@@ -23,7 +25,7 @@ public sealed class QueryValidationService
         {
             if (!table.HasColumn(condition.ColumnLogicalName))
             {
-                errors.Add($"Filter column '{condition.ColumnLogicalName}' does not exist on table '{table.LogicalName}'.");
+                errors.Add(DomainErrors.UnknownColumn(table.LogicalName, condition.ColumnLogicalName));
             }
         }
 
@@ -31,18 +33,18 @@ public sealed class QueryValidationService
         {
             if (!table.HasColumn(sort.ColumnLogicalName))
             {
-                errors.Add($"Sort column '{sort.ColumnLogicalName}' does not exist on table '{table.LogicalName}'.");
+                errors.Add(DomainErrors.UnknownColumn(table.LogicalName, sort.ColumnLogicalName));
             }
         }
 
         if (query.Top is <= 0)
         {
-            errors.Add("Top must be greater than zero when provided.");
+            errors.Add(Error.Validation("Query.Top.Invalid", "Top must be greater than zero when provided."));
         }
 
         if (query.Page is { Size: <= 0 })
         {
-            errors.Add("Page size must be greater than zero when provided.");
+            errors.Add(Error.Validation("Query.Page.SizeInvalid", "Page size must be greater than zero when provided."));
         }
 
         return errors;

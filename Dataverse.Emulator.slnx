@@ -1,10 +1,12 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Dataverse.Emulator.AppHost/Dataverse.Emulator.AppHost.csproj" />
     <Project Path="src/Dataverse.Emulator.Application/Dataverse.Emulator.Application.csproj" />
     <Project Path="src/Dataverse.Emulator.Domain/Dataverse.Emulator.Domain.csproj" />
     <Project Path="src/Dataverse.Emulator.Host/Dataverse.Emulator.Host.csproj" />
     <Project Path="src/Dataverse.Emulator.Persistence.InMemory/Dataverse.Emulator.Persistence.InMemory.csproj" />
     <Project Path="src/Dataverse.Emulator.Protocols/Dataverse.Emulator.Protocols.csproj" />
+    <Project Path="src/Dataverse.Emulator.ServiceDefaults/Dataverse.Emulator.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Dataverse.Emulator.Domain.Tests/Dataverse.Emulator.Domain.Tests.csproj" />

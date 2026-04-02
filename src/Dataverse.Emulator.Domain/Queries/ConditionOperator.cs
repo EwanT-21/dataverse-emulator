@@ -1,6 +1,8 @@
+using Ardalis.SmartEnum;
+
 namespace Dataverse.Emulator.Domain.Queries;
 
-public enum ConditionOperator
+public sealed class ConditionOperator(string name, int value) : SmartEnum<ConditionOperator>(name, value)
 {
-    Equal
+    public static readonly ConditionOperator Equal = new(nameof(Equal), 0);
 }

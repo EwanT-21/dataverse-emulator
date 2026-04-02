@@ -9,15 +9,15 @@ public class RecordValidationServiceTests
     public void ValidateCreate_ReturnsErrors_ForMissingRequiredAndUnknownColumns()
     {
         var table = new TableDefinition(
-            logicalName: "account",
-            entitySetName: "accounts",
-            primaryIdAttribute: "accountid",
-            primaryNameAttribute: "name",
-            columns:
-            [
-                new ColumnDefinition("accountid", AttributeType.UniqueIdentifier, IsPrimaryId: true),
-                new ColumnDefinition("name", AttributeType.String, RequiredLevel.ApplicationRequired, IsPrimaryName: true)
-            ]);
+                logicalName: "account",
+                entitySetName: "accounts",
+                primaryIdAttribute: "accountid",
+                primaryNameAttribute: "name",
+                columns:
+                [
+                    new ColumnDefinition("accountid", AttributeType.UniqueIdentifier, RequiredLevel.None, IsPrimaryId: true),
+                    new ColumnDefinition("name", AttributeType.String, RequiredLevel.ApplicationRequired, IsPrimaryName: true)
+                ]);
 
         var validator = new RecordValidationService();
         var values = new Dictionary<string, object?>
@@ -27,7 +27,7 @@ public class RecordValidationServiceTests
 
         var errors = validator.ValidateCreate(table, values);
 
-        Assert.Contains(errors, error => error.Contains("name", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(errors, error => error.Contains("notreal", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(errors, error => error.Description.Contains("name", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(errors, error => error.Description.Contains("notreal", StringComparison.OrdinalIgnoreCase));
     }
 }

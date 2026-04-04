@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/Microsoft.Xrm.Sdk" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/Microsoft.Xrm.Sdk" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="ArrayOfQuickFindConfiguration">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="QuickFindConfiguration" nillable="true" type="tns:QuickFindConfiguration" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfQuickFindConfiguration" nillable="true" type="tns:ArrayOfQuickFindConfiguration" />
+  <xs:complexType name="QuickFindConfiguration">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="EntityName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="QuickFindConfiguration" nillable="true" type="tns:QuickFindConfiguration" />
+  <xs:complexType name="AuditStorageDetails">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ObjectTypeCode" type="xs:int" />
+      <xs:element minOccurs="0" name="SizeInBytes" type="xs:long" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AuditStorageDetails" nillable="true" type="tns:AuditStorageDetails" />
+</xs:schema>

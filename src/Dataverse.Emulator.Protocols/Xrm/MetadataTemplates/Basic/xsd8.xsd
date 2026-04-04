@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/2013/Metadata" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/2013/Metadata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Metadata" />
+  <xs:complexType name="AttributeTypeDisplayName">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:ConstantsBase">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="AttributeTypeDisplayName" nillable="true" type="tns:AttributeTypeDisplayName" />
+  <xs:complexType name="ConstantsBase">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="ConstantsBase" Namespace="http://schemas.microsoft.com/xrm/2013/Metadata" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="string" Namespace="http://www.w3.org/2001/XMLSchema" />
+        </GenericType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Value" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ConstantsBase" nillable="true" type="tns:ConstantsBase" />
+  <xs:complexType name="StringFormatName">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:ConstantsBase">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="StringFormatName" nillable="true" type="tns:StringFormatName" />
+  <xs:complexType name="ImageAttributeMetadata">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q1="http://schemas.microsoft.com/xrm/2011/Metadata" base="q1:AttributeMetadata">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="CanStoreFullImage" nillable="true" type="xs:boolean" />
+          <xs:element minOccurs="0" name="IsPrimaryImage" nillable="true" type="xs:boolean" />
+          <xs:element minOccurs="0" name="MaxHeight" nillable="true" type="xs:short" />
+          <xs:element minOccurs="0" name="MaxSizeInKB" nillable="true" type="xs:int" />
+          <xs:element minOccurs="0" name="MaxWidth" nillable="true" type="xs:short" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ImageAttributeMetadata" nillable="true" type="tns:ImageAttributeMetadata" />
+  <xs:complexType name="ArrayOfAttributeTypeDisplayName">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="AttributeTypeDisplayName" nillable="true" type="tns:AttributeTypeDisplayName" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfAttributeTypeDisplayName" nillable="true" type="tns:ArrayOfAttributeTypeDisplayName" />
+</xs:schema>

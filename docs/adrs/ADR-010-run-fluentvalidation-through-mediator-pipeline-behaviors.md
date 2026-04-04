@@ -3,6 +3,8 @@
 - Status: Accepted
 - Date: 2026-04-02
 
+Note: the "missing validators are a configuration error" consequence recorded below is superseded by `ADR-012`. The pipeline behavior remains in place, but validator presence is now optional rather than mandatory.
+
 ## Context
 
 The application layer already uses `FluentValidation` for command and query validation, but the first implementation injected validators directly into handler constructors and invoked them inside each handler.

@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/2011/Metadata/Query" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/2011/Metadata/Query" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/8.0" />
+  <xs:import namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" />
+  <xs:complexType name="MetadataFilterExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Conditions" nillable="true" type="tns:ArrayOfMetadataConditionExpression" />
+      <xs:element minOccurs="0" name="FilterOperator" xmlns:q1="http://schemas.microsoft.com/xrm/2011/Contracts" type="q1:LogicalOperator" />
+      <xs:element minOccurs="0" name="Filters" nillable="true" type="tns:ArrayOfMetadataFilterExpression" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MetadataFilterExpression" nillable="true" type="tns:MetadataFilterExpression" />
+  <xs:complexType name="ArrayOfMetadataConditionExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="MetadataConditionExpression" nillable="true" type="tns:MetadataConditionExpression" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfMetadataConditionExpression" nillable="true" type="tns:ArrayOfMetadataConditionExpression" />
+  <xs:complexType name="MetadataConditionExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ConditionOperator" type="tns:MetadataConditionOperator" />
+      <xs:element minOccurs="0" name="PropertyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Value" nillable="true" type="xs:anyType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MetadataConditionExpression" nillable="true" type="tns:MetadataConditionExpression" />
+  <xs:simpleType name="MetadataConditionOperator">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Equals" />
+      <xs:enumeration value="NotEquals" />
+      <xs:enumeration value="In" />
+      <xs:enumeration value="NotIn" />
+      <xs:enumeration value="GreaterThan" />
+      <xs:enumeration value="LessThan" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="MetadataConditionOperator" nillable="true" type="tns:MetadataConditionOperator" />
+  <xs:complexType name="ArrayOfMetadataFilterExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="MetadataFilterExpression" nillable="true" type="tns:MetadataFilterExpression" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfMetadataFilterExpression" nillable="true" type="tns:ArrayOfMetadataFilterExpression" />
+  <xs:complexType name="MetadataQueryBase">
+    <xs:sequence />
+  </xs:complexType>
+  <xs:element name="MetadataQueryBase" nillable="true" type="tns:MetadataQueryBase" />
+  <xs:complexType name="MetadataQueryExpression">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:MetadataQueryBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="Criteria" nillable="true" type="tns:MetadataFilterExpression" />
+          <xs:element minOccurs="0" name="Properties" nillable="true" type="tns:MetadataPropertiesExpression" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="MetadataQueryExpression" nillable="true" type="tns:MetadataQueryExpression" />
+  <xs:complexType name="MetadataPropertiesExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AllProperties" type="xs:boolean" />
+      <xs:element minOccurs="0" name="PropertyNames" nillable="true" xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q2:ArrayOfstring" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MetadataPropertiesExpression" nillable="true" type="tns:MetadataPropertiesExpression" />
+  <xs:complexType name="EntityQueryExpression">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:MetadataQueryExpression">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="AttributeQuery" nillable="true" type="tns:AttributeQueryExpression" />
+          <xs:element minOccurs="0" name="KeyQuery" nillable="true" xmlns:q3="http://schemas.microsoft.com/xrm/8.0" type="q3:EntityKeyQueryExpression" />
+          <xs:element minOccurs="0" name="LabelQuery" nillable="true" type="tns:LabelQueryExpression" />
+          <xs:element minOccurs="0" name="RelationshipQuery" nillable="true" type="tns:RelationshipQueryExpression" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="EntityQueryExpression" nillable="true" type="tns:EntityQueryExpression" />
+  <xs:complexType name="AttributeQueryExpression">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:MetadataQueryExpression">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="AttributeQueryExpression" nillable="true" type="tns:AttributeQueryExpression" />
+  <xs:complexType name="RelationshipQueryExpression">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:MetadataQueryExpression">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RelationshipQueryExpression" nillable="true" type="tns:RelationshipQueryExpression" />
+  <xs:complexType name="LabelQueryExpression">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:MetadataQueryBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="FilterLanguages" nillable="true" xmlns:q4="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q4:ArrayOfint" />
+          <xs:element minOccurs="0" name="MissingLabelBehavior" nillable="true" type="xs:int" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="LabelQueryExpression" nillable="true" type="tns:LabelQueryExpression" />
+  <xs:simpleType name="DeletedMetadataFilters">
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Entity" />
+          <xs:enumeration value="Attribute" />
+          <xs:enumeration value="Relationship" />
+          <xs:enumeration value="Label" />
+          <xs:enumeration value="OptionSet" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:element name="DeletedMetadataFilters" nillable="true" type="tns:DeletedMetadataFilters" />
+  <xs:complexType name="DeletedMetadataCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfDeletedMetadataFiltersArrayOfguidPlUv_PKtF" xmlns:q5="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q5:KeyValuePairOfDeletedMetadataFiltersArrayOfguidPlUv_PKtF" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="DeletedMetadataCollection" nillable="true" type="tns:DeletedMetadataCollection" />
+</xs:schema>

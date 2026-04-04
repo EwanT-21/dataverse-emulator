@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\src\Dataverse.Emulator.Application\Dataverse.Emulator.Application.csproj" />
     <ProjectReference Include="..\..\src\Dataverse.Emulator.Host\Dataverse.Emulator.Host.csproj" />
     <ProjectReference Include="..\..\src\Dataverse.Emulator.Persistence.InMemory\Dataverse.Emulator.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Dataverse.Emulator.Protocols\Dataverse.Emulator.Protocols.csproj" />
   </ItemGroup>
 
 </Project>

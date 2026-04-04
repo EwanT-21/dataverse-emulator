@@ -1,90 +1,142 @@
 # Dataverse Emulator
 
-Local-first emulation of Microsoft Dataverse for development workflows that currently depend on Dataverse, XRM clients, and D365-oriented data connectors.
+Local-first emulation of Microsoft Dataverse for C# and Xrm-oriented development workflows.
 
-The long-term goal is to let a local application connect to an emulator exactly as it would to a real Dataverse environment, while giving developers faster inner-loop feedback, cleaner test environments, and repeatable seeded state from source control.
+The primary goal is to let an existing .NET application keep its current connection-string bootstrap pattern, point at a locally hosted emulator, and run against a shared in-memory Dataverse-like core. Aspire is the default way to host that local environment.
+
+Think "local emulator for Dataverse-backed .NET apps" more than "full local clone of every Dataverse consumer."
+
+## Product Positioning
+
+The project is currently aimed at:
+
+- C# developers who want to run Dataverse-backed apps locally
+- Aspire-hosted local environments
+- Xrm/SDK compatibility first
+
+The project is not currently centered on:
+
+- Power BI connector compatibility
+- Power Automate or flow automation compatibility
+- broad external-tool parity across the Dataverse ecosystem
+
+Those scenarios may matter later, but they are not driving the current roadmap.
 
 ## Current Status
 
-The repository is past the initial scaffold stage and now includes the first internal application slice for metadata and record orchestration.
+The repository now implements a real first compatibility slice:
 
-Implemented so far:
+- Shared in-memory core for metadata, records, and query orchestration.
+- Seeded `account` metadata with entity set `accounts`.
+- Hosted Xrm/C# compatibility for the real legacy `CrmServiceClient`.
+- Supported C# operations:
+  - `Create(Entity)`
+  - `Retrieve(string, Guid, ColumnSet)`
+  - `Update(Entity)`
+  - `Delete(string, Guid)`
+  - `RetrieveMultiple(QueryExpression)`
+- Secondary Dataverse Web API support on `/api/data/v9.2/accounts`.
+- Shared error model mapped into:
+  - SDK-style faults for Xrm/C#
+  - Dataverse-style HTTP errors for Web API
+- Aspire-driven end-to-end tests, including a reusable `net48` harness that uses the real `CrmServiceClient`.
 
-- Domain models for tables, columns, rows, and transport-agnostic query concepts.
-- Static factory-based domain creation with internal constructors and `ErrorOr`-based expected failures.
-- `Ardalis.Specification`-aligned generic repositories for aggregate retrieval and mutation.
-- In-memory persistence with a separate `RecordQuery` path for Dataverse-style list semantics.
-- `Mediator.SourceGenerator`-backed commands and queries with `FluentValidation` enforced through a Mediator pipeline behavior.
-- Seed scenario execution and test coverage for domain and integration-level behavior.
+## Current Scope
 
-What is still missing:
+The emulator is intentionally narrow right now:
 
-- Dataverse-compatible HTTP and XRM protocol surfaces.
-- Connector-oriented query translation such as OData, QueryExpression, and FetchXML.
-- Durable persistence providers beyond the in-memory implementation.
+- One table: `account`
+- In-memory storage only
+- QueryExpression support limited to:
+  - top-level `AND`
+  - `ConditionOperator.Equal`
+  - `OrderExpression`
+  - `TopCount`
+- Web API support limited to matching CRUD plus metadata for the current table slice
+
+Not implemented yet:
+
+- multi-table support
+- FetchXML
+- broader `Execute` message coverage
+- relationship modeling and traversal
+- auth emulation beyond permissive local bootstrap
+- durable persistence providers
+
+## Compatibility Tiers
+
+- Primary: hosted Xrm/C# compatibility for existing .NET applications using the current connection-string pattern.
+- Secondary: Web API compatibility where it supports the same local workflows, tests, and debugging experience.
+- Deferred: broader connector compatibility such as Power BI, Power Automate, or other external-tool scenarios.
 
 ## Design Priorities
 
-- Compatibility before completeness. Support the most common Dataverse integration paths first.
-- Local developer experience first. Fast boot, deterministic state, and easy resets matter.
-- Keep the emulator core independent from transport protocols.
-- Start with in-memory persistence and add durable providers later.
-- Prefer vertical slices that prove real connector compatibility early.
+- Preserve existing app bootstrap patterns wherever possible.
+- Optimize first for the local C# developer workflow.
+- Prove real client compatibility before broadening feature scope.
+- Keep the emulator core transport-agnostic.
+- Optimize for fast local startup, deterministic state, and repeatable tests.
+- Use Aspire as the default local orchestration path.
+- Keep Web API as a supporting compatibility surface unless a real local workflow requires more.
 
 ## Solution Layout
 
+- `src/Dataverse.Emulator.AppHost`
+  - Default local entry point for Aspire orchestration.
 - `src/Dataverse.Emulator.Host`
-  - ASP.NET Core entry point, configuration, diagnostics, and future protocol hosting.
+  - Emulator web process, health endpoints, protocol registration, and seeded startup.
 - `src/Dataverse.Emulator.Domain`
-  - Core model for metadata, records, relationships, and invariants.
+  - Core language for tables, columns, rows, and query concepts.
 - `src/Dataverse.Emulator.Application`
-  - Use cases, Mediator handlers, validation behaviors, query execution, seeding, and emulator workflows.
+  - Mediator handlers, validation behavior, seeding, and orchestration.
 - `src/Dataverse.Emulator.Protocols`
-  - Protocol adapters for Web API, XRM-facing behavior, auth compatibility, and request translation.
+  - Hosted Xrm/SOAP adapter, Web API adapter, protocol translation, and error mapping.
 - `src/Dataverse.Emulator.Persistence.InMemory`
-  - Default local storage provider with generic aggregate repositories and a specialized record-query path.
+  - Default local metadata and record storage provider.
 - `tests/Dataverse.Emulator.Domain.Tests`
-  - Unit tests around domain rules and invariants.
+  - Domain invariants and validation tests.
 - `tests/Dataverse.Emulator.IntegrationTests`
-  - Host- and protocol-level tests that validate end-to-end compatibility slices.
+  - Open-box integration tests and protocol translation tests.
+- `tests/Dataverse.Emulator.AspireTests`
+  - Aspire-hosted end-to-end tests across Web API and Xrm/C#.
+- `tests/Dataverse.Emulator.CrmServiceClientHarness`
+  - `net48` harness that uses the real `CrmServiceClient` package in end-to-end tests.
 
-## Current Slice
+## Local Run
 
-The current implementation supports the internal domain and application workflow for:
+Default local orchestration:
 
-1. Defining table metadata and seeded state.
-2. Creating, retrieving, updating, deleting, and listing rows through Mediator-backed application handlers.
-3. Validating request shape through a shared validation pipeline and enforcing richer semantics in domain services.
-4. Running the same slice against the in-memory persistence provider in tests.
+```bash
+dotnet run --project src/Dataverse.Emulator.AppHost
+```
 
-## Suggested Next Slice
+Direct host only:
 
-1. Expose the existing CRUD/query application flow through a thin Dataverse Web API-compatible adapter.
-2. Map `ErrorOr` outcomes onto transport-specific responses.
-3. Validate the slice against one real client path before broadening support.
+```bash
+dotnet run --project src/Dataverse.Emulator.Host
+```
+
+Local emulator connection string for the current slice:
+
+```text
+AuthType=AD;Url=http://localhost:{port}/org;Domain=EMULATOR;Username=local;Password=local
+```
+
+## Tests
+
+```bash
+dotnet test Dataverse.Emulator.slnx
+```
 
 ## Docs
 
 - Architecture: `docs/architecture.md`
 - Roadmap: `docs/roadmap.md`
 - ADRs: `docs/adrs`
+- Specs: `docs/specs`
 
-Notable implemented ADRs include:
+Key ADRs for the current shape:
 
-- `ADR-005` for `Ardalis.Specification` with generic repositories.
-- `ADR-007` for the aggregate root base class.
-- `ADR-008` for static factories and internal constructors.
-- `ADR-009` for exception boundaries versus expected `ErrorOr` failures.
-- `ADR-010` for Mediator-based validation pipeline behavior.
-
-## Run
-
-```bash
-dotnet run --project src/Dataverse.Emulator.Host
-```
-
-## Test
-
-```bash
-dotnet test Dataverse.Emulator.slnx
-```
+- `ADR-006` for Aspire-first local orchestration.
+- `ADR-011` for hosted `CrmServiceClient` compatibility as the first external contract.
+- `ADR-012` for optional validators in the Mediator pipeline.

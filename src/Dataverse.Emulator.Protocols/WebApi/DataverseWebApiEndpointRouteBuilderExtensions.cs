@@ -7,6 +7,7 @@ using Dataverse.Emulator.Application.Records;
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Queries;
 using Dataverse.Emulator.Domain.Records;
+using Dataverse.Emulator.Protocols.Common;
 using ErrorOr;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -251,35 +252,11 @@ public static partial class DataverseWebApiEndpointRouteBuilderExtensions
 
     private static IResult ToErrorResult(IReadOnlyList<Error> errors)
     {
-        var primary = errors[0];
-        var payload = new Dictionary<string, object?>
-        {
-            ["error"] = new Dictionary<string, object?>
-            {
-                ["code"] = primary.Code,
-                ["message"] = primary.Description,
-                ["details"] = errors
-                    .Skip(1)
-                    .Select(error => new Dictionary<string, object?>
-                    {
-                        ["code"] = error.Code,
-                        ["message"] = error.Description
-                    })
-                    .ToArray()
-            }
-        };
-
-        return Results.Json(payload, statusCode: MapStatusCode(primary.Type), contentType: "application/json");
+        return Results.Json(
+            DataverseProtocolErrorMapper.ToWebApiPayload(errors),
+            statusCode: DataverseProtocolErrorMapper.MapHttpStatusCode(errors[0].Type),
+            contentType: "application/json");
     }
-
-    private static int MapStatusCode(ErrorType errorType)
-        => errorType switch
-        {
-            ErrorType.Validation => StatusCodes.Status400BadRequest,
-            ErrorType.NotFound => StatusCodes.Status404NotFound,
-            ErrorType.Conflict => StatusCodes.Status409Conflict,
-            _ => StatusCodes.Status500InternalServerError
-        };
 
     private static Dictionary<string, object?> ToEntityPayload(TableDefinition table, EntityRecord record)
     {

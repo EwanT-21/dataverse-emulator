@@ -1,0 +1,1657 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/7.1/Contracts" />
+  <xs:import namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Metadata" />
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2014/Contracts" />
+  <xs:complexType name="Entity">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Attributes" nillable="true" type="tns:AttributeCollection" />
+      <xs:element minOccurs="0" name="EntityState" nillable="true" type="tns:EntityState" />
+      <xs:element minOccurs="0" name="FormattedValues" nillable="true" type="tns:FormattedValueCollection" />
+      <xs:element minOccurs="0" name="Id" type="ser:guid" />
+      <xs:element minOccurs="0" name="KeyAttributes" nillable="true" xmlns:q1="http://schemas.microsoft.com/xrm/7.1/Contracts" type="q1:KeyAttributeCollection" />
+      <xs:element minOccurs="0" name="LogicalName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RelatedEntities" nillable="true" type="tns:RelatedEntityCollection" />
+      <xs:element minOccurs="0" name="RowVersion" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Entity" nillable="true" type="tns:Entity" />
+  <xs:complexType name="AttributeCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfstringanyType" xmlns:q2="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q2:KeyValuePairOfstringanyType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AttributeCollection" nillable="true" type="tns:AttributeCollection" />
+  <xs:complexType name="Money">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Value" type="xs:decimal" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Money" nillable="true" type="tns:Money" />
+  <xs:complexType name="ArrayOfMoney">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Money" nillable="true" type="tns:Money" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfMoney" nillable="true" type="tns:ArrayOfMoney" />
+  <xs:complexType name="EntityReference">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Id" type="ser:guid" />
+      <xs:element minOccurs="0" name="KeyAttributes" nillable="true" xmlns:q3="http://schemas.microsoft.com/xrm/7.1/Contracts" type="q3:KeyAttributeCollection" />
+      <xs:element minOccurs="0" name="LogicalName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RowVersion" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityReference" nillable="true" type="tns:EntityReference" />
+  <xs:complexType name="ArrayOfEntityReference">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="EntityReference" nillable="true" type="tns:EntityReference" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfEntityReference" nillable="true" type="tns:ArrayOfEntityReference" />
+  <xs:complexType name="OptionSetValue">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Value" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OptionSetValue" nillable="true" type="tns:OptionSetValue" />
+  <xs:complexType name="ArrayOfOptionSetValue">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="OptionSetValue" nillable="true" type="tns:OptionSetValue" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfOptionSetValue" nillable="true" type="tns:ArrayOfOptionSetValue" />
+  <xs:complexType name="EntityCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Entities" nillable="true" type="tns:ArrayOfEntity" />
+      <xs:element minOccurs="0" name="EntityName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="MinActiveRowVersion" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="MoreRecords" type="xs:boolean" />
+      <xs:element minOccurs="0" name="PagingCookie" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RecordCountLessThanMarv" type="xs:int" />
+      <xs:element minOccurs="0" name="TotalRecordCount" type="xs:int" />
+      <xs:element minOccurs="0" name="TotalRecordCountLimitExceeded" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityCollection" nillable="true" type="tns:EntityCollection" />
+  <xs:complexType name="ArrayOfEntity">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Entity" nillable="true" type="tns:Entity" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfEntity" nillable="true" type="tns:ArrayOfEntity" />
+  <xs:complexType name="ArrayOfEntityCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="EntityCollection" nillable="true" type="tns:EntityCollection" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfEntityCollection" nillable="true" type="tns:ArrayOfEntityCollection" />
+  <xs:complexType name="ArrayOfEntityImageCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="EntityImageCollection" nillable="true" type="tns:EntityImageCollection" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfEntityImageCollection" nillable="true" type="tns:ArrayOfEntityImageCollection" />
+  <xs:complexType name="EntityImageCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfstringEntitygUGIFE1S" xmlns:q4="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q4:KeyValuePairOfstringEntitygUGIFE1S" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityImageCollection" nillable="true" type="tns:EntityImageCollection" />
+  <xs:complexType name="Label">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="LocalizedLabels" nillable="true" type="tns:LocalizedLabelCollection" />
+      <xs:element minOccurs="0" name="UserLocalizedLabel" nillable="true" type="tns:LocalizedLabel" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Label" nillable="true" type="tns:Label" />
+  <xs:complexType name="LocalizedLabelCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="LocalizedLabel" nillable="true" type="tns:LocalizedLabel" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="LocalizedLabelCollection" nillable="true" type="tns:LocalizedLabelCollection" />
+  <xs:complexType name="LocalizedLabel">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q5="http://schemas.microsoft.com/xrm/2011/Metadata" base="q5:MetadataBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="IsManaged" nillable="true" type="xs:boolean" />
+          <xs:element minOccurs="0" name="Label" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="LanguageCode" type="xs:int" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="LocalizedLabel" nillable="true" type="tns:LocalizedLabel" />
+  <xs:complexType name="BooleanManagedProperty">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:ManagedPropertyboolean">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="BooleanManagedProperty" nillable="true" type="tns:BooleanManagedProperty" />
+  <xs:complexType name="ManagedPropertyboolean">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="ManagedProperty{0}" Namespace="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="boolean" Namespace="http://www.w3.org/2001/XMLSchema" />
+        </GenericType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CanBeChanged" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ManagedPropertyLogicalName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Value" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ManagedPropertyboolean" nillable="true" type="tns:ManagedPropertyboolean" />
+  <xs:complexType name="ManagedPropertyAttributeRequiredLevel">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="ManagedProperty{0}" Namespace="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="AttributeRequiredLevel" Namespace="http://schemas.microsoft.com/xrm/2011/Metadata" />
+        </GenericType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CanBeChanged" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ManagedPropertyLogicalName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Value" xmlns:q6="http://schemas.microsoft.com/xrm/2011/Metadata" type="q6:AttributeRequiredLevel" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ManagedPropertyAttributeRequiredLevel" nillable="true" type="tns:ManagedPropertyAttributeRequiredLevel" />
+  <xs:complexType name="ArrayOfEntitySetting">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="EntitySetting" nillable="true" type="tns:EntitySetting" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfEntitySetting" nillable="true" type="tns:ArrayOfEntitySetting" />
+  <xs:complexType name="EntitySetting">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ChildSettings" nillable="true" type="tns:ArrayOfEntitySetting" />
+      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Value" nillable="true" type="tns:Entity" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntitySetting" nillable="true" type="tns:EntitySetting" />
+  <xs:complexType name="UpsertResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpsertResponse" nillable="true" type="tns:UpsertResponse" />
+  <xs:complexType name="OrganizationResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ResponseName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Results" nillable="true" type="tns:ParameterCollection" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OrganizationResponse" nillable="true" type="tns:OrganizationResponse" />
+  <xs:complexType name="ParameterCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfstringanyType" xmlns:q7="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q7:KeyValuePairOfstringanyType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ParameterCollection" nillable="true" type="tns:ParameterCollection" />
+  <xs:complexType name="CreateMultipleResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateMultipleResponse" nillable="true" type="tns:CreateMultipleResponse" />
+  <xs:complexType name="UpdateMultipleResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateMultipleResponse" nillable="true" type="tns:UpdateMultipleResponse" />
+  <xs:complexType name="UpsertMultipleResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpsertMultipleResponse" nillable="true" type="tns:UpsertMultipleResponse" />
+  <xs:complexType name="ReactivateEntityKeyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ReactivateEntityKeyResponse" nillable="true" type="tns:ReactivateEntityKeyResponse" />
+  <xs:complexType name="CanBeReferencedResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CanBeReferencedResponse" nillable="true" type="tns:CanBeReferencedResponse" />
+  <xs:complexType name="CanBeReferencingResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CanBeReferencingResponse" nillable="true" type="tns:CanBeReferencingResponse" />
+  <xs:complexType name="CanManyToManyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CanManyToManyResponse" nillable="true" type="tns:CanManyToManyResponse" />
+  <xs:complexType name="CreateAttributeResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateAttributeResponse" nillable="true" type="tns:CreateAttributeResponse" />
+  <xs:complexType name="CreateEntityResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateEntityResponse" nillable="true" type="tns:CreateEntityResponse" />
+  <xs:complexType name="CreateManyToManyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateManyToManyResponse" nillable="true" type="tns:CreateManyToManyResponse" />
+  <xs:complexType name="CreateOneToManyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateOneToManyResponse" nillable="true" type="tns:CreateOneToManyResponse" />
+  <xs:complexType name="CreateOptionSetResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateOptionSetResponse" nillable="true" type="tns:CreateOptionSetResponse" />
+  <xs:complexType name="CreateEntityKeyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateEntityKeyResponse" nillable="true" type="tns:CreateEntityKeyResponse" />
+  <xs:complexType name="DeleteAttributeResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteAttributeResponse" nillable="true" type="tns:DeleteAttributeResponse" />
+  <xs:complexType name="DeleteEntityResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteEntityResponse" nillable="true" type="tns:DeleteEntityResponse" />
+  <xs:complexType name="DeleteOptionValueResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteOptionValueResponse" nillable="true" type="tns:DeleteOptionValueResponse" />
+  <xs:complexType name="DeleteRelationshipResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteRelationshipResponse" nillable="true" type="tns:DeleteRelationshipResponse" />
+  <xs:complexType name="DeleteOptionSetResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteOptionSetResponse" nillable="true" type="tns:DeleteOptionSetResponse" />
+  <xs:complexType name="DeleteEntityKeyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteEntityKeyResponse" nillable="true" type="tns:DeleteEntityKeyResponse" />
+  <xs:complexType name="GetValidManyToManyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="GetValidManyToManyResponse" nillable="true" type="tns:GetValidManyToManyResponse" />
+  <xs:complexType name="GetValidReferencedEntitiesResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="GetValidReferencedEntitiesResponse" nillable="true" type="tns:GetValidReferencedEntitiesResponse" />
+  <xs:complexType name="GetValidReferencingEntitiesResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="GetValidReferencingEntitiesResponse" nillable="true" type="tns:GetValidReferencingEntitiesResponse" />
+  <xs:complexType name="InsertOptionValueResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="InsertOptionValueResponse" nillable="true" type="tns:InsertOptionValueResponse" />
+  <xs:complexType name="InsertStatusValueResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="InsertStatusValueResponse" nillable="true" type="tns:InsertStatusValueResponse" />
+  <xs:complexType name="OrderOptionResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="OrderOptionResponse" nillable="true" type="tns:OrderOptionResponse" />
+  <xs:complexType name="RetrieveAllEntitiesResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveAllEntitiesResponse" nillable="true" type="tns:RetrieveAllEntitiesResponse" />
+  <xs:complexType name="RetrieveAllOptionSetsResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveAllOptionSetsResponse" nillable="true" type="tns:RetrieveAllOptionSetsResponse" />
+  <xs:complexType name="RetrieveAllManagedPropertiesResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveAllManagedPropertiesResponse" nillable="true" type="tns:RetrieveAllManagedPropertiesResponse" />
+  <xs:complexType name="RetrieveAttributeResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveAttributeResponse" nillable="true" type="tns:RetrieveAttributeResponse" />
+  <xs:complexType name="RetrieveEntityResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveEntityResponse" nillable="true" type="tns:RetrieveEntityResponse" />
+  <xs:complexType name="RetrieveEntityChangesResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveEntityChangesResponse" nillable="true" type="tns:RetrieveEntityChangesResponse" />
+  <xs:complexType name="RetrieveRelationshipResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveRelationshipResponse" nillable="true" type="tns:RetrieveRelationshipResponse" />
+  <xs:complexType name="RetrieveTimestampResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveTimestampResponse" nillable="true" type="tns:RetrieveTimestampResponse" />
+  <xs:complexType name="RetrieveOptionSetResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveOptionSetResponse" nillable="true" type="tns:RetrieveOptionSetResponse" />
+  <xs:complexType name="RetrieveManagedPropertyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveManagedPropertyResponse" nillable="true" type="tns:RetrieveManagedPropertyResponse" />
+  <xs:complexType name="RetrieveEntityKeyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveEntityKeyResponse" nillable="true" type="tns:RetrieveEntityKeyResponse" />
+  <xs:complexType name="UpdateAttributeResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateAttributeResponse" nillable="true" type="tns:UpdateAttributeResponse" />
+  <xs:complexType name="UpdateEntityResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateEntityResponse" nillable="true" type="tns:UpdateEntityResponse" />
+  <xs:complexType name="UpdateOptionValueResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateOptionValueResponse" nillable="true" type="tns:UpdateOptionValueResponse" />
+  <xs:complexType name="UpdateStateValueResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateStateValueResponse" nillable="true" type="tns:UpdateStateValueResponse" />
+  <xs:complexType name="UpdateRelationshipResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateRelationshipResponse" nillable="true" type="tns:UpdateRelationshipResponse" />
+  <xs:complexType name="UpdateOptionSetResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateOptionSetResponse" nillable="true" type="tns:UpdateOptionSetResponse" />
+  <xs:complexType name="AssociateResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="AssociateResponse" nillable="true" type="tns:AssociateResponse" />
+  <xs:complexType name="DisassociateResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DisassociateResponse" nillable="true" type="tns:DisassociateResponse" />
+  <xs:complexType name="IsDataEncryptionActiveResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="IsDataEncryptionActiveResponse" nillable="true" type="tns:IsDataEncryptionActiveResponse" />
+  <xs:complexType name="RetrieveDataEncryptionKeyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveDataEncryptionKeyResponse" nillable="true" type="tns:RetrieveDataEncryptionKeyResponse" />
+  <xs:complexType name="SetDataEncryptionKeyResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="SetDataEncryptionKeyResponse" nillable="true" type="tns:SetDataEncryptionKeyResponse" />
+  <xs:complexType name="RetrieveMetadataChangesResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveMetadataChangesResponse" nillable="true" type="tns:RetrieveMetadataChangesResponse" />
+  <xs:complexType name="ExecuteAsyncResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ExecuteAsyncResponse" nillable="true" type="tns:ExecuteAsyncResponse" />
+  <xs:complexType name="ExecuteMultipleResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ExecuteMultipleResponse" nillable="true" type="tns:ExecuteMultipleResponse" />
+  <xs:complexType name="RetrieveMultipleResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveMultipleResponse" nillable="true" type="tns:RetrieveMultipleResponse" />
+  <xs:complexType name="CreateAsyncJobToRevokeInheritedAccessResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateAsyncJobToRevokeInheritedAccessResponse" nillable="true" type="tns:CreateAsyncJobToRevokeInheritedAccessResponse" />
+  <xs:complexType name="CreateResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateResponse" nillable="true" type="tns:CreateResponse" />
+  <xs:complexType name="DeleteResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteResponse" nillable="true" type="tns:DeleteResponse" />
+  <xs:complexType name="RetrieveResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveResponse" nillable="true" type="tns:RetrieveResponse" />
+  <xs:complexType name="UpdateResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateResponse" nillable="true" type="tns:UpdateResponse" />
+  <xs:complexType name="ExecuteTransactionResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ExecuteTransactionResponse" nillable="true" type="tns:ExecuteTransactionResponse" />
+  <xs:complexType name="ConvertDateAndTimeBehaviorResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ConvertDateAndTimeBehaviorResponse" nillable="true" type="tns:ConvertDateAndTimeBehaviorResponse" />
+  <xs:complexType name="ArrayOfUpsertResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="UpsertResponse" nillable="true" type="tns:UpsertResponse" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfUpsertResponse" nillable="true" type="tns:ArrayOfUpsertResponse" />
+  <xs:complexType name="AliasedValue">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AttributeLogicalName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EntityLogicalName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="NeedFormatting" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ReturnType" type="xs:int" />
+      <xs:element minOccurs="0" name="Value" nillable="true" type="xs:anyType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AliasedValue" nillable="true" type="tns:AliasedValue" />
+  <xs:complexType name="ColumnSet">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AllColumns" type="xs:boolean" />
+      <xs:element minOccurs="0" name="AttributeExpressions" nillable="true" type="tns:ArrayOfAttributeExpression" />
+      <xs:element minOccurs="0" name="Columns" nillable="true" xmlns:q8="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q8:ArrayOfstring" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ColumnSet" nillable="true" type="tns:ColumnSet" />
+  <xs:complexType name="ArrayOfAttributeExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="AttributeExpression" nillable="true" type="tns:AttributeExpression" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfAttributeExpression" nillable="true" type="tns:ArrayOfAttributeExpression" />
+  <xs:complexType name="AttributeExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AggregateType" type="tns:AggregateType" />
+      <xs:element minOccurs="0" name="Alias" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="AttributeName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="DateTimeGrouping" type="tns:DateTimeGroupingType" />
+      <xs:element minOccurs="0" name="HasGroupBy" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AttributeExpression" nillable="true" type="tns:AttributeExpression" />
+  <xs:simpleType name="AggregateType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="None" />
+      <xs:enumeration value="Count" />
+      <xs:enumeration value="CountColumn" />
+      <xs:enumeration value="Sum" />
+      <xs:enumeration value="Avg" />
+      <xs:enumeration value="Min" />
+      <xs:enumeration value="Max" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="AggregateType" nillable="true" type="tns:AggregateType" />
+  <xs:simpleType name="DateTimeGroupingType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="None" />
+      <xs:enumeration value="Day" />
+      <xs:enumeration value="Week" />
+      <xs:enumeration value="Month" />
+      <xs:enumeration value="Quarter" />
+      <xs:enumeration value="Year" />
+      <xs:enumeration value="FiscalPeriod" />
+      <xs:enumeration value="FiscalYear" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="DateTimeGroupingType" nillable="true" type="tns:DateTimeGroupingType" />
+  <xs:complexType name="EntityReferenceCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="EntityReference" nillable="true" type="tns:EntityReference" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityReferenceCollection" nillable="true" type="tns:EntityReferenceCollection" />
+  <xs:complexType name="QueryBase">
+    <xs:sequence />
+  </xs:complexType>
+  <xs:element name="QueryBase" nillable="true" type="tns:QueryBase" />
+  <xs:complexType name="QueryExpression">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:QueryBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ColumnSet" nillable="true" type="tns:ColumnSet" />
+          <xs:element minOccurs="0" name="Criteria" nillable="true" type="tns:FilterExpression" />
+          <xs:element minOccurs="0" name="Distinct" type="xs:boolean" />
+          <xs:element minOccurs="0" name="EntityName" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="ForceSeek" nillable="true" type="xs:string">
+            <xs:annotation>
+              <xs:appinfo>
+                <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" name="LinkEntities" nillable="true" type="tns:ArrayOfLinkEntity" />
+          <xs:element minOccurs="0" name="Orders" nillable="true" type="tns:ArrayOfOrderExpression" />
+          <xs:element minOccurs="0" name="PageInfo" nillable="true" type="tns:PagingInfo" />
+          <xs:element minOccurs="0" name="SubQueryExpression" nillable="true" type="tns:QueryExpression">
+            <xs:annotation>
+              <xs:appinfo>
+                <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" name="NoLock" type="xs:boolean" />
+          <xs:element minOccurs="0" name="TopCount" nillable="true" type="xs:int">
+            <xs:annotation>
+              <xs:appinfo>
+                <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" name="QueryHints" nillable="true" type="xs:string">
+            <xs:annotation>
+              <xs:appinfo>
+                <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" name="DataSource" nillable="true" type="xs:string">
+            <xs:annotation>
+              <xs:appinfo>
+                <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+              </xs:appinfo>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="QueryExpression" nillable="true" type="tns:QueryExpression" />
+  <xs:complexType name="FilterExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AnyAllFilterLinkEntity" nillable="true" type="tns:LinkEntity" />
+      <xs:element minOccurs="0" name="Conditions" nillable="true" type="tns:ArrayOfConditionExpression" />
+      <xs:element minOccurs="0" name="FilterOperator" type="tns:LogicalOperator" />
+      <xs:element minOccurs="0" name="Filters" nillable="true" type="tns:ArrayOfFilterExpression" />
+      <xs:element minOccurs="0" name="IsQuickFindFilter" type="xs:boolean">
+        <xs:annotation>
+          <xs:appinfo>
+            <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="FilterHint" nillable="true" type="xs:string">
+        <xs:annotation>
+          <xs:appinfo>
+            <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="FilterExpression" nillable="true" type="tns:FilterExpression" />
+  <xs:complexType name="LinkEntity">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Columns" nillable="true" type="tns:ColumnSet" />
+      <xs:element minOccurs="0" name="EntityAlias" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ForceSeek" nillable="true" type="xs:string">
+        <xs:annotation>
+          <xs:appinfo>
+            <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="JoinOperator" type="tns:JoinOperator" />
+      <xs:element minOccurs="0" name="LinkCriteria" nillable="true" type="tns:FilterExpression" />
+      <xs:element minOccurs="0" name="LinkEntities" nillable="true" type="tns:ArrayOfLinkEntity" />
+      <xs:element minOccurs="0" name="LinkFromAttributeName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="LinkFromEntityName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="LinkToAttributeName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="LinkToEntityName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Orders" nillable="true" type="tns:ArrayOfOrderExpression" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="LinkEntity" nillable="true" type="tns:LinkEntity" />
+  <xs:simpleType name="JoinOperator">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Inner" />
+      <xs:enumeration value="LeftOuter" />
+      <xs:enumeration value="Natural" />
+      <xs:enumeration value="MatchFirstRowUsingCrossApply" />
+      <xs:enumeration value="In" />
+      <xs:enumeration value="Exists" />
+      <xs:enumeration value="Any" />
+      <xs:enumeration value="NotAny" />
+      <xs:enumeration value="All" />
+      <xs:enumeration value="NotAll" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="JoinOperator" nillable="true" type="tns:JoinOperator" />
+  <xs:complexType name="ArrayOfLinkEntity">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="LinkEntity" nillable="true" type="tns:LinkEntity" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfLinkEntity" nillable="true" type="tns:ArrayOfLinkEntity" />
+  <xs:complexType name="ArrayOfOrderExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="OrderExpression" nillable="true" type="tns:OrderExpression" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfOrderExpression" nillable="true" type="tns:ArrayOfOrderExpression" />
+  <xs:complexType name="OrderExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Alias" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="AttributeName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EntityName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="OrderType" type="tns:OrderType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OrderExpression" nillable="true" type="tns:OrderExpression" />
+  <xs:simpleType name="OrderType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Ascending" />
+      <xs:enumeration value="Descending" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="OrderType" nillable="true" type="tns:OrderType" />
+  <xs:complexType name="ArrayOfConditionExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ConditionExpression" nillable="true" type="tns:ConditionExpression" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfConditionExpression" nillable="true" type="tns:ArrayOfConditionExpression" />
+  <xs:complexType name="ConditionExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AttributeName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="CompareColumns" type="xs:boolean" />
+      <xs:element minOccurs="0" name="Operator" type="tns:ConditionOperator" />
+      <xs:element minOccurs="0" name="Values" nillable="true" xmlns:q9="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q9:ArrayOfanyType" />
+      <xs:element minOccurs="0" name="EntityName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ConditionExpression" nillable="true" type="tns:ConditionExpression" />
+  <xs:simpleType name="ConditionOperator">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Equal" />
+      <xs:enumeration value="NotEqual" />
+      <xs:enumeration value="GreaterThan" />
+      <xs:enumeration value="LessThan" />
+      <xs:enumeration value="GreaterEqual" />
+      <xs:enumeration value="LessEqual" />
+      <xs:enumeration value="Like" />
+      <xs:enumeration value="NotLike" />
+      <xs:enumeration value="In" />
+      <xs:enumeration value="NotIn" />
+      <xs:enumeration value="Between" />
+      <xs:enumeration value="NotBetween" />
+      <xs:enumeration value="Null" />
+      <xs:enumeration value="NotNull" />
+      <xs:enumeration value="Yesterday" />
+      <xs:enumeration value="Today" />
+      <xs:enumeration value="Tomorrow" />
+      <xs:enumeration value="Last7Days" />
+      <xs:enumeration value="Next7Days" />
+      <xs:enumeration value="LastWeek" />
+      <xs:enumeration value="ThisWeek" />
+      <xs:enumeration value="NextWeek" />
+      <xs:enumeration value="LastMonth" />
+      <xs:enumeration value="ThisMonth" />
+      <xs:enumeration value="NextMonth" />
+      <xs:enumeration value="On" />
+      <xs:enumeration value="OnOrBefore" />
+      <xs:enumeration value="OnOrAfter" />
+      <xs:enumeration value="LastYear" />
+      <xs:enumeration value="ThisYear" />
+      <xs:enumeration value="NextYear" />
+      <xs:enumeration value="LastXHours" />
+      <xs:enumeration value="NextXHours" />
+      <xs:enumeration value="LastXDays" />
+      <xs:enumeration value="NextXDays" />
+      <xs:enumeration value="LastXWeeks" />
+      <xs:enumeration value="NextXWeeks" />
+      <xs:enumeration value="LastXMonths" />
+      <xs:enumeration value="NextXMonths" />
+      <xs:enumeration value="LastXYears" />
+      <xs:enumeration value="NextXYears" />
+      <xs:enumeration value="EqualUserId" />
+      <xs:enumeration value="NotEqualUserId" />
+      <xs:enumeration value="EqualBusinessId" />
+      <xs:enumeration value="NotEqualBusinessId" />
+      <xs:enumeration value="ChildOf" />
+      <xs:enumeration value="Mask" />
+      <xs:enumeration value="NotMask" />
+      <xs:enumeration value="MasksSelect" />
+      <xs:enumeration value="Contains" />
+      <xs:enumeration value="DoesNotContain" />
+      <xs:enumeration value="EqualUserLanguage" />
+      <xs:enumeration value="NotOn" />
+      <xs:enumeration value="OlderThanXMonths" />
+      <xs:enumeration value="BeginsWith" />
+      <xs:enumeration value="DoesNotBeginWith" />
+      <xs:enumeration value="EndsWith" />
+      <xs:enumeration value="DoesNotEndWith" />
+      <xs:enumeration value="ThisFiscalYear" />
+      <xs:enumeration value="ThisFiscalPeriod" />
+      <xs:enumeration value="NextFiscalYear" />
+      <xs:enumeration value="NextFiscalPeriod" />
+      <xs:enumeration value="LastFiscalYear" />
+      <xs:enumeration value="LastFiscalPeriod" />
+      <xs:enumeration value="LastXFiscalYears" />
+      <xs:enumeration value="LastXFiscalPeriods" />
+      <xs:enumeration value="NextXFiscalYears" />
+      <xs:enumeration value="NextXFiscalPeriods" />
+      <xs:enumeration value="InFiscalYear" />
+      <xs:enumeration value="InFiscalPeriod" />
+      <xs:enumeration value="InFiscalPeriodAndYear" />
+      <xs:enumeration value="InOrBeforeFiscalPeriodAndYear" />
+      <xs:enumeration value="InOrAfterFiscalPeriodAndYear" />
+      <xs:enumeration value="EqualUserTeams" />
+      <xs:enumeration value="EqualUserOrUserTeams" />
+      <xs:enumeration value="Under" />
+      <xs:enumeration value="NotUnder" />
+      <xs:enumeration value="UnderOrEqual" />
+      <xs:enumeration value="Above" />
+      <xs:enumeration value="AboveOrEqual" />
+      <xs:enumeration value="EqualUserOrUserHierarchy" />
+      <xs:enumeration value="EqualUserOrUserHierarchyAndTeams" />
+      <xs:enumeration value="OlderThanXYears" />
+      <xs:enumeration value="OlderThanXWeeks" />
+      <xs:enumeration value="OlderThanXDays" />
+      <xs:enumeration value="OlderThanXHours" />
+      <xs:enumeration value="OlderThanXMinutes" />
+      <xs:enumeration value="ContainValues" />
+      <xs:enumeration value="DoesNotContainValues" />
+      <xs:enumeration value="EqualRoleBusinessId" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ConditionOperator" nillable="true" type="tns:ConditionOperator" />
+  <xs:simpleType name="LogicalOperator">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="And" />
+      <xs:enumeration value="Or" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="LogicalOperator" nillable="true" type="tns:LogicalOperator" />
+  <xs:complexType name="ArrayOfFilterExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="FilterExpression" nillable="true" type="tns:FilterExpression" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfFilterExpression" nillable="true" type="tns:ArrayOfFilterExpression" />
+  <xs:complexType name="PagingInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Count" type="xs:int" />
+      <xs:element minOccurs="0" name="PageNumber" type="xs:int" />
+      <xs:element minOccurs="0" name="PagingCookie" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ReturnRecordCountLessThanMarv" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ReturnTotalRecordCount" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PagingInfo" nillable="true" type="tns:PagingInfo" />
+  <xs:complexType name="QueryByAttribute">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:QueryBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="Attributes" nillable="true" xmlns:q10="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q10:ArrayOfstring" />
+          <xs:element minOccurs="0" name="ColumnSet" nillable="true" type="tns:ColumnSet" />
+          <xs:element minOccurs="0" name="EntityName" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="Orders" nillable="true" type="tns:ArrayOfOrderExpression" />
+          <xs:element minOccurs="0" name="PageInfo" nillable="true" type="tns:PagingInfo" />
+          <xs:element minOccurs="0" name="Values" nillable="true" xmlns:q11="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q11:ArrayOfanyType" />
+          <xs:element minOccurs="0" name="TopCount" nillable="true" type="xs:int" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="QueryByAttribute" nillable="true" type="tns:QueryByAttribute" />
+  <xs:complexType name="FetchExpression">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:QueryBase">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="Query" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="FetchExpression" nillable="true" type="tns:FetchExpression" />
+  <xs:complexType name="ArrayOfQueryExpression">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="QueryExpression" nillable="true" type="tns:QueryExpression" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfQueryExpression" nillable="true" type="tns:ArrayOfQueryExpression" />
+  <xs:complexType name="ArrayOfLocalizedLabel">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="LocalizedLabel" nillable="true" type="tns:LocalizedLabel" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfLocalizedLabel" nillable="true" type="tns:ArrayOfLocalizedLabel" />
+  <xs:complexType name="Relationship">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="PrimaryEntityRole" nillable="true" type="tns:EntityRole" />
+      <xs:element minOccurs="0" name="SchemaName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Relationship" nillable="true" type="tns:Relationship" />
+  <xs:simpleType name="EntityRole">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Referencing" />
+      <xs:enumeration value="Referenced" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="EntityRole" nillable="true" type="tns:EntityRole" />
+  <xs:complexType name="AttributePrivilegeCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="AttributePrivilege" nillable="true" type="tns:AttributePrivilege" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AttributePrivilegeCollection" nillable="true" type="tns:AttributePrivilegeCollection" />
+  <xs:complexType name="AttributePrivilege">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AttributeId" type="ser:guid" />
+      <xs:element minOccurs="0" name="CanCreate" type="xs:int" />
+      <xs:element minOccurs="0" name="CanRead" type="xs:int" />
+      <xs:element minOccurs="0" name="CanReadUnMasked" type="xs:int" />
+      <xs:element minOccurs="0" name="CanUpdate" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AttributePrivilege" nillable="true" type="tns:AttributePrivilege" />
+  <xs:complexType name="RelationshipQueryCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfRelationshipQueryBaseX_PsK4FkN" xmlns:q12="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q12:KeyValuePairOfRelationshipQueryBaseX_PsK4FkN" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="RelationshipQueryCollection" nillable="true" type="tns:RelationshipQueryCollection" />
+  <xs:complexType name="EntityMetadataCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="EntityMetadata" nillable="true" xmlns:q13="http://schemas.microsoft.com/xrm/2011/Metadata" type="q13:EntityMetadata" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityMetadataCollection" nillable="true" type="tns:EntityMetadataCollection" />
+  <xs:complexType name="OrganizationRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Parameters" nillable="true" type="tns:ParameterCollection" />
+      <xs:element minOccurs="0" name="RequestId" nillable="true" type="ser:guid" />
+      <xs:element minOccurs="0" name="RequestName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OrganizationRequest" nillable="true" type="tns:OrganizationRequest" />
+  <xs:complexType name="CreateMultipleRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateMultipleRequest" nillable="true" type="tns:CreateMultipleRequest" />
+  <xs:complexType name="UpdateMultipleRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateMultipleRequest" nillable="true" type="tns:UpdateMultipleRequest" />
+  <xs:complexType name="UpsertMultipleRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpsertMultipleRequest" nillable="true" type="tns:UpsertMultipleRequest" />
+  <xs:complexType name="ReactivateEntityKeyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ReactivateEntityKeyRequest" nillable="true" type="tns:ReactivateEntityKeyRequest" />
+  <xs:complexType name="CanBeReferencedRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CanBeReferencedRequest" nillable="true" type="tns:CanBeReferencedRequest" />
+  <xs:complexType name="CanBeReferencingRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CanBeReferencingRequest" nillable="true" type="tns:CanBeReferencingRequest" />
+  <xs:complexType name="CanManyToManyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CanManyToManyRequest" nillable="true" type="tns:CanManyToManyRequest" />
+  <xs:complexType name="CreateAttributeRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateAttributeRequest" nillable="true" type="tns:CreateAttributeRequest" />
+  <xs:complexType name="CreateEntityRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateEntityRequest" nillable="true" type="tns:CreateEntityRequest" />
+  <xs:complexType name="CreateManyToManyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateManyToManyRequest" nillable="true" type="tns:CreateManyToManyRequest" />
+  <xs:complexType name="CreateOneToManyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateOneToManyRequest" nillable="true" type="tns:CreateOneToManyRequest" />
+  <xs:complexType name="CreateOptionSetRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateOptionSetRequest" nillable="true" type="tns:CreateOptionSetRequest" />
+  <xs:complexType name="CreateEntityKeyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateEntityKeyRequest" nillable="true" type="tns:CreateEntityKeyRequest" />
+  <xs:complexType name="DeleteAttributeRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteAttributeRequest" nillable="true" type="tns:DeleteAttributeRequest" />
+  <xs:complexType name="DeleteEntityRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteEntityRequest" nillable="true" type="tns:DeleteEntityRequest" />
+  <xs:complexType name="DeleteOptionValueRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteOptionValueRequest" nillable="true" type="tns:DeleteOptionValueRequest" />
+  <xs:complexType name="DeleteRelationshipRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteRelationshipRequest" nillable="true" type="tns:DeleteRelationshipRequest" />
+  <xs:complexType name="DeleteOptionSetRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteOptionSetRequest" nillable="true" type="tns:DeleteOptionSetRequest" />
+  <xs:complexType name="DeleteEntityKeyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteEntityKeyRequest" nillable="true" type="tns:DeleteEntityKeyRequest" />
+  <xs:complexType name="GetValidManyToManyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="GetValidManyToManyRequest" nillable="true" type="tns:GetValidManyToManyRequest" />
+  <xs:complexType name="GetValidReferencedEntitiesRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="GetValidReferencedEntitiesRequest" nillable="true" type="tns:GetValidReferencedEntitiesRequest" />
+  <xs:complexType name="GetValidReferencingEntitiesRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="GetValidReferencingEntitiesRequest" nillable="true" type="tns:GetValidReferencingEntitiesRequest" />
+  <xs:complexType name="InsertOptionValueRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="InsertOptionValueRequest" nillable="true" type="tns:InsertOptionValueRequest" />
+  <xs:complexType name="InsertStatusValueRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="InsertStatusValueRequest" nillable="true" type="tns:InsertStatusValueRequest" />
+  <xs:complexType name="OrderOptionRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="OrderOptionRequest" nillable="true" type="tns:OrderOptionRequest" />
+  <xs:complexType name="RetrieveAllEntitiesRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveAllEntitiesRequest" nillable="true" type="tns:RetrieveAllEntitiesRequest" />
+  <xs:complexType name="RetrieveAllOptionSetsRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveAllOptionSetsRequest" nillable="true" type="tns:RetrieveAllOptionSetsRequest" />
+  <xs:complexType name="RetrieveAllManagedPropertiesRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveAllManagedPropertiesRequest" nillable="true" type="tns:RetrieveAllManagedPropertiesRequest" />
+  <xs:complexType name="RetrieveAttributeRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveAttributeRequest" nillable="true" type="tns:RetrieveAttributeRequest" />
+  <xs:complexType name="RetrieveEntityRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveEntityRequest" nillable="true" type="tns:RetrieveEntityRequest" />
+  <xs:complexType name="RetrieveEntityChangesRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveEntityChangesRequest" nillable="true" type="tns:RetrieveEntityChangesRequest" />
+  <xs:complexType name="RetrieveRelationshipRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveRelationshipRequest" nillable="true" type="tns:RetrieveRelationshipRequest" />
+  <xs:complexType name="RetrieveTimestampRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveTimestampRequest" nillable="true" type="tns:RetrieveTimestampRequest" />
+  <xs:complexType name="RetrieveOptionSetRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveOptionSetRequest" nillable="true" type="tns:RetrieveOptionSetRequest" />
+  <xs:complexType name="RetrieveManagedPropertyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveManagedPropertyRequest" nillable="true" type="tns:RetrieveManagedPropertyRequest" />
+  <xs:complexType name="RetrieveEntityKeyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveEntityKeyRequest" nillable="true" type="tns:RetrieveEntityKeyRequest" />
+  <xs:complexType name="UpdateAttributeRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateAttributeRequest" nillable="true" type="tns:UpdateAttributeRequest" />
+  <xs:complexType name="UpdateEntityRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateEntityRequest" nillable="true" type="tns:UpdateEntityRequest" />
+  <xs:complexType name="UpdateOptionValueRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateOptionValueRequest" nillable="true" type="tns:UpdateOptionValueRequest" />
+  <xs:complexType name="UpdateStateValueRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateStateValueRequest" nillable="true" type="tns:UpdateStateValueRequest" />
+  <xs:complexType name="UpdateRelationshipRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateRelationshipRequest" nillable="true" type="tns:UpdateRelationshipRequest" />
+  <xs:complexType name="UpdateOptionSetRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateOptionSetRequest" nillable="true" type="tns:UpdateOptionSetRequest" />
+  <xs:complexType name="AssociateRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="AssociateRequest" nillable="true" type="tns:AssociateRequest" />
+  <xs:complexType name="DisassociateRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DisassociateRequest" nillable="true" type="tns:DisassociateRequest" />
+  <xs:complexType name="IsDataEncryptionActiveRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="IsDataEncryptionActiveRequest" nillable="true" type="tns:IsDataEncryptionActiveRequest" />
+  <xs:complexType name="RetrieveDataEncryptionKeyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveDataEncryptionKeyRequest" nillable="true" type="tns:RetrieveDataEncryptionKeyRequest" />
+  <xs:complexType name="SetDataEncryptionKeyRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="SetDataEncryptionKeyRequest" nillable="true" type="tns:SetDataEncryptionKeyRequest" />
+  <xs:complexType name="RetrieveMetadataChangesRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveMetadataChangesRequest" nillable="true" type="tns:RetrieveMetadataChangesRequest" />
+  <xs:complexType name="ExecuteAsyncRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ExecuteAsyncRequest" nillable="true" type="tns:ExecuteAsyncRequest" />
+  <xs:complexType name="ExecuteMultipleRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ExecuteMultipleRequest" nillable="true" type="tns:ExecuteMultipleRequest" />
+  <xs:complexType name="RetrieveMultipleRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveMultipleRequest" nillable="true" type="tns:RetrieveMultipleRequest" />
+  <xs:complexType name="CreateAsyncJobToRevokeInheritedAccessRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateAsyncJobToRevokeInheritedAccessRequest" nillable="true" type="tns:CreateAsyncJobToRevokeInheritedAccessRequest" />
+  <xs:complexType name="CreateRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateRequest" nillable="true" type="tns:CreateRequest" />
+  <xs:complexType name="DeleteRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DeleteRequest" nillable="true" type="tns:DeleteRequest" />
+  <xs:complexType name="RetrieveRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="RetrieveRequest" nillable="true" type="tns:RetrieveRequest" />
+  <xs:complexType name="UpdateRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpdateRequest" nillable="true" type="tns:UpdateRequest" />
+  <xs:complexType name="ExecuteTransactionRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ExecuteTransactionRequest" nillable="true" type="tns:ExecuteTransactionRequest" />
+  <xs:complexType name="ConvertDateAndTimeBehaviorRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ConvertDateAndTimeBehaviorRequest" nillable="true" type="tns:ConvertDateAndTimeBehaviorRequest" />
+  <xs:complexType name="UpsertRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="UpsertRequest" nillable="true" type="tns:UpsertRequest" />
+  <xs:complexType name="OrganizationServiceFault">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:BaseServiceFault">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ExceptionRetriable" type="xs:boolean" />
+          <xs:element minOccurs="0" name="ExceptionSource" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="InnerFault" nillable="true" type="tns:OrganizationServiceFault" />
+          <xs:element minOccurs="0" name="OriginalException" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="TraceText" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="OrganizationServiceFault" nillable="true" type="tns:OrganizationServiceFault" />
+  <xs:complexType name="BaseServiceFault">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ActivityId" type="ser:guid" />
+      <xs:element minOccurs="0" name="ErrorCode" type="xs:int" />
+      <xs:element minOccurs="0" name="ErrorDetails" nillable="true" type="tns:ErrorDetailCollection" />
+      <xs:element minOccurs="0" name="HelpLink" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Timestamp" type="xs:dateTime" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="BaseServiceFault" nillable="true" type="tns:BaseServiceFault" />
+  <xs:complexType name="ErrorDetailCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfstringanyType" xmlns:q14="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q14:KeyValuePairOfstringanyType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ErrorDetailCollection" nillable="true" type="tns:ErrorDetailCollection" />
+  <xs:complexType name="DiscoveryServiceFault">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:BaseServiceFault">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="InnerFault" nillable="true" type="tns:DiscoveryServiceFault" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="DiscoveryServiceFault" nillable="true" type="tns:DiscoveryServiceFault" />
+  <xs:complexType name="QuickFindResultCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="QuickFindResult" nillable="true" type="tns:QuickFindResult" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="QuickFindResultCollection" nillable="true" type="tns:QuickFindResultCollection" />
+  <xs:complexType name="QuickFindResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Data" nillable="true" type="tns:EntityCollection" />
+      <xs:element minOccurs="0" name="ErrorCode" type="xs:int" />
+      <xs:element minOccurs="0" name="QueryColumnSet" nillable="true" xmlns:q15="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q15:ArrayOfstring" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="QuickFindResult" nillable="true" type="tns:QuickFindResult" />
+  <xs:complexType name="AttributeMappingCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="AttributeMapping" nillable="true" xmlns:q16="http://schemas.microsoft.com/xrm/2014/Contracts" type="q16:AttributeMapping" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AttributeMappingCollection" nillable="true" type="tns:AttributeMappingCollection" />
+  <xs:simpleType name="EntityState">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unchanged" />
+      <xs:enumeration value="Created" />
+      <xs:enumeration value="Changed" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="EntityState" nillable="true" type="tns:EntityState" />
+  <xs:complexType name="FormattedValueCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfstringstring" xmlns:q17="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q17:KeyValuePairOfstringstring" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="FormattedValueCollection" nillable="true" type="tns:FormattedValueCollection" />
+  <xs:complexType name="RelatedEntityCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfRelationshipEntityCollectionX_PsK4FkN" xmlns:q18="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q18:KeyValuePairOfRelationshipEntityCollectionX_PsK4FkN" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="RelatedEntityCollection" nillable="true" type="tns:RelatedEntityCollection" />
+</xs:schema>

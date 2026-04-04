@@ -2,46 +2,64 @@
 
 ## Phase 0: Foundation
 
-- Establish clean project boundaries.
-- Create a runnable host.
-- Document architectural intent and phased scope.
+Completed:
 
-## Phase 1: Core Metadata And Records
+- establish solution boundaries
+- create runnable Host and AppHost entry points
+- document architecture and contribution direction
 
-Implemented or underway:
+## Phase 1: Shared Metadata And Records Core
 
-- Define table and attribute metadata.
-- Support seeded entities and deterministic reset behavior.
-- Build in-memory storage abstractions for aggregate persistence and record querying.
-- Implement a narrow CRUD application pipeline with Mediator and validation behaviors.
+Completed:
 
-Still open in this phase:
+- define table and column metadata
+- support seeded state
+- build in-memory persistence abstractions
+- implement shared CRUD and query orchestration with Mediator
+- add validation and domain-service checks around the shared core
 
-- Expand metadata and relationship modeling beyond the current table/row slice.
-- Add more compatibility-oriented behaviors on top of the internal CRUD/query workflow.
+## Phase 2: First Hosted Compatibility Slice
 
-## Phase 2: First Compatible HTTP Slice
+Completed:
 
-- Add a minimal Dataverse Web API surface.
-- Support the query features needed for a first real client path.
-- Validate compatibility with one target application or connector.
+- host a real `CrmServiceClient` bootstrap path at `/org`
+- support `account` CRUD plus `RetrieveMultiple(QueryExpression)`
+- expose matching Web API CRUD on `/api/data/v9.2/accounts`
+- serve metadata for both the Xrm and Web API slices
+- prove the slice with Aspire-hosted end-to-end tests
 
-## Phase 3: Query And Message Expansion
+## Phase 3: Xrm-First Local Workflow Expansion
 
-- Add paging, filtering, ordering, and relationship traversal.
-- Introduce FetchXML and QueryExpression translation where needed.
-- Expand execute-message coverage based on proven demand.
+Next likely steps:
 
-## Phase 4: XRM And Ecosystem Features
+- add more `Execute` message coverage where real apps actually need it
+- expand QueryExpression support beyond top-level `AND` + `Equal`
+- add more tables only when a target local-dev scenario requires them
+- improve reset, seeding, and snapshot-oriented local workflows
+- keep Web API growth aligned with the same shared-core capabilities
 
-- Improve XRM client behavior and message compatibility.
-- Add snapshot import/export and environment seeding workflows.
-- Explore plugin pipeline hooks, auth modes, and durable storage providers.
+## Phase 4: Aspire Packaging And Emulator Ergonomics
+
+Later work:
+
+- make the emulator easier to compose into local Aspire-based app environments
+- add richer snapshot import/export and durable local persistence options
+- improve environment-shaping features where they materially help local developers
+
+## Phase 5: Broader Compatibility Exploration
+
+Explicitly later and not a current commitment:
+
+- broader Web API parity
+- FetchXML
+- Power BI-oriented compatibility
+- Power Automate or flow-oriented compatibility
+- broader external-tool support beyond the local C# developer story
 
 ## Contribution Rule Of Thumb
 
 Every roadmap item should answer one of these questions clearly:
 
-- Does it improve compatibility with a real Dataverse client path?
-- Does it improve deterministic local development workflows?
-- Does it make the emulator easier for contributors to understand and extend?
+- does it improve compatibility with a real local .NET/Xrm client path?
+- does it improve deterministic local development workflows?
+- does it preserve the shared-core architecture instead of adding duplicate behavior?

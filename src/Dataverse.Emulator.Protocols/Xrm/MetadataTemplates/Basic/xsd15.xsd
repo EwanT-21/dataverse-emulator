@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/8.0" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/8.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Metadata/Query" />
+  <xs:complexType name="EntityKeyQueryExpression">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q1="http://schemas.microsoft.com/xrm/2011/Metadata/Query" base="q1:MetadataQueryExpression">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="EntityKeyQueryExpression" nillable="true" type="tns:EntityKeyQueryExpression" />
+</xs:schema>

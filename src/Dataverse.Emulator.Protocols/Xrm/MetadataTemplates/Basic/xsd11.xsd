@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/2014/Contracts" xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/2014/Contracts" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/9.0/Contracts" />
+  <xs:import namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" />
+  <xs:simpleType name="EndpointAccessType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Default" />
+      <xs:enumeration value="Internet" />
+      <xs:enumeration value="Intranet" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="EndpointAccessType" nillable="true" type="tns:EndpointAccessType" />
+  <xs:complexType name="AttributeMapping">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AllowedSyncDirection" type="xs:int" />
+      <xs:element minOccurs="0" name="AttributeCrmDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="AttributeCrmName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="AttributeExchangeDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="AttributeExchangeName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="AttributeMappingId" type="ser:guid" />
+      <xs:element minOccurs="0" name="ComputedProperties" nillable="true" xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q1:ArrayOfstring" />
+      <xs:element minOccurs="0" name="DefaultSyncDirection" type="xs:int" />
+      <xs:element minOccurs="0" name="EntityTypeCode" type="xs:int" />
+      <xs:element minOccurs="0" name="IsComputed" type="xs:boolean" />
+      <xs:element minOccurs="0" name="MappingName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SyncDirection" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AttributeMapping" nillable="true" type="tns:AttributeMapping" />
+  <xs:complexType name="OrganizationDetail">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DatacenterId" type="ser:guid" />
+      <xs:element minOccurs="0" name="Endpoints" nillable="true" type="tns:EndpointCollection" />
+      <xs:element minOccurs="0" name="EnvironmentId" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="FriendlyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Geo" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="OrganizationId" type="ser:guid" />
+      <xs:element minOccurs="0" name="OrganizationType" xmlns:q2="http://schemas.microsoft.com/xrm/9.0/Contracts" type="q2:OrganizationType" />
+      <xs:element minOccurs="0" name="OrganizationVersion" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SchemaType" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="State" type="tns:OrganizationState" />
+      <xs:element minOccurs="0" name="TenantId" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="UniqueName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="UrlName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OrganizationDetail" nillable="true" type="tns:OrganizationDetail" />
+  <xs:complexType name="EndpointCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfEndpointTypestringyDL0RVHi" xmlns:q3="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q3:KeyValuePairOfEndpointTypestringyDL0RVHi" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EndpointCollection" nillable="true" type="tns:EndpointCollection" />
+  <xs:simpleType name="EndpointType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="OrganizationService" />
+      <xs:enumeration value="OrganizationDataService" />
+      <xs:enumeration value="WebApplication" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="EndpointType" nillable="true" type="tns:EndpointType" />
+  <xs:simpleType name="OrganizationState">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Enabled" />
+      <xs:enumeration value="Disabled" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="OrganizationState" nillable="true" type="tns:OrganizationState" />
+</xs:schema>

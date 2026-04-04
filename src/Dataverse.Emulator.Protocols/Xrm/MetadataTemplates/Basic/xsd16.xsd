@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/2012/Contracts" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/2012/Contracts" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+  <xs:complexType name="ExecuteMultipleSettings">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ContinueOnError" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ReturnResponses" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ExecuteMultipleSettings" nillable="true" type="tns:ExecuteMultipleSettings" />
+  <xs:complexType name="OrganizationRequestCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="OrganizationRequest" nillable="true" xmlns:q1="http://schemas.microsoft.com/xrm/2011/Contracts" type="q1:OrganizationRequest" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OrganizationRequestCollection" nillable="true" type="tns:OrganizationRequestCollection" />
+  <xs:complexType name="OrganizationResponseCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ExecuteMultipleResponseItem" nillable="true" type="tns:ExecuteMultipleResponseItem" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OrganizationResponseCollection" nillable="true" type="tns:OrganizationResponseCollection" />
+  <xs:complexType name="ExecuteMultipleResponseItem">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Fault" nillable="true" xmlns:q2="http://schemas.microsoft.com/xrm/2011/Contracts" type="q2:OrganizationServiceFault" />
+      <xs:element minOccurs="0" name="RequestIndex" type="xs:int" />
+      <xs:element minOccurs="0" name="Response" nillable="true" xmlns:q3="http://schemas.microsoft.com/xrm/2011/Contracts" type="q3:OrganizationResponse" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ExecuteMultipleResponseItem" nillable="true" type="tns:ExecuteMultipleResponseItem" />
+</xs:schema>

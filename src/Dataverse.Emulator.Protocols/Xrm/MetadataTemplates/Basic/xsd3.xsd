@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/System.Collections.Generic" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Metadata/Query" />
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2014/Contracts" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/8.2/Contracts" />
+  <xs:complexType name="KeyValuePairOfstringanyType">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="string" Namespace="http://www.w3.org/2001/XMLSchema" />
+          <GenericParameter Name="anyType" Namespace="http://www.w3.org/2001/XMLSchema" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" nillable="true" type="xs:string" />
+      <xs:element name="value" nillable="true" type="xs:anyType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfstringanyType" nillable="true" type="tns:KeyValuePairOfstringanyType" />
+  <xs:complexType name="KeyValuePairOfstringEntitygUGIFE1S">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="string" Namespace="http://www.w3.org/2001/XMLSchema" />
+          <GenericParameter Name="Entity" Namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" nillable="true" type="xs:string" />
+      <xs:element name="value" nillable="true" xmlns:q1="http://schemas.microsoft.com/xrm/2011/Contracts" type="q1:Entity" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfstringEntitygUGIFE1S" nillable="true" type="tns:KeyValuePairOfstringEntitygUGIFE1S" />
+  <xs:complexType name="KeyValuePairOfRelationshipQueryBaseX_PsK4FkN">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="Relationship" Namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+          <GenericParameter Name="QueryBase" Namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" nillable="true" xmlns:q2="http://schemas.microsoft.com/xrm/2011/Contracts" type="q2:Relationship" />
+      <xs:element name="value" nillable="true" xmlns:q3="http://schemas.microsoft.com/xrm/2011/Contracts" type="q3:QueryBase" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfRelationshipQueryBaseX_PsK4FkN" nillable="true" type="tns:KeyValuePairOfRelationshipQueryBaseX_PsK4FkN" />
+  <xs:complexType name="KeyValuePairOfDeletedMetadataFiltersArrayOfguidPlUv_PKtF">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="DeletedMetadataFilters" Namespace="http://schemas.microsoft.com/xrm/2011/Metadata/Query" />
+          <GenericParameter Name="ArrayOfguid" Namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" xmlns:q4="http://schemas.microsoft.com/xrm/2011/Metadata/Query" type="q4:DeletedMetadataFilters" />
+      <xs:element name="value" nillable="true" xmlns:q5="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q5:ArrayOfguid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfDeletedMetadataFiltersArrayOfguidPlUv_PKtF" nillable="true" type="tns:KeyValuePairOfDeletedMetadataFiltersArrayOfguidPlUv_PKtF" />
+  <xs:complexType name="KeyValuePairOfEndpointTypestringyDL0RVHi">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="EndpointType" Namespace="http://schemas.microsoft.com/xrm/2014/Contracts" />
+          <GenericParameter Name="string" Namespace="http://www.w3.org/2001/XMLSchema" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" xmlns:q6="http://schemas.microsoft.com/xrm/2014/Contracts" type="q6:EndpointType" />
+      <xs:element name="value" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfEndpointTypestringyDL0RVHi" nillable="true" type="tns:KeyValuePairOfEndpointTypestringyDL0RVHi" />
+  <xs:complexType name="KeyValuePairOfstringArrayOfanyTypety7Ep6D1">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="string" Namespace="http://www.w3.org/2001/XMLSchema" />
+          <GenericParameter Name="ArrayOfanyType" Namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" nillable="true" type="xs:string" />
+      <xs:element name="value" nillable="true" xmlns:q7="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q7:ArrayOfanyType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfstringArrayOfanyTypety7Ep6D1" nillable="true" type="tns:KeyValuePairOfstringArrayOfanyTypety7Ep6D1" />
+  <xs:complexType name="KeyValuePairOfstringUserSearchFacetCollectiony3jr7a4n">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="string" Namespace="http://www.w3.org/2001/XMLSchema" />
+          <GenericParameter Name="UserSearchFacetCollection" Namespace="http://schemas.microsoft.com/xrm/8.2/Contracts" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" nillable="true" type="xs:string" />
+      <xs:element name="value" nillable="true" xmlns:q8="http://schemas.microsoft.com/xrm/8.2/Contracts" type="q8:UserSearchFacetCollection" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfstringUserSearchFacetCollectiony3jr7a4n" nillable="true" type="tns:KeyValuePairOfstringUserSearchFacetCollectiony3jr7a4n" />
+  <xs:complexType name="KeyValuePairOfstringlong">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="string" Namespace="http://www.w3.org/2001/XMLSchema" />
+          <GenericParameter Name="long" Namespace="http://www.w3.org/2001/XMLSchema" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" nillable="true" type="xs:string" />
+      <xs:element name="value" type="xs:long" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfstringlong" nillable="true" type="tns:KeyValuePairOfstringlong" />
+  <xs:complexType name="KeyValuePairOfstringstring">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="string" Namespace="http://www.w3.org/2001/XMLSchema" />
+          <GenericParameter Name="string" Namespace="http://www.w3.org/2001/XMLSchema" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" nillable="true" type="xs:string" />
+      <xs:element name="value" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfstringstring" nillable="true" type="tns:KeyValuePairOfstringstring" />
+  <xs:complexType name="KeyValuePairOfRelationshipEntityCollectionX_PsK4FkN">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="KeyValuePairOf{0}{1}{#}" Namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="Relationship" Namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+          <GenericParameter Name="EntityCollection" Namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+        </GenericType>
+        <IsValueType xmlns="http://schemas.microsoft.com/2003/10/Serialization/">true</IsValueType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="key" nillable="true" xmlns:q9="http://schemas.microsoft.com/xrm/2011/Contracts" type="q9:Relationship" />
+      <xs:element name="value" nillable="true" xmlns:q10="http://schemas.microsoft.com/xrm/2011/Contracts" type="q10:EntityCollection" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyValuePairOfRelationshipEntityCollectionX_PsK4FkN" nillable="true" type="tns:KeyValuePairOfRelationshipEntityCollectionX_PsK4FkN" />
+</xs:schema>

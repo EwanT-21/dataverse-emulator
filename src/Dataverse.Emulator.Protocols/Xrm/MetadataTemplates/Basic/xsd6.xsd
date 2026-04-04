@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/7.1/Contracts" xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/7.1/Contracts" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:complexType name="KeyAttributeCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfstringanyType" xmlns:q1="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q1:KeyValuePairOfstringanyType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="KeyAttributeCollection" nillable="true" type="tns:KeyAttributeCollection" />
+  <xs:simpleType name="EntityKeyIndexStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Pending" />
+      <xs:enumeration value="InProgress" />
+      <xs:enumeration value="Active" />
+      <xs:enumeration value="Failed" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="EntityKeyIndexStatus" nillable="true" type="tns:EntityKeyIndexStatus" />
+  <xs:complexType name="OrganizationResponseCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="OrganizationResponse" nillable="true" xmlns:q2="http://schemas.microsoft.com/xrm/2011/Contracts" type="q2:OrganizationResponse" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OrganizationResponseCollection" nillable="true" type="tns:OrganizationResponseCollection" />
+  <xs:complexType name="ExecuteTransactionFault">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q3="http://schemas.microsoft.com/xrm/2011/Contracts" base="q3:OrganizationServiceFault">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="FaultedRequestIndex" type="xs:int" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ExecuteTransactionFault" nillable="true" type="tns:ExecuteTransactionFault" />
+  <xs:complexType name="MailboxTrackingFolderMappingCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="MailboxTrackingFolderMapping" nillable="true" type="tns:MailboxTrackingFolderMapping" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MailboxTrackingFolderMappingCollection" nillable="true" type="tns:MailboxTrackingFolderMappingCollection" />
+  <xs:complexType name="MailboxTrackingFolderMapping">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ExchangeFolderId" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ExchangeFolderName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="IsFolderOnboarded" type="xs:boolean" />
+      <xs:element minOccurs="0" name="RegardingObjectId" type="ser:guid" />
+      <xs:element minOccurs="0" name="RegardingObjectName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RegardingObjectTypeCode" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MailboxTrackingFolderMapping" nillable="true" type="tns:MailboxTrackingFolderMapping" />
+  <xs:complexType name="BusinessEntityChanges">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Changes" nillable="true" type="tns:BusinessEntityChangesCollection" />
+      <xs:element minOccurs="0" name="DataToken" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="GlobalMetadataVersion" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="MoreRecords" type="xs:boolean" />
+      <xs:element minOccurs="0" name="PagingCookie" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RecordCountLessThanMarv" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="BusinessEntityChanges" nillable="true" type="tns:BusinessEntityChanges" />
+  <xs:complexType name="BusinessEntityChangesCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="anyType" nillable="true" type="xs:anyType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="BusinessEntityChangesCollection" nillable="true" type="tns:BusinessEntityChangesCollection" />
+  <xs:simpleType name="ConcurrencyBehavior">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Default" />
+      <xs:enumeration value="IfRowVersionMatches" />
+      <xs:enumeration value="AlwaysOverwrite" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ConcurrencyBehavior" nillable="true" type="tns:ConcurrencyBehavior" />
+  <xs:simpleType name="ChangeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="NewOrUpdated" />
+      <xs:enumeration value="RemoveOrDeleted" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ChangeType" nillable="true" type="tns:ChangeType" />
+  <xs:complexType name="NewOrUpdatedItem">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="NewOrUpdatedEntity" nillable="true" xmlns:q4="http://schemas.microsoft.com/xrm/2011/Contracts" type="q4:Entity" />
+      <xs:element minOccurs="0" name="Type" type="tns:ChangeType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="NewOrUpdatedItem" nillable="true" type="tns:NewOrUpdatedItem" />
+  <xs:complexType name="RemovedOrDeletedItem">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="RemovedItem" nillable="true" xmlns:q5="http://schemas.microsoft.com/xrm/2011/Contracts" type="q5:EntityReference" />
+      <xs:element minOccurs="0" name="Type" type="tns:ChangeType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="RemovedOrDeletedItem" nillable="true" type="tns:RemovedOrDeletedItem" />
+  <xs:complexType name="EntityAttributeCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfstringArrayOfanyTypety7Ep6D1" xmlns:q6="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q6:KeyValuePairOfstringArrayOfanyTypety7Ep6D1" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityAttributeCollection" nillable="true" type="tns:EntityAttributeCollection" />
+</xs:schema>

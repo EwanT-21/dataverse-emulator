@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.microsoft.com/xrm/2011/Contracts/Services" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" targetNamespace="http://schemas.microsoft.com/xrm/2011/Contracts/Services" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://schemas.microsoft.com/xrm/2011/Contracts/Services/Imports">
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/2011/Contracts/Services" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+      <xsd:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" />
+      <xsd:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+      <xsd:import />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/7.1/Contracts" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/2011/Metadata" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/2013/Metadata" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/7.1/Metadata" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/9.0/Metadata" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/2014/Contracts" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/9.0/Contracts" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/8.1/Contracts" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/2011/Metadata/Query" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/8.0" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/2012/Contracts" />
+      <xsd:import namespace="http://schemas.datacontract.org/2004/07/Microsoft.Xrm.Sdk" />
+      <xsd:import namespace="http://schemas.microsoft.com/xrm/8.2/Contracts" />
+      <xsd:import namespace="http://schemas.datacontract.org/2004/07/System" />
+      <xsd:import namespace="http://schemas.datacontract.org/2004/07/Microsoft.Xrm.Sdk.Metadata" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IOrganizationService_Create_InputMessage">
+    <wsdl:part name="parameters" element="tns:Create" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Create_OutputMessage">
+    <wsdl:part name="parameters" element="tns:CreateResponse" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Create_OrganizationServiceFaultFault_FaultMessage">
+    <wsdl:part name="detail" xmlns:q1="http://schemas.microsoft.com/xrm/2011/Contracts" element="q1:OrganizationServiceFault" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Retrieve_InputMessage">
+    <wsdl:part name="parameters" element="tns:Retrieve" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Retrieve_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RetrieveResponse" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Retrieve_OrganizationServiceFaultFault_FaultMessage">
+    <wsdl:part name="detail" xmlns:q2="http://schemas.microsoft.com/xrm/2011/Contracts" element="q2:OrganizationServiceFault" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Update_InputMessage">
+    <wsdl:part name="parameters" element="tns:Update" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Update_OutputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateResponse" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Update_OrganizationServiceFaultFault_FaultMessage">
+    <wsdl:part name="detail" xmlns:q3="http://schemas.microsoft.com/xrm/2011/Contracts" element="q3:OrganizationServiceFault" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Delete_InputMessage">
+    <wsdl:part name="parameters" element="tns:Delete" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Delete_OutputMessage">
+    <wsdl:part name="parameters" element="tns:DeleteResponse" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Delete_OrganizationServiceFaultFault_FaultMessage">
+    <wsdl:part name="detail" xmlns:q4="http://schemas.microsoft.com/xrm/2011/Contracts" element="q4:OrganizationServiceFault" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Execute_InputMessage">
+    <wsdl:part name="parameters" element="tns:Execute" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Execute_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ExecuteResponse" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Execute_OrganizationServiceFaultFault_FaultMessage">
+    <wsdl:part name="detail" xmlns:q5="http://schemas.microsoft.com/xrm/2011/Contracts" element="q5:OrganizationServiceFault" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Associate_InputMessage">
+    <wsdl:part name="parameters" element="tns:Associate" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Associate_OutputMessage">
+    <wsdl:part name="parameters" element="tns:AssociateResponse" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Associate_OrganizationServiceFaultFault_FaultMessage">
+    <wsdl:part name="detail" xmlns:q6="http://schemas.microsoft.com/xrm/2011/Contracts" element="q6:OrganizationServiceFault" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Disassociate_InputMessage">
+    <wsdl:part name="parameters" element="tns:Disassociate" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Disassociate_OutputMessage">
+    <wsdl:part name="parameters" element="tns:DisassociateResponse" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_Disassociate_OrganizationServiceFaultFault_FaultMessage">
+    <wsdl:part name="detail" xmlns:q7="http://schemas.microsoft.com/xrm/2011/Contracts" element="q7:OrganizationServiceFault" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_RetrieveMultiple_InputMessage">
+    <wsdl:part name="parameters" element="tns:RetrieveMultiple" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_RetrieveMultiple_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RetrieveMultipleResponse" />
+  </wsdl:message>
+  <wsdl:message name="IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage">
+    <wsdl:part name="detail" xmlns:q8="http://schemas.microsoft.com/xrm/2011/Contracts" element="q8:OrganizationServiceFault" />
+  </wsdl:message>
+  <wsdl:portType name="IOrganizationService">
+    <wsdl:operation name="Create">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Create" message="tns:IOrganizationService_Create_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/CreateResponse" message="tns:IOrganizationService_Create_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/CreateOrganizationServiceFaultFault" name="OrganizationServiceFaultFault" message="tns:IOrganizationService_Create_OrganizationServiceFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Retrieve">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Retrieve" message="tns:IOrganizationService_Retrieve_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/RetrieveResponse" message="tns:IOrganizationService_Retrieve_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/RetrieveOrganizationServiceFaultFault" name="OrganizationServiceFaultFault" message="tns:IOrganizationService_Retrieve_OrganizationServiceFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Update">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Update" message="tns:IOrganizationService_Update_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/UpdateResponse" message="tns:IOrganizationService_Update_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/UpdateOrganizationServiceFaultFault" name="OrganizationServiceFaultFault" message="tns:IOrganizationService_Update_OrganizationServiceFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Delete">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Delete" message="tns:IOrganizationService_Delete_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/DeleteResponse" message="tns:IOrganizationService_Delete_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/DeleteOrganizationServiceFaultFault" name="OrganizationServiceFaultFault" message="tns:IOrganizationService_Delete_OrganizationServiceFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Execute">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Execute" message="tns:IOrganizationService_Execute_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/ExecuteResponse" message="tns:IOrganizationService_Execute_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/ExecuteOrganizationServiceFaultFault" name="OrganizationServiceFaultFault" message="tns:IOrganizationService_Execute_OrganizationServiceFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Associate">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Associate" message="tns:IOrganizationService_Associate_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/AssociateResponse" message="tns:IOrganizationService_Associate_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/AssociateOrganizationServiceFaultFault" name="OrganizationServiceFaultFault" message="tns:IOrganizationService_Associate_OrganizationServiceFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Disassociate">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Disassociate" message="tns:IOrganizationService_Disassociate_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/DisassociateResponse" message="tns:IOrganizationService_Disassociate_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/DisassociateOrganizationServiceFaultFault" name="OrganizationServiceFaultFault" message="tns:IOrganizationService_Disassociate_OrganizationServiceFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="RetrieveMultiple">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/RetrieveMultiple" message="tns:IOrganizationService_RetrieveMultiple_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/RetrieveMultipleResponse" message="tns:IOrganizationService_RetrieveMultiple_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/RetrieveMultipleOrganizationServiceFaultFault" name="OrganizationServiceFaultFault" message="tns:IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+</wsdl:definitions>

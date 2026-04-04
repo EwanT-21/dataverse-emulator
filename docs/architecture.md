@@ -2,46 +2,57 @@
 
 ## Intent
 
-The emulator should behave like a local Dataverse environment, not just a fake repository. That means the architecture needs to separate three concerns that will evolve at different speeds:
+The emulator should behave like a local Dataverse environment that real applications can connect to, not just a fake repository behind a test seam.
 
-1. Core Dataverse semantics.
-2. Protocol and client compatibility.
-3. Persistence and developer workflow tooling.
+The current architecture separates three concerns that will keep evolving at different speeds:
+
+1. Shared Dataverse-like semantics.
+2. Client and protocol compatibility.
+3. Storage and local developer workflow tooling.
+
+The current product posture is:
+
+- local-development first
+- Aspire-hosted by default
+- Xrm/C# compatibility first
+- Web API compatibility second
+
+In practice, that means the architecture is being optimized for a local C# developer workflow before it is optimized for broad Dataverse ecosystem parity.
 
 ## Dependency Direction
 
-The solution is organized so that protocol and persistence details depend on the core, not the other way around.
+The solution is organized so protocol and persistence details depend on the shared core, not the other way around.
 
 ```text
-Host
-|- Protocols
-|- Persistence.InMemory
-`- Application
-   `- Domain
+AppHost
+`- Host
+   |- Protocols
+   |- Persistence.InMemory
+   `- Application
+      `- Domain
 ```
 
 ## Project Responsibilities
 
 ### `Dataverse.Emulator.Domain`
 
-Owns the durable language of the emulator:
+Owns the transport-agnostic language of the emulator:
 
-- Tables, columns, option sets, alternate keys, and relationships.
-- Row identity, ownership, concurrency, and invariant rules.
-- Query concepts that should exist regardless of transport.
-- Domain events or rule violations if you introduce them later.
+- tables and columns
+- row identity and invariants
+- query concepts that should exist regardless of transport
+- validation-oriented domain services
 
-Keep this project free from HTTP, SDK, and storage concerns.
+This project stays free from HTTP, SOAP, SDK, and storage concerns.
 
 ### `Dataverse.Emulator.Application`
 
 Owns orchestration and use cases:
 
-- Mediator commands, queries, handlers, and pipeline behaviors.
-- CRUD and execute-message workflows.
-- Query execution pipeline.
-- Metadata loading and seed application.
-- Abstractions for persistence, snapshots, and future plugin hooks.
+- Mediator commands, queries, handlers, and pipeline behaviors
+- CRUD workflows
+- metadata loading and seeded startup behavior
+- abstractions for persistence and query execution
 
 If the domain says what is valid, the application layer decides how requests move through the emulator.
 
@@ -49,63 +60,88 @@ If the domain says what is valid, the application layer decides how requests mov
 
 Owns compatibility surfaces:
 
-- Dataverse Web API and OData translation.
-- XRM-facing request mapping.
-- Future connector-specific shims where necessary.
-- Authentication and connection compatibility adapters.
+- hosted Xrm/SOAP compatibility for `CrmServiceClient`
+- secondary Dataverse Web API compatibility
+- request translation into application commands and queries
+- shared transport-level error mapping
 
-This layer should translate external requests into application commands and queries instead of re-implementing business behavior.
+This layer should translate external contracts into the shared application flow instead of re-implementing emulator behavior.
+
+Current scope guidance for this layer:
+
+- Xrm/C# is the primary compatibility contract.
+- Web API exists to support the same local emulator story.
+- Broader connector-oriented behavior should not drive the design unless a concrete local workflow requires it.
 
 ### `Dataverse.Emulator.Persistence.InMemory`
 
 Owns the first storage provider:
 
-- In-memory record storage.
-- Metadata cache and seeded state.
-- Reset and snapshot-friendly behavior for local workflows.
+- in-memory metadata storage
+- in-memory record storage
+- query execution over the in-memory dataset
+- seeded state for local workflows
 
-Later durable providers, such as file-backed or SQLite-backed storage, can follow the same abstraction boundary without disturbing higher layers.
+Later durable providers should be able to follow the same boundary without disturbing the higher layers.
 
 ### `Dataverse.Emulator.Host`
 
-Owns process startup:
+Owns the emulator process itself:
 
-- Configuration and composition root.
-- Hosted services, diagnostics, and health endpoints.
-- Protocol registration.
-- Local developer ergonomics such as reset endpoints or seeded startup modes.
+- composition root
+- health and diagnostic endpoints
+- protocol registration
+- seeded startup
 
-## Current Implementation Shape
+### `Dataverse.Emulator.AppHost`
 
-The current codebase already uses these main namespaces:
+Owns local orchestration:
 
-- `Domain/Metadata`
-- `Domain/Queries`
-- `Domain/Records`
-- `Domain/Services`
-- `Application/Abstractions`
-- `Application/Behaviors`
-- `Application/Common`
-- `Application/Metadata`
-- `Application/Records`
-- `Application/Seeding`
-- `Persistence.InMemory/Metadata`
-- `Persistence.InMemory/Records`
+- default developer entry point
+- Aspire health wiring
+- future companion resources or supporting services
 
-Likely next additions remain:
+## Current Implemented Slice
 
-- `Domain/Relationships`
-- `Protocols/WebApi`
-- `Protocols/Xrm`
-- `Persistence.InMemory/Storage` or a similar storage-oriented namespace if the in-memory provider grows more complex
+The current proven slice is intentionally narrow:
+
+- one table: `account`
+- one entity set: `accounts`
+- in-memory state only
+- hosted organization service bootstrap at `/org/XRMServices/2011/Organization.svc`
+- C# operations:
+  - `Create`
+  - `Retrieve`
+  - `Update`
+  - `Delete`
+  - `RetrieveMultiple(QueryExpression)`
+- secondary Web API CRUD on `/api/data/v9.2/accounts`
+- shared error model mapped to either SDK faults or HTTP errors
+
+That slice is locked down with:
+
+- domain tests
+- integration tests for translation and shared-core behavior
+- Aspire-hosted end-to-end tests
+- a reusable `net48` harness that uses the real `CrmServiceClient`
 
 ## Scope Guidance
 
-Avoid trying to emulate the whole platform at once. A better path is:
+Keep expanding by real client paths instead of broad platform imitation.
 
-1. Pick one connector path.
-2. Implement the smallest useful metadata and data behavior required for it.
-3. Lock that behavior down with compatibility tests.
-4. Expand outward from proven slices.
+For now, "real client path" should usually mean a real .NET or Xrm-based local application path, not broad Power Platform ecosystem parity.
 
-That strategy will keep the open-source project credible early, because each phase produces a real integration story instead of a broad but shallow codebase.
+The preferred sequence is:
+
+1. choose one concrete client or local workflow path
+2. implement only the metadata, query, and message behavior that path needs
+3. prove it with hosted compatibility tests
+4. broaden outward from a verified slice
+
+That is how the current `account` + `CrmServiceClient` slice should continue to grow into a broader local Dataverse emulator without turning into a shallow protocol collection.
+
+The architecture should continue to resist these scope traps unless they are explicitly justified by a target local workflow:
+
+- designing primarily for Power BI
+- designing primarily for Power Automate
+- treating the Web API surface as the main product instead of a supporting surface

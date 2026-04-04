@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Dataverse.Emulator.AppHost\Dataverse.Emulator.AppHost.csproj" />
+    <ProjectReference Include="..\Dataverse.Emulator.CrmServiceClientHarness\Dataverse.Emulator.CrmServiceClientHarness.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

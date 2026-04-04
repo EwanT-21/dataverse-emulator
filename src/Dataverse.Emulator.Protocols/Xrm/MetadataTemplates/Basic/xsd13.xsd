@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/8.1/Contracts" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/8.1/Contracts" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+  <xs:complexType name="CreateCustomerRelationshipsResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q1="http://schemas.microsoft.com/xrm/2011/Contracts" base="q1:OrganizationResponse">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateCustomerRelationshipsResponse" nillable="true" type="tns:CreateCustomerRelationshipsResponse" />
+  <xs:complexType name="CreateCustomerRelationshipsRequest">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q2="http://schemas.microsoft.com/xrm/2011/Contracts" base="q2:OrganizationRequest">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CreateCustomerRelationshipsRequest" nillable="true" type="tns:CreateCustomerRelationshipsRequest" />
+</xs:schema>

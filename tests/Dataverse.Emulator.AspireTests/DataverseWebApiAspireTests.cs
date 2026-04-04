@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -27,6 +28,18 @@ public sealed class ServiceDocumentAspireTests(DataverseEmulatorFixture fixture)
         Assert.Contains("accounts", serviceDocument.GetProperty("value").EnumerateArray().Select(item => item.GetProperty("name").GetString()));
         Assert.Contains("EntitySet Name=\"accounts\"", metadataDocument, StringComparison.Ordinal);
         Assert.Contains("EntityType Name=\"account\"", metadataDocument, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Xrm_Wsdl_Is_Exposed_Through_AppHost()
+    {
+        using var client = fixture.CreateClient();
+
+        var wsdlResponse = await client.GetAsync("/org/XRMServices/2011/Organization.svc?wsdl&sdkversion=9.2");
+        var wsdl = await wsdlResponse.ReadRequiredStringAsync();
+
+        Assert.Contains("IOrganizationService", wsdl, StringComparison.Ordinal);
+        Assert.Contains("Organization.svc?wsdl=wsdl0", wsdl, StringComparison.Ordinal);
     }
 }
 
@@ -118,6 +131,77 @@ public sealed class PagingAspireTests(DataverseEmulatorFixture fixture)
     }
 }
 
+public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture)
+    : IClassFixture<DataverseEmulatorFixture>
+{
+    [Fact]
+    public async Task CrmServiceClient_Crud_And_QueryExpression_Flow_Works()
+    {
+        var result = await fixture.RunCrmHarnessAsync("crud");
+
+        Assert.Equal("Contoso", result.GetProperty("retrievedName").GetString());
+        Assert.Equal("A-100", result.GetProperty("retrievedAccountNumber").GetString());
+        Assert.Equal("A-200", result.GetProperty("updatedAccountNumber").GetString());
+        Assert.Equal(1, result.GetProperty("queryCount").GetInt32());
+        Assert.False(result.GetProperty("moreRecords").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Unsupported_QueryExpression_Features_Surface_As_SdkFaults()
+    {
+        var result = await fixture.RunCrmHarnessAsync("unsupported-link-query");
+
+        Assert.True(result.GetProperty("faulted").GetBoolean());
+        Assert.Contains("LinkEntity", result.GetProperty("message").GetString(), StringComparison.Ordinal);
+    }
+}
+
+public sealed class CrossSurfaceAspireTests(DataverseEmulatorFixture fixture)
+    : IClassFixture<DataverseEmulatorFixture>
+{
+    [Fact]
+    public async Task CrmServiceClient_Create_Can_Be_Read_Over_WebApi()
+    {
+        var created = await fixture.RunCrmHarnessAsync("create", "Tailspin", "TS-100");
+        var accountId = Guid.Parse(created.GetProperty("id").GetString()!);
+
+        using var client = fixture.CreateClient();
+        var response = await client.GetAsync($"/api/data/v9.2/accounts({accountId})?$select=name,accountnumber");
+        var payload = await response.ReadRequiredJsonAsync();
+
+        Assert.Equal("Tailspin", payload.GetProperty("name").GetString());
+        Assert.Equal("TS-100", payload.GetProperty("accountnumber").GetString());
+    }
+
+    [Fact]
+    public async Task WebApi_Create_Can_Be_Read_Through_CrmServiceClient()
+    {
+        using var client = fixture.CreateClient();
+        var createResponse = await client.PostAsJsonAsync("/api/data/v9.2/accounts", new
+        {
+            name = "Wingtip",
+            accountnumber = "WT-200"
+        });
+
+        Assert.Equal(HttpStatusCode.NoContent, createResponse.StatusCode);
+
+        var entityUri = createResponse.Headers.GetValues("OData-EntityId").Single();
+        var accountId = ExtractId(entityUri);
+        var retrieved = await fixture.RunCrmHarnessAsync("retrieve", accountId.ToString());
+        var attributes = retrieved.GetProperty("attributes");
+
+        Assert.Equal("Wingtip", attributes.GetProperty("name").GetString());
+        Assert.Equal("WT-200", attributes.GetProperty("accountnumber").GetString());
+    }
+
+    private static Guid ExtractId(string entityUri)
+    {
+        var start = entityUri.IndexOf('(');
+        var end = entityUri.IndexOf(')', start + 1);
+        return Guid.Parse(entityUri[(start + 1)..end]);
+    }
+}
+
 public sealed class DataverseEmulatorFixture : IAsyncLifetime
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
@@ -165,6 +249,52 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
         return app.CreateHttpClient("dataverse-emulator", "http");
     }
 
+    public string CreateConnectionString()
+    {
+        using var client = CreateClient();
+        var orgUrl = new Uri(client.BaseAddress!, "/org").ToString().TrimEnd('/');
+        return $"AuthType=AD;Url={orgUrl};Domain=EMULATOR;Username=local;Password=local";
+    }
+
+    public async Task<JsonElement> RunCrmHarnessAsync(string scenario, params string[] args)
+    {
+        var harnessPath = ResolveHarnessPath();
+        Assert.True(File.Exists(harnessPath), $"Could not find CrmServiceClient harness at '{harnessPath}'.");
+
+        var startInfo = new ProcessStartInfo(harnessPath)
+        {
+            WorkingDirectory = Path.GetDirectoryName(harnessPath)!,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+
+        startInfo.ArgumentList.Add(scenario);
+        startInfo.ArgumentList.Add(CreateConnectionString());
+
+        foreach (var arg in args)
+        {
+            startInfo.ArgumentList.Add(arg);
+        }
+
+        using var process = new Process { StartInfo = startInfo };
+        Assert.True(process.Start(), $"Failed to start CrmServiceClient harness at '{harnessPath}'.");
+
+        using var cts = new CancellationTokenSource(DefaultTimeout);
+        var outputTask = process.StandardOutput.ReadToEndAsync(cts.Token);
+        var errorTask = process.StandardError.ReadToEndAsync(cts.Token);
+
+        await process.WaitForExitAsync(cts.Token).WaitAsync(DefaultTimeout, cts.Token);
+
+        var output = await outputTask;
+        var error = await errorTask;
+
+        Assert.Equal(0, process.ExitCode);
+        Assert.False(string.IsNullOrWhiteSpace(output), error);
+
+        return JsonSerializer.Deserialize<JsonElement>(output);
+    }
+
     public async Task DisposeAsync()
     {
         if (app is not null)
@@ -172,6 +302,25 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
             await app.DisposeAsync();
             app = null;
         }
+    }
+
+    private static string ResolveHarnessPath()
+    {
+        var configuration = new DirectoryInfo(
+            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, ".."))).Name;
+
+        return Path.GetFullPath(
+            Path.Combine(
+                AppContext.BaseDirectory,
+                "..",
+                "..",
+                "..",
+                "..",
+                "Dataverse.Emulator.CrmServiceClientHarness",
+                "bin",
+                configuration,
+                "net48",
+                "Dataverse.Emulator.CrmServiceClientHarness.exe"));
     }
 }
 

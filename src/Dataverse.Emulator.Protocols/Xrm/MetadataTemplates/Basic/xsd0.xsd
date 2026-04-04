@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/2011/Contracts/Services" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/2011/Contracts/Services" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:element name="Create">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="entity" nillable="true" xmlns:q1="http://schemas.microsoft.com/xrm/2011/Contracts" type="q1:Entity" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CreateResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="CreateResult" xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/" type="q2:guid" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Retrieve">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="entityName" nillable="true" type="xs:string" />
+        <xs:element minOccurs="0" name="id" xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/" type="q3:guid" />
+        <xs:element minOccurs="0" name="columnSet" nillable="true" xmlns:q4="http://schemas.microsoft.com/xrm/2011/Contracts" type="q4:ColumnSet" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RetrieveResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="RetrieveResult" nillable="true" xmlns:q5="http://schemas.microsoft.com/xrm/2011/Contracts" type="q5:Entity" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Update">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="entity" nillable="true" xmlns:q6="http://schemas.microsoft.com/xrm/2011/Contracts" type="q6:Entity" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="UpdateResponse">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Delete">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="entityName" nillable="true" type="xs:string" />
+        <xs:element minOccurs="0" name="id" xmlns:q7="http://schemas.microsoft.com/2003/10/Serialization/" type="q7:guid" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DeleteResponse">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Execute">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="request" nillable="true" xmlns:q8="http://schemas.microsoft.com/xrm/2011/Contracts" type="q8:OrganizationRequest" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ExecuteResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="ExecuteResult" nillable="true" xmlns:q9="http://schemas.microsoft.com/xrm/2011/Contracts" type="q9:OrganizationResponse" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Associate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="entityName" nillable="true" type="xs:string" />
+        <xs:element minOccurs="0" name="entityId" xmlns:q10="http://schemas.microsoft.com/2003/10/Serialization/" type="q10:guid" />
+        <xs:element minOccurs="0" name="relationship" nillable="true" xmlns:q11="http://schemas.microsoft.com/xrm/2011/Contracts" type="q11:Relationship" />
+        <xs:element minOccurs="0" name="relatedEntities" nillable="true" xmlns:q12="http://schemas.microsoft.com/xrm/2011/Contracts" type="q12:EntityReferenceCollection" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AssociateResponse">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Disassociate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="entityName" nillable="true" type="xs:string" />
+        <xs:element minOccurs="0" name="entityId" xmlns:q13="http://schemas.microsoft.com/2003/10/Serialization/" type="q13:guid" />
+        <xs:element minOccurs="0" name="relationship" nillable="true" xmlns:q14="http://schemas.microsoft.com/xrm/2011/Contracts" type="q14:Relationship" />
+        <xs:element minOccurs="0" name="relatedEntities" nillable="true" xmlns:q15="http://schemas.microsoft.com/xrm/2011/Contracts" type="q15:EntityReferenceCollection" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DisassociateResponse">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RetrieveMultiple">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="query" nillable="true" xmlns:q16="http://schemas.microsoft.com/xrm/2011/Contracts" type="q16:QueryBase" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RetrieveMultipleResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="RetrieveMultipleResult" nillable="true" xmlns:q17="http://schemas.microsoft.com/xrm/2011/Contracts" type="q17:EntityCollection" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

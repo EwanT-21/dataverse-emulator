@@ -1,0 +1,990 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/9.0/Contracts" xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/9.0/Contracts" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Contracts" />
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:import namespace="http://schemas.datacontract.org/2004/07/System.Collections.Generic" />
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <xs:complexType name="GlobalSearchConfigurations">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="IsEnabled" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IsLocalized" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IsSearchBoxVisible" type="xs:boolean" />
+      <xs:element minOccurs="0" name="SearchProviderName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SearchProviderResultsPage" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="GlobalSearchConfigurations" nillable="true" type="tns:GlobalSearchConfigurations" />
+  <xs:complexType name="GlobalSearchConfigurationCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="GlobalSearchConfigurations" nillable="true" type="tns:GlobalSearchConfigurations" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="GlobalSearchConfigurationCollection" nillable="true" type="tns:GlobalSearchConfigurationCollection" />
+  <xs:complexType name="GlobalSearchConfigurationResponseCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="GlobalSearchConfigurationCollection" nillable="true" type="tns:GlobalSearchConfigurationCollection" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="GlobalSearchConfigurationResponseCollection" nillable="true" type="tns:GlobalSearchConfigurationResponseCollection" />
+  <xs:complexType name="SelectColumn">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ColumnName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="DataTypeName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SelectColumn" nillable="true" type="tns:SelectColumn" />
+  <xs:complexType name="SelectColumnCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="SelectColumn" nillable="true" type="tns:SelectColumn" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SelectColumnCollection" nillable="true" type="tns:SelectColumnCollection" />
+  <xs:complexType name="ArrayOfSelectColumnCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="SelectColumnCollection" nillable="true" type="tns:SelectColumnCollection" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfSelectColumnCollection" nillable="true" type="tns:ArrayOfSelectColumnCollection" />
+  <xs:simpleType name="OrganizationType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Customer" />
+      <xs:enumeration value="Monitoring" />
+      <xs:enumeration value="Support" />
+      <xs:enumeration value="BackEnd" />
+      <xs:enumeration value="Secondary" />
+      <xs:enumeration value="CustomerTest" />
+      <xs:enumeration value="CustomerFreeTest" />
+      <xs:enumeration value="CustomerPreview" />
+      <xs:enumeration value="Placeholder" />
+      <xs:enumeration value="TestDrive" />
+      <xs:enumeration value="MsftInvestigation" />
+      <xs:enumeration value="EmailTrial" />
+      <xs:enumeration value="Default" />
+      <xs:enumeration value="Developer" />
+      <xs:enumeration value="Trial" />
+      <xs:enumeration value="Teams" />
+      <xs:enumeration value="Platform" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="OrganizationType" nillable="true" type="tns:OrganizationType" />
+  <xs:complexType name="OptionSetValueCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="OptionSetValue" nillable="true" xmlns:q1="http://schemas.microsoft.com/xrm/2011/Contracts" type="q1:OptionSetValue" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OptionSetValueCollection" nillable="true" type="tns:OptionSetValueCollection" />
+  <xs:complexType name="OrganizationInfo">
+    <xs:sequence>
+      <xs:element name="InstanceType" type="tns:OrganizationType" />
+      <xs:element minOccurs="0" name="Solutions" nillable="true" type="tns:ArrayOfSolution" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="OrganizationInfo" nillable="true" type="tns:OrganizationInfo" />
+  <xs:complexType name="ArrayOfSolution">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Solution" nillable="true" type="tns:Solution" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfSolution" nillable="true" type="tns:ArrayOfSolution" />
+  <xs:complexType name="Solution">
+    <xs:sequence>
+      <xs:element name="Id" type="ser:guid" />
+      <xs:element name="VersionNumber" nillable="true" type="xs:string" />
+      <xs:element name="SolutionUniqueName" nillable="true" type="xs:string" />
+      <xs:element name="FriendlyName" nillable="true" type="xs:string" />
+      <xs:element name="PublisherId" type="ser:guid" />
+      <xs:element name="PublisherIdName" nillable="true" type="xs:string" />
+      <xs:element name="PublisherUniqueName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Solution" nillable="true" type="tns:Solution" />
+  <xs:complexType name="UserLicenseInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ServicePlans" nillable="true" type="tns:ArrayOfServicePlan">
+        <xs:annotation>
+          <xs:appinfo>
+            <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UserLicenseInfo" nillable="true" type="tns:UserLicenseInfo" />
+  <xs:complexType name="ArrayOfServicePlan">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ServicePlan" nillable="true" type="tns:ServicePlan" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfServicePlan" nillable="true" type="tns:ArrayOfServicePlan" />
+  <xs:complexType name="ServicePlan">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ServicePlanId" type="ser:guid">
+        <xs:annotation>
+          <xs:appinfo>
+            <DefaultValue EmitDefaultValue="false" xmlns="http://schemas.microsoft.com/2003/10/Serialization/" />
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Name" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="DisplayName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ServicePlan" nillable="true" type="tns:ServicePlan" />
+  <xs:complexType name="EntityRecordCountCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="KeyValuePairOfstringlong" xmlns:q2="http://schemas.datacontract.org/2004/07/System.Collections.Generic" type="q2:KeyValuePairOfstringlong" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityRecordCountCollection" nillable="true" type="tns:EntityRecordCountCollection" />
+  <xs:complexType name="DependencySummary">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DependencyType" type="xs:int" />
+      <xs:element minOccurs="0" name="DependencyId" type="ser:guid" />
+      <xs:element minOccurs="0" name="DependentComponentType" type="xs:int" />
+      <xs:element minOccurs="0" name="DependentComponentParentId" type="ser:guid" />
+      <xs:element minOccurs="0" name="DependentComponentObjectId" type="ser:guid" />
+      <xs:element minOccurs="0" name="DependentComponentBaseSolutionId" type="ser:guid" />
+      <xs:element minOccurs="0" name="DependentComponentNodeId" type="ser:guid" />
+      <xs:element minOccurs="0" name="DependentComponentName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="DependentComponentDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RequiredComponentType" type="xs:int" />
+      <xs:element minOccurs="0" name="RequiredComponentParentId" type="ser:guid" />
+      <xs:element minOccurs="0" name="RequiredComponentObjectId" type="ser:guid" />
+      <xs:element minOccurs="0" name="RequiredComponentBaseSolutionId" type="ser:guid" />
+      <xs:element minOccurs="0" name="RequiredComponentNodeId" type="ser:guid" />
+      <xs:element minOccurs="0" name="RequiredComponentName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RequiredComponentDisplayName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="DependencySummary" nillable="true" type="tns:DependencySummary" />
+  <xs:complexType name="ArrayOfDependencySummary">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="DependencySummary" nillable="true" type="tns:DependencySummary" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfDependencySummary" nillable="true" type="tns:ArrayOfDependencySummary" />
+  <xs:complexType name="EntityFilePointersRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ElasticEntitiesFilePointers" nillable="true" type="tns:ArrayOfElasticEntitiesFilePointer" />
+      <xs:element minOccurs="0" name="FilePointers" nillable="true" xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q3:ArrayOfstring" />
+      <xs:element minOccurs="0" name="ObjectTypeCode" type="xs:int" />
+      <xs:element minOccurs="0" name="OrganizationId" type="ser:guid" />
+      <xs:element minOccurs="0" name="ScaleGroupId" type="ser:guid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityFilePointersRequest" nillable="true" type="tns:EntityFilePointersRequest" />
+  <xs:complexType name="ArrayOfElasticEntitiesFilePointer">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ElasticEntitiesFilePointer" nillable="true" type="tns:ElasticEntitiesFilePointer" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfElasticEntitiesFilePointer" nillable="true" type="tns:ArrayOfElasticEntitiesFilePointer" />
+  <xs:complexType name="ElasticEntitiesFilePointer">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="FileId" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PartitionId" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ElasticEntitiesFilePointer" nillable="true" type="tns:ElasticEntitiesFilePointer" />
+  <xs:complexType name="EntityFilePointersResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="IsCmkEnabled" type="xs:boolean" />
+      <xs:element minOccurs="0" name="UnReferencedFiles" nillable="true" xmlns:q4="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q4:ArrayOfstring" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityFilePointersResponse" nillable="true" type="tns:EntityFilePointersResponse" />
+  <xs:complexType name="UpdatePointersRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="FilePointer" type="ser:guid" />
+      <xs:element minOccurs="0" name="FileSize" type="xs:long" />
+      <xs:element minOccurs="0" name="IsCmkEnabled" type="xs:boolean" />
+      <xs:element minOccurs="0" name="OrganizationId" type="ser:guid" />
+      <xs:element minOccurs="0" name="Otc" type="xs:int" />
+      <xs:element minOccurs="0" name="Prefix" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ScaleGroupId" type="ser:guid" />
+      <xs:element minOccurs="0" name="SetBodyToNull" type="xs:boolean" />
+      <xs:element minOccurs="0" name="StoragePointer" type="xs:int" />
+      <xs:element minOccurs="0" name="TargetObjectId" type="ser:guid" />
+      <xs:element minOccurs="0" name="VersionNumber" type="xs:long" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UpdatePointersRequest" nillable="true" type="tns:UpdatePointersRequest" />
+  <xs:complexType name="AnalyticsStoreDetails">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Endpoint" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AnalyticsStoreDetails" nillable="true" type="tns:AnalyticsStoreDetails" />
+  <xs:complexType name="LayerDesiredOrder">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Solutions" nillable="true" type="tns:ArrayOfSolutionInfo" />
+      <xs:element minOccurs="0" name="Type" type="tns:LayerDesiredOrderType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="LayerDesiredOrder" nillable="true" type="tns:LayerDesiredOrder" />
+  <xs:complexType name="ArrayOfSolutionInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="SolutionInfo" nillable="true" type="tns:SolutionInfo" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfSolutionInfo" nillable="true" type="tns:ArrayOfSolutionInfo" />
+  <xs:complexType name="SolutionInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Name" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SolutionInfo" nillable="true" type="tns:SolutionInfo" />
+  <xs:simpleType name="LayerDesiredOrderType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Below" />
+      <xs:enumeration value="Above" />
+      <xs:enumeration value="Base" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="LayerDesiredOrderType" nillable="true" type="tns:LayerDesiredOrderType" />
+  <xs:complexType name="PreferredSolutionDetails">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AssociatedUsers" nillable="true" type="tns:ArrayOfUserName" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PreferredSolutionDetails" nillable="true" type="tns:PreferredSolutionDetails" />
+  <xs:complexType name="ArrayOfUserName">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="UserName" nillable="true" type="tns:UserName" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfUserName" nillable="true" type="tns:ArrayOfUserName" />
+  <xs:complexType name="UserName">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="FirstName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="LastName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SystemUserId" type="ser:guid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UserName" nillable="true" type="tns:UserName" />
+  <xs:complexType name="PreferredSolution">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CustomizationOptionValuePrefix" type="xs:int" />
+      <xs:element minOccurs="0" name="CustomizationPrefix" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="IsManaged" type="xs:boolean" />
+      <xs:element minOccurs="0" name="PublisherFriendlyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PublisherUniqueName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SolutionDescription" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SolutionFriendlyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SolutionId" type="ser:guid" />
+      <xs:element minOccurs="0" name="SolutionUniqueName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SolutionVersion" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PreferredSolution" nillable="true" type="tns:PreferredSolution" />
+  <xs:complexType name="SolutionParameters">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DeployMissingPackagesBeforeSolutionImport" type="xs:boolean" />
+      <xs:element minOccurs="0" name="PackageHistoryReference" nillable="true" xmlns:q5="http://schemas.microsoft.com/xrm/2011/Contracts" type="q5:EntityReference" />
+      <xs:element minOccurs="0" name="SolutionComponentOptions" nillable="true" type="tns:ArrayOfSolutionComponentOption" />
+      <xs:element minOccurs="0" name="StageSolutionUploadId" type="ser:guid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SolutionParameters" nillable="true" type="tns:SolutionParameters" />
+  <xs:complexType name="ArrayOfSolutionComponentOption">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="SolutionComponentOption" nillable="true" type="tns:SolutionComponentOption" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfSolutionComponentOption" nillable="true" type="tns:ArrayOfSolutionComponentOption" />
+  <xs:complexType name="SolutionComponentOption">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Component" nillable="true" xmlns:q6="http://schemas.microsoft.com/xrm/2011/Contracts" type="q6:Entity" />
+      <xs:element minOccurs="0" name="ComponentPrincipalAccessItems" nillable="true" type="tns:ArrayOfComponentPrincipalAccess" />
+      <xs:element minOccurs="0" name="ImportDecision" type="tns:ImportDecision" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SolutionComponentOption" nillable="true" type="tns:SolutionComponentOption" />
+  <xs:complexType name="ArrayOfComponentPrincipalAccess">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ComponentPrincipalAccess" nillable="true" type="tns:ComponentPrincipalAccess" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfComponentPrincipalAccess" nillable="true" type="tns:ArrayOfComponentPrincipalAccess" />
+  <xs:complexType name="ComponentPrincipalAccess">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="RequestType" nillable="true" type="xs:int" />
+      <xs:element minOccurs="0" name="ShareAccessMask" type="tns:ShareAccessRights" />
+      <xs:element minOccurs="0" name="SharePrincipal" nillable="true" xmlns:q7="http://schemas.microsoft.com/xrm/2011/Contracts" type="q7:EntityReference" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ComponentPrincipalAccess" nillable="true" type="tns:ComponentPrincipalAccess" />
+  <xs:simpleType name="ShareAccessRights">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="None" />
+      <xs:enumeration value="ReadAccess" />
+      <xs:enumeration value="WriteAccess" />
+      <xs:enumeration value="AppendAccess">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">4</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="AppendToAccess">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">16</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CreateAccess">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">32</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DeleteAccess">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">65536</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ShareAccess">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">262144</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="AssignAccess">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">524288</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ShareAccessRights" nillable="true" type="tns:ShareAccessRights" />
+  <xs:simpleType name="ImportDecision">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Import" />
+      <xs:enumeration value="Skip" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ImportDecision" nillable="true" type="tns:ImportDecision" />
+  <xs:complexType name="SolutionOperationResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ActionLink" nillable="true" type="tns:ActionLink" />
+      <xs:element minOccurs="0" name="ErrorMessages" nillable="true" xmlns:q8="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q8:ArrayOfstring" />
+      <xs:element minOccurs="0" name="FormattedResults" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Status" type="tns:SolutionOperationStatus" />
+      <xs:element minOccurs="0" name="Type" type="tns:SolutionOperationType" />
+      <xs:element minOccurs="0" name="WarningMessages" nillable="true" xmlns:q9="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q9:ArrayOfstring" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SolutionOperationResult" nillable="true" type="tns:SolutionOperationResult" />
+  <xs:complexType name="ActionLink">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Label" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Target" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ActionLink" nillable="true" type="tns:ActionLink" />
+  <xs:simpleType name="SolutionOperationStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Failed" />
+      <xs:enumeration value="Passed" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SolutionOperationStatus" nillable="true" type="tns:SolutionOperationStatus" />
+  <xs:simpleType name="SolutionOperationType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Import" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SolutionOperationType" nillable="true" type="tns:SolutionOperationType" />
+  <xs:simpleType name="SolutionOperationMessageType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Info" />
+      <xs:enumeration value="Warning" />
+      <xs:enumeration value="Error" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SolutionOperationMessageType" nillable="true" type="tns:SolutionOperationMessageType" />
+  <xs:complexType name="StageSolutionResults">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="MissingDependencies" nillable="true" type="tns:ArrayOfMissingDependency" />
+      <xs:element minOccurs="0" name="SolutionComponentsDetails" nillable="true" type="tns:ArrayOfSolutionComponentDetails" />
+      <xs:element minOccurs="0" name="SolutionDetails" nillable="true" type="tns:SolutionDetails" />
+      <xs:element minOccurs="0" name="SolutionValidationResults" nillable="true" type="tns:ArrayOfSolutionValidationResult" />
+      <xs:element minOccurs="0" name="StageSolutionStatus" type="tns:StageSolutionStatus" />
+      <xs:element minOccurs="0" name="StageSolutionUploadId" type="ser:guid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="StageSolutionResults" nillable="true" type="tns:StageSolutionResults" />
+  <xs:complexType name="ArrayOfMissingDependency">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="MissingDependency" nillable="true" type="tns:MissingDependency" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfMissingDependency" nillable="true" type="tns:ArrayOfMissingDependency" />
+  <xs:complexType name="MissingDependency">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CanResolveMissingDependency" type="xs:boolean" />
+      <xs:element minOccurs="0" name="DependentComponentDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="DependentComponentId" type="ser:guid" />
+      <xs:element minOccurs="0" name="DependentComponentParentDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="DependentComponentParentSchemaName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="DependentComponentSchemaName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="DependentComponentType" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="MissingPackages" nillable="true" type="tns:ArrayOfMissingPackage" />
+      <xs:element minOccurs="0" name="RequiredComponentDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RequiredComponentId" type="ser:guid" />
+      <xs:element minOccurs="0" name="RequiredComponentParentDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RequiredComponentParentSchemaName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RequiredComponentSchemaName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RequiredComponentType" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RequiredSolutionName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MissingDependency" nillable="true" type="tns:MissingDependency" />
+  <xs:complexType name="ArrayOfMissingPackage">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="MissingPackage" nillable="true" type="tns:MissingPackage" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfMissingPackage" nillable="true" type="tns:ArrayOfMissingPackage" />
+  <xs:complexType name="MissingPackage">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AppName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="IsFirstParty" type="xs:boolean" />
+      <xs:element minOccurs="0" name="PackageName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ResolutionAction" type="tns:MissingPackageResolutionAction" />
+      <xs:element minOccurs="0" name="Version" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MissingPackage" nillable="true" type="tns:MissingPackage" />
+  <xs:simpleType name="MissingPackageResolutionAction">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Install" />
+      <xs:enumeration value="Update" />
+      <xs:enumeration value="Ignore" />
+      <xs:enumeration value="Deprecated" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="MissingPackageResolutionAction" nillable="true" type="tns:MissingPackageResolutionAction" />
+  <xs:complexType name="ArrayOfSolutionComponentDetails">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="SolutionComponentDetails" nillable="true" type="tns:SolutionComponentDetails" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfSolutionComponentDetails" nillable="true" type="tns:ArrayOfSolutionComponentDetails" />
+  <xs:complexType name="SolutionComponentDetails">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Attributes" nillable="true" xmlns:q10="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q10:ArrayOfKeyValueOfstringstring" />
+      <xs:element minOccurs="0" name="ComponentName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ComponentTypeName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="IsPresentInOrg" type="tns:PresentInOrg" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SolutionComponentDetails" nillable="true" type="tns:SolutionComponentDetails" />
+  <xs:simpleType name="PresentInOrg">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="False" />
+      <xs:enumeration value="True" />
+      <xs:enumeration value="Unknown" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="PresentInOrg" nillable="true" type="tns:PresentInOrg" />
+  <xs:complexType name="SolutionDetails">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="HasPendingUpgrade" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IsManaged" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IsPatchSolution" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IsPrerequisitesExport" type="xs:boolean" />
+      <xs:element minOccurs="0" name="PreviousIsManaged" type="xs:boolean" />
+      <xs:element minOccurs="0" name="PreviousPatchSolutionsNames" nillable="true" xmlns:q11="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q11:ArrayOfstring" />
+      <xs:element minOccurs="0" name="PreviousPublisherFriendlyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PreviousPublisherUniqueName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PreviousSolutionFriendlyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PreviousSolutionUniqueName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PreviousSolutionVersion" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PublisherFriendlyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PublisherUniqueName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SolutionDescription" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SolutionFriendlyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SolutionUniqueName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SolutionVersion" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SolutionDetails" nillable="true" type="tns:SolutionDetails" />
+  <xs:complexType name="ArrayOfSolutionValidationResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="SolutionValidationResult" nillable="true" type="tns:SolutionValidationResult" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfSolutionValidationResult" nillable="true" type="tns:ArrayOfSolutionValidationResult" />
+  <xs:complexType name="SolutionValidationResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AdditionalInfo" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ErrorCode" type="xs:int" />
+      <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SolutionValidationResultType" type="tns:SolutionValidationResultType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SolutionValidationResult" nillable="true" type="tns:SolutionValidationResult" />
+  <xs:simpleType name="SolutionValidationResultType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Info" />
+      <xs:enumeration value="Warning" />
+      <xs:enumeration value="Error" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SolutionValidationResultType" nillable="true" type="tns:SolutionValidationResultType" />
+  <xs:simpleType name="StageSolutionStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Failed" />
+      <xs:enumeration value="Passed" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="StageSolutionStatus" nillable="true" type="tns:StageSolutionStatus" />
+  <xs:complexType name="ProvisionLanguageForUserResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AsyncOperationId" type="ser:guid" />
+      <xs:element minOccurs="0" name="Lcid" type="xs:int" />
+      <xs:element minOccurs="0" name="StatusType" type="tns:ProvisionLanguageForUserStatusType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ProvisionLanguageForUserResult" nillable="true" type="tns:ProvisionLanguageForUserResult" />
+  <xs:simpleType name="ProvisionLanguageForUserStatusType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Queued" />
+      <xs:enumeration value="Completed" />
+      <xs:enumeration value="Skipped" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ProvisionLanguageForUserStatusType" nillable="true" type="tns:ProvisionLanguageForUserStatusType" />
+  <xs:complexType name="ExportComponentDetails">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AddRequiredComponents" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ComponentId" type="ser:guid" />
+      <xs:element minOccurs="0" name="ComponentType" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ExportComponentDetails" nillable="true" type="tns:ExportComponentDetails" />
+  <xs:complexType name="ExportComponentsParams">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ExportComponentsList" nillable="true" type="tns:ArrayOfExportComponentDetails" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ExportComponentsParams" nillable="true" type="tns:ExportComponentsParams" />
+  <xs:complexType name="ArrayOfExportComponentDetails">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ExportComponentDetails" nillable="true" type="tns:ExportComponentDetails" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfExportComponentDetails" nillable="true" type="tns:ArrayOfExportComponentDetails" />
+  <xs:simpleType name="SqlNameMappingOptions">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="LogicalName" />
+      <xs:enumeration value="DisplayName" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SqlNameMappingOptions" nillable="true" type="tns:SqlNameMappingOptions" />
+  <xs:complexType name="PSqlConnectionContext">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DatabaseName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PSqlConnectionContext" nillable="true" type="tns:PSqlConnectionContext" />
+  <xs:complexType name="FileSasUrlResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="FileName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="FileSizeInBytes" type="xs:long" />
+      <xs:element minOccurs="0" name="MimeType" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SasUrl" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="FileSasUrlResponse" nillable="true" type="tns:FileSasUrlResponse" />
+  <xs:complexType name="TriggerDefinition">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PrimaryEntityLogicalName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PrimaryEntityDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SdkMessageId" type="ser:guid" />
+      <xs:element minOccurs="0" name="SdkMessageName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="CatalogUniqueName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="CatalogDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SubCatalogUniqueName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SubCatalogDisplayName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EventType" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PrimaryEntityId" type="ser:guid" />
+      <xs:element minOccurs="0" name="CatalogId" type="ser:guid" />
+      <xs:element minOccurs="0" name="SubCatalogId" type="ser:guid" />
+      <xs:element minOccurs="0" name="OpenApiOperationIdName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TriggerDefinition" nillable="true" type="tns:TriggerDefinition" />
+  <xs:complexType name="TriggerDefinitions">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Definitions" nillable="true" type="tns:ArrayOfTriggerDefinition" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TriggerDefinitions" nillable="true" type="tns:TriggerDefinitions" />
+  <xs:complexType name="ArrayOfTriggerDefinition">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="TriggerDefinition" nillable="true" type="tns:TriggerDefinition" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfTriggerDefinition" nillable="true" type="tns:ArrayOfTriggerDefinition" />
+  <xs:complexType name="UpgradeCurrencyTypeStatus">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CompletedTableCount" type="xs:int" />
+      <xs:element minOccurs="0" name="FailedTableCount" type="xs:int" />
+      <xs:element minOccurs="0" name="InProgressTableCount" type="xs:int" />
+      <xs:element minOccurs="0" name="LastUpdatedTime" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="PendingTableCount" type="xs:int" />
+      <xs:element minOccurs="0" name="StartTime" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="TableOrColumnDeletedAfterUpgradeTableCount" type="xs:int" />
+      <xs:element minOccurs="0" name="Tables" nillable="true" type="tns:ArrayOfUpgradeCurrencyTypeTable" />
+      <xs:element minOccurs="0" name="TotalTableCount" type="xs:int" />
+      <xs:element minOccurs="0" name="UpgradeStatus" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UpgradeCurrencyTypeStatus" nillable="true" type="tns:UpgradeCurrencyTypeStatus" />
+  <xs:complexType name="ArrayOfUpgradeCurrencyTypeTable">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="UpgradeCurrencyTypeTable" nillable="true" type="tns:UpgradeCurrencyTypeTable" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfUpgradeCurrencyTypeTable" nillable="true" type="tns:ArrayOfUpgradeCurrencyTypeTable" />
+  <xs:complexType name="UpgradeCurrencyTypeTable">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ErrorMessage" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ErrorNumber" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="LastUpdatedTime" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="PendingRowCount" type="xs:int" />
+      <xs:element minOccurs="0" name="ProcessedRowCount" type="xs:int" />
+      <xs:element minOccurs="0" name="StartTime" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Status" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="TableName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="TotalRowCount" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UpgradeCurrencyTypeTable" nillable="true" type="tns:UpgradeCurrencyTypeTable" />
+  <xs:simpleType name="ValidateSolutionStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Failed" />
+      <xs:enumeration value="Passed" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ValidateSolutionStatus" nillable="true" type="tns:ValidateSolutionStatus" />
+  <xs:complexType name="ValidateSolutionPrerequisitesResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ComponentPrivileges" nillable="true" xmlns:q12="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q12:ArrayOfKeyValueOfstringArrayOfstringty7Ep6D1" />
+      <xs:element minOccurs="0" name="MissingDependencies" nillable="true" type="tns:ArrayOfMissingDependency" />
+      <xs:element minOccurs="0" name="OrgSolutionComponentsDetails" nillable="true" type="tns:ArrayOfSolutionComponentDetails" />
+      <xs:element minOccurs="0" name="SolutionComponentsDetails" nillable="true" type="tns:ArrayOfSolutionComponentDetails" />
+      <xs:element minOccurs="0" name="SolutionDetails" nillable="true" type="tns:SolutionDetails" />
+      <xs:element minOccurs="0" name="SolutionValidationResults" nillable="true" type="tns:ArrayOfSolutionValidationResult" />
+      <xs:element minOccurs="0" name="ValidationStatus" type="tns:ValidateSolutionStatus" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ValidateSolutionPrerequisitesResult" nillable="true" type="tns:ValidateSolutionPrerequisitesResult" />
+  <xs:complexType name="DataProcessingModuleExecuteRequest">
+    <xs:sequence>
+      <xs:element name="DataProcessingConfigurationId" type="ser:guid" />
+      <xs:element minOccurs="0" name="EndPoints" nillable="true" xmlns:q13="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q13:ArrayOfstring" />
+      <xs:element minOccurs="0" name="JobName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Script" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="JobArguments" nillable="true" xmlns:q14="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q14:ArrayOfstring" />
+      <xs:element minOccurs="0" name="ScalarInputs" nillable="true" type="tns:ArrayOfScalarInputParameter" />
+      <xs:element minOccurs="0" name="CallbackUri" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="UpstreamResults" nillable="true" type="tns:ArrayOfUpstreamResultInput" />
+      <xs:element minOccurs="0" name="OverrideApplicationId" nillable="true" type="ser:guid" />
+      <xs:element minOccurs="0" name="DirectEntryContext" nillable="true" type="tns:DirectEntryContext" />
+      <xs:element minOccurs="0" name="ModuleConfigurationJson" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ModuleRunId" type="ser:guid" />
+      <xs:element minOccurs="0" name="ModuleRunIncrementalSettings" nillable="true" type="tns:ModuleRunIncrementalSettings" />
+      <xs:element minOccurs="0" name="ModuleRunOutputInfo" nillable="true" type="tns:ModuleRunOutputInfo" />
+      <xs:element minOccurs="0" name="DynamicAllocationSettings" nillable="true" type="tns:DynamicAllocationSettings" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="DataProcessingModuleExecuteRequest" nillable="true" type="tns:DataProcessingModuleExecuteRequest" />
+  <xs:complexType name="ArrayOfScalarInputParameter">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ScalarInputParameter" nillable="true" type="tns:ScalarInputParameter" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfScalarInputParameter" nillable="true" type="tns:ArrayOfScalarInputParameter" />
+  <xs:complexType name="ScalarInputParameter">
+    <xs:sequence>
+      <xs:element name="Name" nillable="true" type="xs:string" />
+      <xs:element name="Value" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ScalarInputParameter" nillable="true" type="tns:ScalarInputParameter" />
+  <xs:complexType name="ArrayOfUpstreamResultInput">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="UpstreamResultInput" nillable="true" type="tns:UpstreamResultInput" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfUpstreamResultInput" nillable="true" type="tns:ArrayOfUpstreamResultInput" />
+  <xs:complexType name="UpstreamResultInput">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="VersionedEntityReferences" nillable="true" type="tns:ArrayOfUpstreamEntityInputVersionInfo" />
+      <xs:element name="ResultCode" type="tns:ResultCode" />
+      <xs:element minOccurs="0" name="IncrementalEntityInfos" nillable="true" type="tns:ArrayOfUpstreamIncrementalEntityInfo" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UpstreamResultInput" nillable="true" type="tns:UpstreamResultInput" />
+  <xs:complexType name="ArrayOfUpstreamEntityInputVersionInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="UpstreamEntityInputVersionInfo" nillable="true" type="tns:UpstreamEntityInputVersionInfo" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfUpstreamEntityInputVersionInfo" nillable="true" type="tns:ArrayOfUpstreamEntityInputVersionInfo" />
+  <xs:complexType name="UpstreamEntityInputVersionInfo">
+    <xs:sequence>
+      <xs:element name="DatalakeFolderId" type="ser:guid" />
+      <xs:element name="SnapshotFileName" nillable="true" type="xs:string" />
+      <xs:element name="EntityName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UpstreamEntityInputVersionInfo" nillable="true" type="tns:UpstreamEntityInputVersionInfo" />
+  <xs:simpleType name="ResultCode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Successful" />
+      <xs:enumeration value="Failed" />
+      <xs:enumeration value="Skipped" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ResultCode" nillable="true" type="tns:ResultCode" />
+  <xs:complexType name="ArrayOfUpstreamIncrementalEntityInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="UpstreamIncrementalEntityInfo" nillable="true" type="tns:UpstreamIncrementalEntityInfo" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfUpstreamIncrementalEntityInfo" nillable="true" type="tns:ArrayOfUpstreamIncrementalEntityInfo" />
+  <xs:complexType name="UpstreamIncrementalEntityInfo">
+    <xs:sequence>
+      <xs:element name="DatasourceName" nillable="true" type="xs:string" />
+      <xs:element name="EntityName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="VersionInfo" nillable="true" type="tns:UpstreamIncrementalEntityVersionInfo" />
+      <xs:element minOccurs="0" name="TimestampInfo" nillable="true" type="tns:UpstreamIncrementalEntityTimestampInfo" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UpstreamIncrementalEntityInfo" nillable="true" type="tns:UpstreamIncrementalEntityInfo" />
+  <xs:complexType name="UpstreamIncrementalEntityVersionInfo">
+    <xs:sequence>
+      <xs:element name="StartingVersion" type="xs:long" />
+      <xs:element minOccurs="0" name="EndingVersion" nillable="true" type="xs:long" />
+      <xs:element minOccurs="0" name="IsFullRefresh" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UpstreamIncrementalEntityVersionInfo" nillable="true" type="tns:UpstreamIncrementalEntityVersionInfo" />
+  <xs:complexType name="UpstreamIncrementalEntityTimestampInfo">
+    <xs:sequence>
+      <xs:element name="StartingTimestamp" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EndingTimestamp" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="IsFullRefresh" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UpstreamIncrementalEntityTimestampInfo" nillable="true" type="tns:UpstreamIncrementalEntityTimestampInfo" />
+  <xs:complexType name="DirectEntryContext">
+    <xs:sequence>
+      <xs:element name="SparkConfiguration" nillable="true" type="tns:ArrayOfScalarInputParameter" />
+      <xs:element name="Arguments" nillable="true" xmlns:q15="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q15:ArrayOfstring" />
+      <xs:element name="FileName" nillable="true" type="xs:string" />
+      <xs:element name="ClassName" nillable="true" type="xs:string" />
+      <xs:element name="Archives" nillable="true" xmlns:q16="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q16:ArrayOfstring" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="DirectEntryContext" nillable="true" type="tns:DirectEntryContext" />
+  <xs:complexType name="ModuleRunIncrementalSettings">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="UseLatestInputDataOnFailure" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ModuleRunIncrementalSettings" nillable="true" type="tns:ModuleRunIncrementalSettings" />
+  <xs:complexType name="ModuleRunOutputInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="EndpointsOutputPathInfo" nillable="true" type="tns:ArrayOfModuleEndpointOutputPathInfo" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ModuleRunOutputInfo" nillable="true" type="tns:ModuleRunOutputInfo" />
+  <xs:complexType name="ArrayOfModuleEndpointOutputPathInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="ModuleEndpointOutputPathInfo" nillable="true" type="tns:ModuleEndpointOutputPathInfo" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfModuleEndpointOutputPathInfo" nillable="true" type="tns:ArrayOfModuleEndpointOutputPathInfo" />
+  <xs:complexType name="ModuleEndpointOutputPathInfo">
+    <xs:sequence>
+      <xs:element name="EndpointName" nillable="true" type="xs:string" />
+      <xs:element name="UniqueRelativePath" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ModuleEndpointOutputPathInfo" nillable="true" type="tns:ModuleEndpointOutputPathInfo" />
+  <xs:complexType name="DynamicAllocationSettings">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="BucketSize" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="DynamicAllocationSettings" nillable="true" type="tns:DynamicAllocationSettings" />
+  <xs:complexType name="DataProcessingModuleExecutionResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="RunId" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="DataProcessingModuleExecutionResponse" nillable="true" type="tns:DataProcessingModuleExecutionResponse" />
+  <xs:complexType name="MetadataDescriptionsMinimal">
+    <xs:sequence>
+      <xs:element name="EntityDescriptions" nillable="true" type="tns:ArrayOfEntityDescriptionMinimal" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MetadataDescriptionsMinimal" nillable="true" type="tns:MetadataDescriptionsMinimal" />
+  <xs:complexType name="ArrayOfEntityDescriptionMinimal">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="EntityDescriptionMinimal" nillable="true" type="tns:EntityDescriptionMinimal" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfEntityDescriptionMinimal" nillable="true" type="tns:ArrayOfEntityDescriptionMinimal" />
+  <xs:complexType name="EntityDescriptionMinimal">
+    <xs:sequence>
+      <xs:element name="EntityName" nillable="true" type="xs:string" />
+      <xs:element name="AttributeDescriptions" nillable="true" type="tns:ArrayOfAttributeDescriptionMinimal" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityDescriptionMinimal" nillable="true" type="tns:EntityDescriptionMinimal" />
+  <xs:complexType name="ArrayOfAttributeDescriptionMinimal">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="AttributeDescriptionMinimal" nillable="true" type="tns:AttributeDescriptionMinimal" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfAttributeDescriptionMinimal" nillable="true" type="tns:ArrayOfAttributeDescriptionMinimal" />
+  <xs:complexType name="AttributeDescriptionMinimal">
+    <xs:sequence>
+      <xs:element name="AttributeName" nillable="true" type="xs:string" />
+      <xs:element name="AttributeType" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AttributeDescriptionMinimal" nillable="true" type="tns:AttributeDescriptionMinimal" />
+  <xs:simpleType name="ComponentPrincipalAccessRequestType">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  <xs:element name="ComponentPrincipalAccessRequestType" nillable="true" type="tns:ComponentPrincipalAccessRequestType" />
+  <xs:complexType name="RemoveDependencyResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="description" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="status" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="RemoveDependencyResult" nillable="true" type="tns:RemoveDependencyResult" />
+  <xs:simpleType name="RemoveDependencyStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Error" />
+      <xs:enumeration value="Success" />
+      <xs:enumeration value="SuccessWithWarning" />
+      <xs:enumeration value="FeatureDisabled" />
+      <xs:enumeration value="FeatureNotSupported" />
+      <xs:enumeration value="FatalError">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">99</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="RemoveDependencyStatus" nillable="true" type="tns:RemoveDependencyStatus" />
+  <xs:complexType name="SubstitutionResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Status" type="tns:SubstitutionStatus" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SubstitutionResult" nillable="true" type="tns:SubstitutionResult" />
+  <xs:simpleType name="SubstitutionStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Success" />
+      <xs:enumeration value="Error" />
+      <xs:enumeration value="Warning" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SubstitutionStatus" nillable="true" type="tns:SubstitutionStatus" />
+  <xs:complexType name="TemplateSubstitutionStore">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Prefix" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SubMap" nillable="true" xmlns:q17="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q17:ArrayOfKeyValueOfTupleOfstringstringstringRDHGY3MA" />
+      <xs:element minOccurs="0" name="Suffix" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TemplateSubstitutionStore" nillable="true" type="tns:TemplateSubstitutionStore" />
+  <xs:complexType name="AuditStorageDetailsResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AuditStorageDetails" nillable="true" xmlns:q18="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q18:ArrayOfKeyValueOfstringAuditStorageDetails_PNBIUzQH" />
+      <xs:element minOccurs="0" name="Status" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AuditStorageDetailsResult" nillable="true" type="tns:AuditStorageDetailsResult" />
+  <xs:complexType name="SolutionComponentReference">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Id" type="ser:guid" />
+      <xs:element minOccurs="0" name="LogicalName" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SolutionComponentReference" nillable="true" type="tns:SolutionComponentReference" />
+  <xs:complexType name="SolutionComponentOperationResult">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:SolutionComponentReference">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ErrorMessage" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="SolutionComponentOperationResult" nillable="true" type="tns:SolutionComponentOperationResult" />
+  <xs:complexType name="BulkRemoveActiveCustomizationsParameters">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ContinueOnError" type="xs:boolean" />
+      <xs:element minOccurs="0" name="SolutionComponentReferences" nillable="true" type="tns:ArrayOfSolutionComponentReference" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="BulkRemoveActiveCustomizationsParameters" nillable="true" type="tns:BulkRemoveActiveCustomizationsParameters" />
+  <xs:complexType name="ArrayOfSolutionComponentReference">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="SolutionComponentReference" nillable="true" type="tns:SolutionComponentReference" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfSolutionComponentReference" nillable="true" type="tns:ArrayOfSolutionComponentReference" />
+  <xs:complexType name="AddComponentToSolutionParameters">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:SolutionComponentReference">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="AddRequiredComponents" nillable="true" type="xs:boolean" />
+          <xs:element minOccurs="0" name="IncludeChildComponents" nillable="true" type="xs:boolean" />
+          <xs:element minOccurs="0" name="IncludeEntityMetadata" nillable="true" type="xs:boolean" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="AddComponentToSolutionParameters" nillable="true" type="tns:AddComponentToSolutionParameters" />
+  <xs:complexType name="AddComponentToSolutionParametersCollection">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ParameterCollection" nillable="true" type="tns:ArrayOfAddComponentToSolutionParameters" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AddComponentToSolutionParametersCollection" nillable="true" type="tns:AddComponentToSolutionParametersCollection" />
+  <xs:complexType name="ArrayOfAddComponentToSolutionParameters">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="AddComponentToSolutionParameters" nillable="true" type="tns:AddComponentToSolutionParameters" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfAddComponentToSolutionParameters" nillable="true" type="tns:ArrayOfAddComponentToSolutionParameters" />
+  <xs:complexType name="PullChangesFromGitParameters">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DeleteDeletedComponents" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PullChangesFromGitParameters" nillable="true" type="tns:PullChangesFromGitParameters" />
+</xs:schema>

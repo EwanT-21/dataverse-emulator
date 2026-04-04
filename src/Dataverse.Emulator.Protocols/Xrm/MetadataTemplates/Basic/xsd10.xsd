@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.microsoft.com/xrm/9.0/Metadata" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/xrm/9.0/Metadata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2011/Metadata" />
+  <xs:import namespace="http://schemas.microsoft.com/xrm/2013/Metadata" />
+  <xs:complexType name="MultiSelectPicklistAttributeMetadata">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q1="http://schemas.microsoft.com/xrm/2011/Metadata" base="q1:EnumAttributeMetadata">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="FormulaDefinition" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="SourceTypeMask" nillable="true" type="xs:int" />
+          <xs:element minOccurs="0" name="ChildPicklistLogicalNames" nillable="true" xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q2:ArrayOfstring" />
+          <xs:element minOccurs="0" name="ParentPicklistLogicalName" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="MultiSelectPicklistAttributeMetadata" nillable="true" type="tns:MultiSelectPicklistAttributeMetadata" />
+  <xs:complexType name="MemoFormatName">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q3="http://schemas.microsoft.com/xrm/2013/Metadata" base="q3:ConstantsBase">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="MemoFormatName" nillable="true" type="tns:MemoFormatName" />
+  <xs:complexType name="FileAttributeMetadata">
+    <xs:complexContent mixed="false">
+      <xs:extension xmlns:q4="http://schemas.microsoft.com/xrm/2011/Metadata" base="q4:AttributeMetadata">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="MaxSizeInKB" nillable="true" type="xs:int" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="FileAttributeMetadata" nillable="true" type="tns:FileAttributeMetadata" />
+  <xs:simpleType name="EntityClusterMode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Partitioned" />
+      <xs:enumeration value="Replicated" />
+      <xs:enumeration value="Local" />
+      <xs:enumeration value="Inherited" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="EntityClusterMode" nillable="true" type="tns:EntityClusterMode" />
+  <xs:complexType name="ArrayOfEntityClusterMode">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="EntityClusterMode" type="tns:EntityClusterMode" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfEntityClusterMode" nillable="true" type="tns:ArrayOfEntityClusterMode" />
+</xs:schema>

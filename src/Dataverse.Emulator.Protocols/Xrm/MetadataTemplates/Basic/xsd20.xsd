@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/Microsoft.Xrm.Sdk.Metadata" xmlns:ser="http://schemas.microsoft.com/2003/10/Serialization/" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/Microsoft.Xrm.Sdk.Metadata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <xs:import namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+  <xs:complexType name="CascadeSPGenerationRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CascadeRollupEntities" nillable="true" xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q1:ArrayOfguid" />
+      <xs:element minOccurs="0" name="CascadingChangeList" nillable="true" xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q2:ArrayOfanyType" />
+      <xs:element minOccurs="0" name="EntitiesBeingChanged" nillable="true" xmlns:q3="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q3:ArrayOfint" />
+      <xs:element minOccurs="0" name="IsBackedByXdb" type="xs:boolean" />
+      <xs:element minOccurs="0" name="LogicalName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RequestCorrelationId" type="ser:guid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CascadeSPGenerationRequest" nillable="true" type="tns:CascadeSPGenerationRequest" />
+  <xs:complexType name="PrivilegeInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Depth" type="xs:int" />
+      <xs:element minOccurs="0" name="PrivilegeId" type="ser:guid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PrivilegeInfo" nillable="true" type="tns:PrivilegeInfo" />
+  <xs:complexType name="PrivilegeRoleMapping">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="IsRole" type="xs:boolean" />
+      <xs:element minOccurs="0" name="Privileges" nillable="true" type="tns:ArrayOfPrivilegeInfo" />
+      <xs:element minOccurs="0" name="RoleIds" nillable="true" xmlns:q4="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q4:ArrayOfguid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PrivilegeRoleMapping" nillable="true" type="tns:PrivilegeRoleMapping" />
+  <xs:complexType name="ArrayOfPrivilegeInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="PrivilegeInfo" nillable="true" type="tns:PrivilegeInfo" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfPrivilegeInfo" nillable="true" type="tns:ArrayOfPrivilegeInfo" />
+  <xs:complexType name="PrivilegeRoleAssignmentRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="PrivilegeRoleMappings" nillable="true" type="tns:ArrayOfPrivilegeRoleMapping" />
+      <xs:element minOccurs="0" name="RequestCorrelationId" type="ser:guid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PrivilegeRoleAssignmentRequest" nillable="true" type="tns:PrivilegeRoleAssignmentRequest" />
+  <xs:complexType name="ArrayOfPrivilegeRoleMapping">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="PrivilegeRoleMapping" nillable="true" type="tns:PrivilegeRoleMapping" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfPrivilegeRoleMapping" nillable="true" type="tns:ArrayOfPrivilegeRoleMapping" />
+  <xs:complexType name="EntityUIProcessRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CallerId" type="ser:guid" />
+      <xs:element minOccurs="0" name="CustomAttributes" nillable="true" xmlns:q5="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q5:ArrayOfstring" />
+      <xs:element minOccurs="0" name="DeltaEntityProperties" nillable="true" xmlns:q6="http://schemas.microsoft.com/2003/10/Serialization/Arrays" type="q6:ArrayOfKeyValueOfstringstring" />
+      <xs:element minOccurs="0" name="EntityId" nillable="true" type="ser:guid" />
+      <xs:element minOccurs="0" name="EntityLogicalName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="RequestCorrelationId" type="ser:guid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EntityUIProcessRequest" nillable="true" type="tns:EntityUIProcessRequest" />
+  <xs:complexType name="CreateReserveEntityRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="RequestCorrelationId" type="ser:guid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CreateReserveEntityRequest" nillable="true" type="tns:CreateReserveEntityRequest" />
+</xs:schema>

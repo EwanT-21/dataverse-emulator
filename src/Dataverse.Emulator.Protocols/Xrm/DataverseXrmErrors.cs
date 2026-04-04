@@ -28,4 +28,9 @@ internal static class DataverseXrmErrors
         => Error.Validation(
             code: "Protocol.Xrm.Query.Unsupported",
             description: $"QueryExpression feature '{feature}' is not supported by the local Dataverse emulator.");
+
+    public static Error InvalidPagingRequest(string message)
+        => Error.Validation(
+            code: "Protocol.Xrm.Query.PagingInvalid",
+            description: message);
 }

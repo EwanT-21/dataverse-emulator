@@ -1,6 +1,8 @@
 using Dataverse.Emulator.Domain.Queries;
+using Dataverse.Emulator.Protocols.Xrm.Queries;
 using ErrorOr;
 using Microsoft.Xrm.Sdk.Query;
+using System.Globalization;
 
 namespace Dataverse.Emulator.Protocols.Xrm;
 
@@ -28,13 +30,6 @@ internal static class DataverseXrmQueryExpressionTranslator
             return DataverseXrmErrors.UnsupportedQueryFeature("Distinct");
         }
 
-        if (queryExpression.PageInfo is { Count: > 0 }
-            || queryExpression.PageInfo is { PageNumber: > 1 }
-            || !string.IsNullOrWhiteSpace(queryExpression.PageInfo?.PagingCookie))
-        {
-            return DataverseXrmErrors.UnsupportedQueryFeature("Paging");
-        }
-
         if (queryExpression.Criteria is { FilterOperator: LogicalOperator.Or })
         {
             return DataverseXrmErrors.UnsupportedQueryFeature("OR filters");
@@ -49,6 +44,12 @@ internal static class DataverseXrmQueryExpressionTranslator
         if (selectedColumnsResult.IsError)
         {
             return selectedColumnsResult.Errors;
+        }
+
+        var pageResult = TranslatePage(queryExpression.PageInfo);
+        if (pageResult.IsError)
+        {
+            return pageResult.Errors;
         }
 
         var conditions = new List<QueryCondition>();
@@ -117,6 +118,41 @@ internal static class DataverseXrmQueryExpressionTranslator
             conditions,
             sorts,
             queryExpression.TopCount,
-            page: null);
+            page: pageResult.Value);
+    }
+
+    private static ErrorOr<PageRequest?> TranslatePage(PagingInfo? pageInfo)
+    {
+        if (pageInfo is null)
+        {
+            return (PageRequest?)null;
+        }
+
+        if (pageInfo.ReturnTotalRecordCount)
+        {
+            return DataverseXrmErrors.UnsupportedQueryFeature("ReturnTotalRecordCount");
+        }
+
+        var hasPageNumber = pageInfo.PageNumber > 1;
+        var hasPagingCookie = !string.IsNullOrWhiteSpace(pageInfo.PagingCookie);
+        if (pageInfo.Count <= 0)
+        {
+            return hasPageNumber || hasPagingCookie
+                ? DataverseXrmErrors.InvalidPagingRequest(
+                    "PageInfo.Count must be greater than zero when paging is used.")
+                : (PageRequest?)null;
+        }
+
+        var continuationToken = DataverseXrmPagingCookie.ExtractContinuationToken(pageInfo.PagingCookie);
+        if (string.IsNullOrWhiteSpace(continuationToken) && hasPageNumber)
+        {
+            var offset = checked((pageInfo.PageNumber - 1) * pageInfo.Count);
+            continuationToken = offset.ToString(CultureInfo.InvariantCulture);
+        }
+
+        var pageRequestResult = PageRequest.Create(pageInfo.Count, continuationToken);
+        return pageRequestResult.IsError
+            ? pageRequestResult.Errors
+            : (PageRequest?)pageRequestResult.Value;
     }
 }

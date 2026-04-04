@@ -147,6 +147,36 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
     }
 
     [Fact]
+    public async Task CrmServiceClient_QueryExpression_Paging_RoundTrips()
+    {
+        var result = await fixture.RunCrmHarnessAsync("paged-query");
+
+        Assert.Equal("Alpha", result.GetProperty("firstPageName").GetString());
+        Assert.Equal(1, result.GetProperty("firstPageCount").GetInt32());
+        Assert.True(result.GetProperty("firstMoreRecords").GetBoolean());
+        Assert.True(result.GetProperty("firstPagingCookiePresent").GetBoolean());
+        Assert.Equal("Bravo", result.GetProperty("secondPageName").GetString());
+        Assert.Equal(1, result.GetProperty("secondPageCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task CrmServiceClient_Can_Read_Seeded_Metadata()
+    {
+        var result = await fixture.RunCrmHarnessAsync("metadata");
+
+        Assert.Equal("account", result.GetProperty("entityLogicalName").GetString());
+        Assert.Equal("accounts", result.GetProperty("entitySetName").GetString());
+        Assert.Equal("accountid", result.GetProperty("primaryIdAttribute").GetString());
+        Assert.Equal("name", result.GetProperty("primaryNameAttribute").GetString());
+        Assert.Equal(5, result.GetProperty("attributeCount").GetInt32());
+        Assert.Equal(1, result.GetProperty("objectTypeCode").GetInt32());
+        Assert.Equal("name", result.GetProperty("attributeLogicalName").GetString());
+        Assert.Equal("String", result.GetProperty("attributeType").GetString());
+        Assert.Equal("ApplicationRequired", result.GetProperty("attributeRequiredLevel").GetString());
+        Assert.Equal(1, result.GetProperty("allEntitiesCount").GetInt32());
+    }
+
+    [Fact]
     public async Task Unsupported_QueryExpression_Features_Surface_As_SdkFaults()
     {
         var result = await fixture.RunCrmHarnessAsync("unsupported-link-query");
@@ -202,6 +232,32 @@ public sealed class CrossSurfaceAspireTests(DataverseEmulatorFixture fixture)
     }
 }
 
+public sealed class LocalWorkflowAspireTests(DataverseEmulatorFixture fixture)
+    : IClassFixture<DataverseEmulatorFixture>
+{
+    [Fact]
+    public async Task Reset_Restores_Default_Seed_State()
+    {
+        await fixture.ResetAsync();
+
+        var created = await fixture.RunCrmHarnessAsync("create", "Resettable", "RS-100");
+        var accountId = Guid.Parse(created.GetProperty("id").GetString()!);
+
+        using var client = fixture.CreateClient();
+        var beforeResetResponse = await client.GetAsync($"/api/data/v9.2/accounts({accountId})?$select=name");
+        Assert.Equal(HttpStatusCode.OK, beforeResetResponse.StatusCode);
+
+        await fixture.ResetAsync();
+
+        var afterResetResponse = await client.GetAsync($"/api/data/v9.2/accounts({accountId})?$select=name");
+        var metadata = await fixture.RunCrmHarnessAsync("metadata");
+
+        Assert.Equal(HttpStatusCode.NotFound, afterResetResponse.StatusCode);
+        Assert.Equal(1, metadata.GetProperty("allEntitiesCount").GetInt32());
+        Assert.Equal("account", metadata.GetProperty("entityLogicalName").GetString());
+    }
+}
+
 public sealed class DataverseEmulatorFixture : IAsyncLifetime
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
@@ -254,6 +310,16 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
         using var client = CreateClient();
         var orgUrl = new Uri(client.BaseAddress!, "/org").ToString().TrimEnd('/');
         return $"AuthType=AD;Url={orgUrl};Domain=EMULATOR;Username=local;Password=local";
+    }
+
+    public async Task ResetAsync()
+    {
+        using var client = CreateClient();
+        var response = await client.PostAsync("/_emulator/v1/reset", content: null);
+        var payload = await response.ReadRequiredJsonAsync();
+
+        Assert.Equal("reset", payload.GetProperty("status").GetString());
+        Assert.Equal("default-seed", payload.GetProperty("scenario").GetString());
     }
 
     public async Task<JsonElement> RunCrmHarnessAsync(string scenario, params string[] args)

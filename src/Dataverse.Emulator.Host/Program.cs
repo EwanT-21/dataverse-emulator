@@ -1,5 +1,6 @@
 using Dataverse.Emulator.Application;
 using Dataverse.Emulator.Application.Behaviors;
+using Dataverse.Emulator.Application.Seeding;
 using Dataverse.Emulator.Host;
 using Dataverse.Emulator.Persistence.InMemory;
 using Dataverse.Emulator.Protocols.WebApi;
@@ -35,6 +36,17 @@ app.MapGet(
 
 app.MapGet("/status", () => Results.Ok(new HealthDescriptor("healthy", DateTimeOffset.UtcNow)));
 
+app.MapPost(
+    "/_emulator/v1/reset",
+    async (SeedScenarioExecutor seedScenarioExecutor, CancellationToken cancellationToken) =>
+    {
+        await seedScenarioExecutor.ExecuteAsync(DefaultSeedScenarioFactory.Create(), cancellationToken);
+        return Results.Ok(new EmulatorResetDescriptor(
+            "reset",
+            "default-seed",
+            DateTimeOffset.UtcNow));
+    });
+
 app.MapGet(
     "/roadmap",
     () => Results.Ok(
@@ -42,7 +54,8 @@ app.MapGet(
         {
             "Primary compatibility target: hosted CrmServiceClient bootstrap against /org.",
             "Current table slice: account metadata plus CRUD and RetrieveMultiple(QueryExpression).",
-            "Secondary compatibility surface: matching Dataverse Web API CRUD on /api/data/v9.2/accounts."
+            "Secondary compatibility surface: matching Dataverse Web API CRUD on /api/data/v9.2/accounts.",
+            "Local workflow support: reset the emulator to its default seeded state through /_emulator/v1/reset."
         }));
 
 app.MapDataverseWebApi();
@@ -58,6 +71,11 @@ public sealed record EmulatorDescriptor(
     string ConnectionStringTemplate);
 
 public sealed record HealthDescriptor(string Status, DateTimeOffset UtcNow);
+
+public sealed record EmulatorResetDescriptor(
+    string Status,
+    string Scenario,
+    DateTimeOffset UtcNow);
 
 public partial class Program
 {

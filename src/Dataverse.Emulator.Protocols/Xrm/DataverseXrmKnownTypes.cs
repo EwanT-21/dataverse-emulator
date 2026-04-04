@@ -1,6 +1,7 @@
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Organization;
 using Microsoft.Xrm.Sdk.Query;
 using System.Reflection;
@@ -37,14 +38,31 @@ internal static class DataverseXrmKnownTypes
             typeof(EndpointCollection),
             typeof(OptionSetValue),
             typeof(Money),
-            typeof(AliasedValue)
+            typeof(AliasedValue),
+            typeof(Label),
+            typeof(LocalizedLabel),
+            typeof(LocalizedLabelCollection),
+            typeof(BooleanManagedProperty),
+            typeof(AttributeMetadata),
+            typeof(EntityMetadata),
+            typeof(StringAttributeMetadata),
+            typeof(BooleanAttributeMetadata),
+            typeof(DateTimeAttributeMetadata),
+            typeof(DecimalAttributeMetadata),
+            typeof(IntegerAttributeMetadata),
+            typeof(UniqueIdentifierAttributeMetadata),
+            typeof(LookupAttributeMetadata),
+            typeof(OptionMetadata),
+            typeof(BooleanOptionSetMetadata),
+            typeof(AttributeRequiredLevelManagedProperty)
         };
 
         var assemblies = new[]
         {
             typeof(Entity).Assembly,
             typeof(CreateRequest).Assembly,
-            typeof(RetrieveCurrentOrganizationRequest).Assembly
+            typeof(RetrieveCurrentOrganizationRequest).Assembly,
+            typeof(EntityMetadata).Assembly
         }.Distinct();
 
         foreach (var assembly in assemblies)
@@ -59,6 +77,12 @@ internal static class DataverseXrmKnownTypes
                 if (typeof(OrganizationRequest).IsAssignableFrom(type)
                     || typeof(OrganizationResponse).IsAssignableFrom(type)
                     || typeof(QueryBase).IsAssignableFrom(type))
+                {
+                    knownTypes.Add(type);
+                    continue;
+                }
+
+                if (typeof(MetadataBase).IsAssignableFrom(type))
                 {
                     knownTypes.Add(type);
                 }

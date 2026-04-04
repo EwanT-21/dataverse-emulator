@@ -30,12 +30,16 @@ Completed:
 
 ## Phase 3: Xrm-First Local Workflow Expansion
 
+In progress:
+
+- add deterministic reset support for the default seeded state
+
 Next likely steps:
 
 - add more `Execute` message coverage where real apps actually need it
 - expand QueryExpression support beyond top-level `AND` + `Equal`
 - add more tables only when a target local-dev scenario requires them
-- improve reset, seeding, and snapshot-oriented local workflows
+- expand reset, seeding, and snapshot-oriented local workflows beyond the current default reset endpoint
 - keep Web API growth aligned with the same shared-core capabilities
 
 ## Phase 4: Aspire Packaging And Emulator Ergonomics

@@ -1,6 +1,6 @@
 # SPEC-003: Xrm Compatibility Expansion
 
-- Status: Planned
+- Status: In Progress
 - Date: 2026-04-04
 
 ## Summary
@@ -30,7 +30,7 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 ### QueryExpression Expansion
 
 - Add support for more condition operators where needed by real apps.
-- Add paging support through `PageInfo`.
+- `PageInfo` paging is now part of the implemented Xrm slice and should remain covered by hosted compatibility tests.
 - Expand sorting and filter behavior while continuing to translate through the shared `RecordQuery` model when practical.
 
 ### Metadata-Oriented SDK Reads
@@ -65,3 +65,10 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - a real target application or harness can run locally with broader Xrm behavior than the current `account` CRUD/query slice
 - newly supported requests and query features are covered by hosted end-to-end tests
 - unsupported requests continue to fail explicitly and predictably
+
+## Current Progress Notes
+
+- Xrm request handling now has a cleaner enhancement seam through small request-oriented handlers instead of a single growing dispatch implementation.
+- `RetrieveMultiple(QueryExpression)` paging through `PageInfo` is implemented and verified through the real `CrmServiceClient` Aspire harness.
+- Metadata-oriented Xrm reads for the seeded table slice are now implemented through `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveAllEntities`.
+- The next likely Xrm expansion points are additional demand-driven `Execute` request coverage and broader query/operator support where a real local app needs it.

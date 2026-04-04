@@ -1,6 +1,8 @@
 using Dataverse.Emulator.Domain.Common;
 using Dataverse.Emulator.Domain.Metadata;
+using Dataverse.Emulator.Domain.Queries;
 using Dataverse.Emulator.Domain.Records;
+using Dataverse.Emulator.Protocols.Xrm.Queries;
 using ErrorOr;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
@@ -89,15 +91,23 @@ internal static class DataverseXrmEntityMapper
     public static EntityCollection ToEntityCollection(
         TableDefinition table,
         IReadOnlyList<EntityRecord> records)
+        => ToEntityCollection(table, new PageResult<EntityRecord>(records), currentPageNumber: 1);
+
+    public static EntityCollection ToEntityCollection(
+        TableDefinition table,
+        PageResult<EntityRecord> pageResult,
+        int currentPageNumber)
     {
         var collection = new EntityCollection
         {
             EntityName = table.LogicalName,
-            MoreRecords = false,
-            PagingCookie = null
+            MoreRecords = pageResult.ContinuationToken is not null,
+            PagingCookie = pageResult.ContinuationToken is not null
+                ? DataverseXrmPagingCookie.Create(pageResult.ContinuationToken, currentPageNumber + 1)
+                : null
         };
 
-        foreach (var record in records)
+        foreach (var record in pageResult.Items)
         {
             collection.Entities.Add(ToEntity(table, record));
         }

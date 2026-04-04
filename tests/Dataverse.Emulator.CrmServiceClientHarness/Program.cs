@@ -5,6 +5,8 @@ using System.Linq;
 using System.ServiceModel;
 using System.Web.Script.Serialization;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Tooling.Connector;
 
@@ -29,6 +31,8 @@ internal static class Program
             {
                 "ready" => RunReady(connectionString),
                 "crud" => RunCrud(connectionString),
+                "paged-query" => RunPagedQuery(connectionString),
+                "metadata" => RunMetadata(connectionString),
                 "create" => RunCreate(connectionString, scenarioArgs),
                 "retrieve" => RunRetrieve(connectionString, scenarioArgs),
                 "unsupported-link-query" => RunUnsupportedLinkQuery(connectionString),
@@ -125,6 +129,58 @@ internal static class Program
         }
     }
 
+    private static IDictionary<string, object> RunPagedQuery(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            foreach (var name in new[] { "Alpha", "Bravo", "Charlie" })
+            {
+                var target = new Entity("account");
+                target["name"] = name;
+                target["accountnumber"] = name.Substring(0, 1);
+                client.Create(target);
+            }
+
+            var firstPageQuery = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet("name"),
+                PageInfo = new PagingInfo
+                {
+                    Count = 1,
+                    PageNumber = 1
+                }
+            };
+            firstPageQuery.Orders.Add(new OrderExpression("name", OrderType.Ascending));
+
+            var firstPage = client.RetrieveMultiple(firstPageQuery);
+
+            var secondPageQuery = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet("name"),
+                PageInfo = new PagingInfo
+                {
+                    Count = 1,
+                    PageNumber = 2,
+                    PagingCookie = firstPage.PagingCookie
+                }
+            };
+            secondPageQuery.Orders.Add(new OrderExpression("name", OrderType.Ascending));
+
+            var secondPage = client.RetrieveMultiple(secondPageQuery);
+
+            return new Dictionary<string, object>
+            {
+                ["firstPageName"] = firstPage.Entities[0].GetAttributeValue<string>("name"),
+                ["firstPageCount"] = firstPage.Entities.Count,
+                ["firstMoreRecords"] = firstPage.MoreRecords,
+                ["firstPagingCookiePresent"] = !string.IsNullOrWhiteSpace(firstPage.PagingCookie),
+                ["secondPageName"] = secondPage.Entities[0].GetAttributeValue<string>("name"),
+                ["secondPageCount"] = secondPage.Entities.Count,
+                ["secondMoreRecords"] = secondPage.MoreRecords
+            };
+        }
+    }
+
     private static IDictionary<string, object> RunRetrieve(string connectionString, string[] args)
     {
         if (args.Length < 1)
@@ -144,6 +200,50 @@ internal static class Program
                 ["id"] = entity.Id.ToString(),
                 ["logicalName"] = entity.LogicalName,
                 ["attributes"] = ToDictionary(entity.Attributes)
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunMetadata(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var entityResponse = (RetrieveEntityResponse)client.Execute(new RetrieveEntityRequest
+            {
+                LogicalName = "account",
+                EntityFilters = EntityFilters.Entity | EntityFilters.Attributes
+            });
+
+            var attributeResponse = (RetrieveAttributeResponse)client.Execute(new RetrieveAttributeRequest
+            {
+                EntityLogicalName = "account",
+                LogicalName = "name"
+            });
+
+            var allEntitiesResponse = (RetrieveAllEntitiesResponse)client.Execute(new RetrieveAllEntitiesRequest
+            {
+                EntityFilters = EntityFilters.Entity
+            });
+
+            var entityMetadata = entityResponse.EntityMetadata;
+            var attributeMetadata = attributeResponse.AttributeMetadata;
+
+            return new Dictionary<string, object>
+            {
+                ["entityLogicalName"] = entityMetadata.LogicalName,
+                ["entitySetName"] = entityMetadata.EntitySetName,
+                ["primaryIdAttribute"] = entityMetadata.PrimaryIdAttribute,
+                ["primaryNameAttribute"] = entityMetadata.PrimaryNameAttribute,
+                ["attributeCount"] = entityMetadata.Attributes.Length,
+                ["objectTypeCode"] = entityMetadata.ObjectTypeCode.GetValueOrDefault(),
+                ["attributeLogicalName"] = attributeMetadata.LogicalName,
+                ["attributeType"] = attributeMetadata.AttributeType.HasValue
+                    ? attributeMetadata.AttributeType.Value.ToString()
+                    : string.Empty,
+                ["attributeRequiredLevel"] = attributeMetadata.RequiredLevel != null
+                    ? attributeMetadata.RequiredLevel.Value.ToString()
+                    : string.Empty,
+                ["allEntitiesCount"] = allEntitiesResponse.EntityMetadata.Length
             };
         }
     }

@@ -67,6 +67,8 @@ Owns compatibility surfaces:
 
 This layer should translate external contracts into the shared application flow instead of re-implementing emulator behavior.
 
+Within the Xrm path, prefer small request-oriented slices over a growing monolithic service class. New Xrm behavior should usually arrive as a narrow request handler plus shared translation and mapping helpers, so compatibility can grow one message at a time without blurring the application boundary.
+
 Current scope guidance for this layer:
 
 - Xrm/C# is the primary compatibility contract.
@@ -90,6 +92,7 @@ Owns the emulator process itself:
 
 - composition root
 - health and diagnostic endpoints
+- local emulator administration endpoints
 - protocol registration
 - seeded startup
 
@@ -115,7 +118,13 @@ The current proven slice is intentionally narrow:
   - `Update`
   - `Delete`
   - `RetrieveMultiple(QueryExpression)`
+  - `RetrieveMultiple(QueryExpression)` paging via `PageInfo`
+- Xrm metadata reads:
+  - `RetrieveEntity`
+  - `RetrieveAttribute`
+  - `RetrieveAllEntities`
 - secondary Web API CRUD on `/api/data/v9.2/accounts`
+- local reset endpoint on `/_emulator/v1/reset` for restoring the default seeded state
 - shared error model mapped to either SDK faults or HTTP errors
 
 That slice is locked down with:

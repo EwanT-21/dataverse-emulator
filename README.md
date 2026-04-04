@@ -28,6 +28,7 @@ The repository now implements a real first compatibility slice:
 
 - Shared in-memory core for metadata, records, and query orchestration.
 - Seeded `account` metadata with entity set `accounts`.
+- Local reset workflow that restores the default seeded state.
 - Hosted Xrm/C# compatibility for the real legacy `CrmServiceClient`.
 - Supported C# operations:
   - `Create(Entity)`
@@ -35,6 +36,10 @@ The repository now implements a real first compatibility slice:
   - `Update(Entity)`
   - `Delete(string, Guid)`
   - `RetrieveMultiple(QueryExpression)`
+- Supported Xrm metadata reads:
+  - `RetrieveEntity`
+  - `RetrieveAttribute`
+  - `RetrieveAllEntities`
 - Secondary Dataverse Web API support on `/api/data/v9.2/accounts`.
 - Shared error model mapped into:
   - SDK-style faults for Xrm/C#
@@ -47,11 +52,14 @@ The emulator is intentionally narrow right now:
 
 - One table: `account`
 - In-memory storage only
+- One default seed scenario: `default-seed`
 - QueryExpression support limited to:
   - top-level `AND`
   - `ConditionOperator.Equal`
   - `OrderExpression`
   - `TopCount`
+  - `PageInfo` paging
+- Metadata reads limited to the current seeded table slice
 - Web API support limited to matching CRUD plus metadata for the current table slice
 
 Not implemented yet:
@@ -90,7 +98,7 @@ Not implemented yet:
 - `src/Dataverse.Emulator.Application`
   - Mediator handlers, validation behavior, seeding, and orchestration.
 - `src/Dataverse.Emulator.Protocols`
-  - Hosted Xrm/SOAP adapter, Web API adapter, protocol translation, and error mapping.
+  - Hosted Xrm/SOAP adapter, Web API adapter, protocol translation, error mapping, and Xrm request-handler slices.
 - `src/Dataverse.Emulator.Persistence.InMemory`
   - Default local metadata and record storage provider.
 - `tests/Dataverse.Emulator.Domain.Tests`
@@ -121,6 +129,16 @@ Local emulator connection string for the current slice:
 ```text
 AuthType=AD;Url=http://localhost:{port}/org;Domain=EMULATOR;Username=local;Password=local
 ```
+
+## Local Workflow Support
+
+- Reset the emulator back to its default seeded state with:
+
+```bash
+POST /_emulator/v1/reset
+```
+
+- The current reset flow restores the `default-seed` scenario for the in-memory `account` slice.
 
 ## Tests
 

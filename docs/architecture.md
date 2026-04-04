@@ -119,6 +119,8 @@ The current proven slice is intentionally narrow:
   - `Delete`
   - `RetrieveMultiple(QueryExpression)`
   - `RetrieveMultiple(QueryExpression)` paging via `PageInfo`
+  - grouped `AND` / `OR` filters
+  - common comparison, null, pattern, and `In` operators
 - Xrm metadata reads:
   - `RetrieveEntity`
   - `RetrieveAttribute`

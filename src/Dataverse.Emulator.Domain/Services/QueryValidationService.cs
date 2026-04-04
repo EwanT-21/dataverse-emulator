@@ -21,12 +21,9 @@ public sealed class QueryValidationService
             }
         }
 
-        foreach (var condition in query.Conditions)
+        if (query.Filter is not null)
         {
-            if (!table.HasColumn(condition.ColumnLogicalName))
-            {
-                errors.Add(DomainErrors.UnknownColumn(table.LogicalName, condition.ColumnLogicalName));
-            }
+            ValidateFilter(table, query.Filter, errors);
         }
 
         foreach (var sort in query.Sorts)
@@ -48,5 +45,24 @@ public sealed class QueryValidationService
         }
 
         return errors;
+    }
+
+    private static void ValidateFilter(
+        TableDefinition table,
+        QueryFilter filter,
+        ICollection<Error> errors)
+    {
+        foreach (var condition in filter.Conditions)
+        {
+            if (!table.HasColumn(condition.ColumnLogicalName))
+            {
+                errors.Add(DomainErrors.UnknownColumn(table.LogicalName, condition.ColumnLogicalName));
+            }
+        }
+
+        foreach (var childFilter in filter.Filters)
+        {
+            ValidateFilter(table, childFilter, errors);
+        }
     }
 }

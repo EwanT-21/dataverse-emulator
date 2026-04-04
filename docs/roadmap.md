@@ -33,11 +33,12 @@ Completed:
 In progress:
 
 - add deterministic reset support for the default seeded state
+- expand QueryExpression support to grouped filters and common condition operators
 
 Next likely steps:
 
 - add more `Execute` message coverage where real apps actually need it
-- expand QueryExpression support beyond top-level `AND` + `Equal`
+- expand QueryExpression support further where real apps need more operators or semantics
 - add more tables only when a target local-dev scenario requires them
 - expand reset, seeding, and snapshot-oriented local workflows beyond the current default reset endpoint
 - keep Web API growth aligned with the same shared-core capabilities

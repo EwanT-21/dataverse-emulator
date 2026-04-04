@@ -3,6 +3,8 @@ using Dataverse.Emulator.Protocols.Xrm.Queries;
 using ErrorOr;
 using Microsoft.Xrm.Sdk.Query;
 using System.Globalization;
+using QueryConditionOperator = Dataverse.Emulator.Domain.Queries.ConditionOperator;
+using QueryFilterOperator = Dataverse.Emulator.Domain.Queries.FilterOperator;
 
 namespace Dataverse.Emulator.Protocols.Xrm;
 
@@ -30,16 +32,6 @@ internal static class DataverseXrmQueryExpressionTranslator
             return DataverseXrmErrors.UnsupportedQueryFeature("Distinct");
         }
 
-        if (queryExpression.Criteria is { FilterOperator: LogicalOperator.Or })
-        {
-            return DataverseXrmErrors.UnsupportedQueryFeature("OR filters");
-        }
-
-        if (queryExpression.Criteria is { Filters.Count: > 0 })
-        {
-            return DataverseXrmErrors.UnsupportedQueryFeature("Nested filter groups");
-        }
-
         var selectedColumnsResult = DataverseXrmEntityMapper.ResolveSelectedColumns(queryExpression.ColumnSet);
         if (selectedColumnsResult.IsError)
         {
@@ -52,48 +44,10 @@ internal static class DataverseXrmQueryExpressionTranslator
             return pageResult.Errors;
         }
 
-        var conditions = new List<QueryCondition>();
-        var conditionsSource = queryExpression.Criteria?.Conditions;
-        if (conditionsSource is not null)
+        var filterResult = TranslateFilter(queryExpression.Criteria, queryExpression.EntityName);
+        if (filterResult.IsError)
         {
-            foreach (var condition in conditionsSource)
-            {
-                if (!string.IsNullOrWhiteSpace(condition.EntityName)
-                    && !condition.EntityName.Equals(queryExpression.EntityName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return DataverseXrmErrors.UnsupportedQueryFeature("Cross-entity conditions");
-                }
-
-                if (condition.Operator != Microsoft.Xrm.Sdk.Query.ConditionOperator.Equal)
-                {
-                    return DataverseXrmErrors.UnsupportedQueryFeature(
-                        $"Condition operator '{condition.Operator}'");
-                }
-
-                if (condition.Values.Count > 1)
-                {
-                    return DataverseXrmErrors.UnsupportedQueryFeature("Multi-value conditions");
-                }
-
-                var valueResult = DataverseXrmEntityMapper.ToScalarValue(
-                    condition.Values.Count == 0 ? null : condition.Values[0],
-                    condition.AttributeName);
-                if (valueResult.IsError)
-                {
-                    return valueResult.Errors;
-                }
-
-                var queryConditionResult = QueryCondition.Create(
-                    condition.AttributeName,
-                    Dataverse.Emulator.Domain.Queries.ConditionOperator.Equal,
-                    valueResult.Value);
-                if (queryConditionResult.IsError)
-                {
-                    return queryConditionResult.Errors;
-                }
-
-                conditions.Add(queryConditionResult.Value);
-            }
+            return filterResult.Errors;
         }
 
         var sorts = new List<QuerySort>();
@@ -115,10 +69,132 @@ internal static class DataverseXrmQueryExpressionTranslator
         return RecordQuery.Create(
             queryExpression.EntityName,
             selectedColumnsResult.Value,
-            conditions,
-            sorts,
-            queryExpression.TopCount,
+            filter: filterResult.Value,
+            sorts: sorts,
+            top: queryExpression.TopCount,
             page: pageResult.Value);
+    }
+
+    private static ErrorOr<QueryFilter?> TranslateFilter(FilterExpression? filterExpression, string entityName)
+    {
+        if (filterExpression is null)
+        {
+            return (QueryFilter?)null;
+        }
+
+        var conditions = new List<QueryCondition>();
+        foreach (var condition in filterExpression.Conditions)
+        {
+            var conditionResult = TranslateCondition(condition, entityName);
+            if (conditionResult.IsError)
+            {
+                return conditionResult.Errors;
+            }
+
+            conditions.Add(conditionResult.Value);
+        }
+
+        var childFilters = new List<QueryFilter>();
+        foreach (var childFilter in filterExpression.Filters)
+        {
+            var childFilterResult = TranslateFilter(childFilter, entityName);
+            if (childFilterResult.IsError)
+            {
+                return childFilterResult.Errors;
+            }
+
+            if (childFilterResult.Value is not null)
+            {
+                childFilters.Add(childFilterResult.Value);
+            }
+        }
+
+        if (conditions.Count == 0 && childFilters.Count == 0)
+        {
+            return (QueryFilter?)null;
+        }
+
+        var filterOperator = filterExpression.FilterOperator == LogicalOperator.Or
+            ? QueryFilterOperator.Or
+            : QueryFilterOperator.And;
+
+        var queryFilterResult = QueryFilter.Create(filterOperator, conditions, childFilters);
+        return queryFilterResult.IsError
+            ? queryFilterResult.Errors
+            : (QueryFilter?)queryFilterResult.Value;
+    }
+
+    private static ErrorOr<QueryCondition> TranslateCondition(
+        ConditionExpression condition,
+        string entityName)
+    {
+        if (!string.IsNullOrWhiteSpace(condition.EntityName)
+            && !condition.EntityName.Equals(entityName, StringComparison.OrdinalIgnoreCase))
+        {
+            return DataverseXrmErrors.UnsupportedQueryFeature("Cross-entity conditions");
+        }
+
+        var operatorResult = TranslateConditionOperator(condition.Operator);
+        if (operatorResult.IsError)
+        {
+            return operatorResult.Errors;
+        }
+
+        var valuesResult = TranslateConditionValues(condition, operatorResult.Value);
+        if (valuesResult.IsError)
+        {
+            return valuesResult.Errors;
+        }
+
+        return QueryCondition.Create(
+            condition.AttributeName,
+            operatorResult.Value,
+            valuesResult.Value);
+    }
+
+    private static ErrorOr<QueryConditionOperator> TranslateConditionOperator(Microsoft.Xrm.Sdk.Query.ConditionOperator conditionOperator)
+    {
+        return conditionOperator switch
+        {
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.Equal => QueryConditionOperator.Equal,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.NotEqual => QueryConditionOperator.NotEqual,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.Null => QueryConditionOperator.Null,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.NotNull => QueryConditionOperator.NotNull,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.Like => QueryConditionOperator.Like,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.BeginsWith => QueryConditionOperator.BeginsWith,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.EndsWith => QueryConditionOperator.EndsWith,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.GreaterThan => QueryConditionOperator.GreaterThan,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.GreaterEqual => QueryConditionOperator.GreaterThanOrEqual,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.LessThan => QueryConditionOperator.LessThan,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.LessEqual => QueryConditionOperator.LessThanOrEqual,
+            Microsoft.Xrm.Sdk.Query.ConditionOperator.In => QueryConditionOperator.In,
+            _ => DataverseXrmErrors.UnsupportedQueryFeature(
+                $"Condition operator '{conditionOperator}'")
+        };
+    }
+
+    private static ErrorOr<IReadOnlyList<object?>> TranslateConditionValues(
+        ConditionExpression condition,
+        QueryConditionOperator conditionOperator)
+    {
+        if (conditionOperator == QueryConditionOperator.Null || conditionOperator == QueryConditionOperator.NotNull)
+        {
+            return Array.Empty<object?>();
+        }
+
+        var values = new List<object?>();
+        foreach (var rawValue in condition.Values)
+        {
+            var valueResult = DataverseXrmEntityMapper.ToScalarValue(rawValue, condition.AttributeName);
+            if (valueResult.IsError)
+            {
+                return valueResult.Errors;
+            }
+
+            values.Add(valueResult.Value);
+        }
+
+        return values;
     }
 
     private static ErrorOr<PageRequest?> TranslatePage(PagingInfo? pageInfo)

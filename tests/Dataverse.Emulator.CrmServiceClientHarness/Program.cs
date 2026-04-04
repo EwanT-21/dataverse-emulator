@@ -32,6 +32,7 @@ internal static class Program
                 "ready" => RunReady(connectionString),
                 "crud" => RunCrud(connectionString),
                 "paged-query" => RunPagedQuery(connectionString),
+                "advanced-query" => RunAdvancedQuery(connectionString),
                 "metadata" => RunMetadata(connectionString),
                 "create" => RunCreate(connectionString, scenarioArgs),
                 "retrieve" => RunRetrieve(connectionString, scenarioArgs),
@@ -181,6 +182,69 @@ internal static class Program
         }
     }
 
+    private static IDictionary<string, object> RunAdvancedQuery(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            CreateAccount(client, "Alpha", "A-100", new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            CreateAccount(client, "Alpine", null, new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+            CreateAccount(client, "Bravo", "B-100", new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc));
+            CreateAccount(client, "Charlie", "C-100", new DateTime(2026, 1, 4, 0, 0, 0, DateTimeKind.Utc));
+
+            var groupedQuery = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet("name", "accountnumber")
+            };
+            groupedQuery.Criteria.AddCondition("accountnumber", ConditionOperator.NotNull);
+            var groupedNames = groupedQuery.Criteria.AddFilter(LogicalOperator.Or);
+            groupedNames.AddCondition("name", ConditionOperator.BeginsWith, "Al");
+            groupedNames.AddCondition("name", ConditionOperator.Equal, "Charlie");
+            groupedQuery.Orders.Add(new OrderExpression("name", OrderType.Ascending));
+
+            var groupedResults = client.RetrieveMultiple(groupedQuery);
+
+            var inQuery = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet("name", "accountnumber")
+            };
+            inQuery.Criteria.AddCondition("accountnumber", ConditionOperator.In, "A-100", "C-100");
+            inQuery.Orders.Add(new OrderExpression("name", OrderType.Ascending));
+
+            var inResults = client.RetrieveMultiple(inQuery);
+
+            var likeQuery = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet("name")
+            };
+            likeQuery.Criteria.AddCondition("name", ConditionOperator.Like, "Al%");
+            likeQuery.Orders.Add(new OrderExpression("name", OrderType.Ascending));
+
+            var likeResults = client.RetrieveMultiple(likeQuery);
+
+            var rangeQuery = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet("name", "createdon")
+            };
+            rangeQuery.Criteria.AddCondition("createdon", ConditionOperator.GreaterEqual, new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+            rangeQuery.Criteria.AddCondition("createdon", ConditionOperator.LessThan, new DateTime(2026, 1, 4, 0, 0, 0, DateTimeKind.Utc));
+            rangeQuery.Orders.Add(new OrderExpression("name", OrderType.Ascending));
+
+            var rangeResults = client.RetrieveMultiple(rangeQuery);
+
+            return new Dictionary<string, object>
+            {
+                ["groupedCount"] = groupedResults.Entities.Count,
+                ["groupedNames"] = groupedResults.Entities.Select(entity => entity.GetAttributeValue<string>("name")).ToArray(),
+                ["inCount"] = inResults.Entities.Count,
+                ["inNames"] = inResults.Entities.Select(entity => entity.GetAttributeValue<string>("name")).ToArray(),
+                ["likeCount"] = likeResults.Entities.Count,
+                ["likeNames"] = likeResults.Entities.Select(entity => entity.GetAttributeValue<string>("name")).ToArray(),
+                ["rangeCount"] = rangeResults.Entities.Count,
+                ["rangeNames"] = rangeResults.Entities.Select(entity => entity.GetAttributeValue<string>("name")).ToArray()
+            };
+        }
+    }
+
     private static IDictionary<string, object> RunRetrieve(string connectionString, string[] args)
     {
         if (args.Length < 1)
@@ -290,6 +354,24 @@ internal static class Program
         }
 
         return client;
+    }
+
+    private static Guid CreateAccount(
+        CrmServiceClient client,
+        string name,
+        string accountNumber,
+        DateTime createdOn)
+    {
+        var target = new Entity("account");
+        target["name"] = name;
+        target["createdon"] = createdOn;
+
+        if (!string.IsNullOrEmpty(accountNumber))
+        {
+            target["accountnumber"] = accountNumber;
+        }
+
+        return client.Create(target);
     }
 
     private static IDictionary<string, object> ToDictionary(AttributeCollection attributes)

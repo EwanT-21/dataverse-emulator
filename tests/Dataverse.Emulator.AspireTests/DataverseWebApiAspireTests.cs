@@ -137,6 +137,7 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
     [Fact]
     public async Task CrmServiceClient_Crud_And_QueryExpression_Flow_Works()
     {
+        await fixture.ResetAsync();
         var result = await fixture.RunCrmHarnessAsync("crud");
 
         Assert.Equal("Contoso", result.GetProperty("retrievedName").GetString());
@@ -149,6 +150,7 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
     [Fact]
     public async Task CrmServiceClient_QueryExpression_Paging_RoundTrips()
     {
+        await fixture.ResetAsync();
         var result = await fixture.RunCrmHarnessAsync("paged-query");
 
         Assert.Equal("Alpha", result.GetProperty("firstPageName").GetString());
@@ -160,8 +162,25 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
     }
 
     [Fact]
+    public async Task CrmServiceClient_Advanced_QueryExpression_Filters_RoundTrip()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("advanced-query");
+
+        Assert.Equal(2, result.GetProperty("groupedCount").GetInt32());
+        Assert.Equal(["Alpha", "Charlie"], ReadStringArray(result, "groupedNames"));
+        Assert.Equal(2, result.GetProperty("inCount").GetInt32());
+        Assert.Equal(["Alpha", "Charlie"], ReadStringArray(result, "inNames"));
+        Assert.Equal(2, result.GetProperty("likeCount").GetInt32());
+        Assert.Equal(["Alpha", "Alpine"], ReadStringArray(result, "likeNames"));
+        Assert.Equal(2, result.GetProperty("rangeCount").GetInt32());
+        Assert.Equal(["Alpine", "Bravo"], ReadStringArray(result, "rangeNames"));
+    }
+
+    [Fact]
     public async Task CrmServiceClient_Can_Read_Seeded_Metadata()
     {
+        await fixture.ResetAsync();
         var result = await fixture.RunCrmHarnessAsync("metadata");
 
         Assert.Equal("account", result.GetProperty("entityLogicalName").GetString());
@@ -179,11 +198,18 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
     [Fact]
     public async Task Unsupported_QueryExpression_Features_Surface_As_SdkFaults()
     {
+        await fixture.ResetAsync();
         var result = await fixture.RunCrmHarnessAsync("unsupported-link-query");
 
         Assert.True(result.GetProperty("faulted").GetBoolean());
         Assert.Contains("LinkEntity", result.GetProperty("message").GetString(), StringComparison.Ordinal);
     }
+
+    private static string[] ReadStringArray(JsonElement payload, string propertyName)
+        => payload.GetProperty(propertyName)
+            .EnumerateArray()
+            .Select(item => item.GetString()!)
+            .ToArray();
 }
 
 public sealed class CrossSurfaceAspireTests(DataverseEmulatorFixture fixture)
@@ -411,4 +437,5 @@ internal static class HttpResponseMessageExtensions
         Assert.True(response.IsSuccessStatusCode, content);
         return content;
     }
+
 }

@@ -36,6 +36,19 @@ The repository now implements a real first compatibility slice:
   - `Update(Entity)`
   - `Delete(string, Guid)`
   - `RetrieveMultiple(QueryExpression)`
+- Supported QueryExpression breadth:
+  - grouped `AND` / `OR` filters
+  - `Equal`
+  - `NotEqual`
+  - `Null` / `NotNull`
+  - `Like`
+  - `BeginsWith` / `EndsWith`
+  - `GreaterThan` / `GreaterEqual`
+  - `LessThan` / `LessEqual`
+  - `In`
+  - `OrderExpression`
+  - `TopCount`
+  - `PageInfo` paging
 - Supported Xrm metadata reads:
   - `RetrieveEntity`
   - `RetrieveAttribute`
@@ -54,11 +67,11 @@ The emulator is intentionally narrow right now:
 - In-memory storage only
 - One default seed scenario: `default-seed`
 - QueryExpression support limited to:
-  - top-level `AND`
-  - `ConditionOperator.Equal`
-  - `OrderExpression`
-  - `TopCount`
-  - `PageInfo` paging
+  - one-table queries only
+  - no `LinkEntity`
+  - no FetchXML
+  - no aggregates or `Distinct`
+  - no total-count paging
 - Metadata reads limited to the current seeded table slice
 - Web API support limited to matching CRUD plus metadata for the current table slice
 

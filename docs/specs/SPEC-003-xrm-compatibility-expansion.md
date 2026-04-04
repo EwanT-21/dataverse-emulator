@@ -32,6 +32,7 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - Add support for more condition operators where needed by real apps.
 - `PageInfo` paging is now part of the implemented Xrm slice and should remain covered by hosted compatibility tests.
 - Expand sorting and filter behavior while continuing to translate through the shared `RecordQuery` model when practical.
+- Grouped `AND` / `OR` filters and a first common set of condition operators are now part of the implemented slice.
 
 ### Metadata-Oriented SDK Reads
 
@@ -70,5 +71,6 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 
 - Xrm request handling now has a cleaner enhancement seam through small request-oriented handlers instead of a single growing dispatch implementation.
 - `RetrieveMultiple(QueryExpression)` paging through `PageInfo` is implemented and verified through the real `CrmServiceClient` Aspire harness.
+- `RetrieveMultiple(QueryExpression)` now supports grouped filters and common operators including `NotEqual`, `Null`, `NotNull`, `Like`, `BeginsWith`, `EndsWith`, range comparisons, and `In`.
 - Metadata-oriented Xrm reads for the seeded table slice are now implemented through `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveAllEntities`.
-- The next likely Xrm expansion points are additional demand-driven `Execute` request coverage and broader query/operator support where a real local app needs it.
+- The next likely Xrm expansion points are additional demand-driven `Execute` request coverage, deeper query semantics where a real local app needs them, and additional tables only when they are justified by a concrete local workflow.

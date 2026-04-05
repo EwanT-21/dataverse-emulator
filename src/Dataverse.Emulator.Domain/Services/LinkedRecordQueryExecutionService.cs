@@ -1,13 +1,29 @@
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Queries;
 using Dataverse.Emulator.Domain.Records;
-using System.Globalization;
-using System.Text.RegularExpressions;
 
 namespace Dataverse.Emulator.Domain.Services;
 
 public sealed class LinkedRecordQueryExecutionService
 {
+    private readonly QueryValueEvaluationService queryValueEvaluationService;
+    private readonly ContinuationPagingService continuationPagingService;
+
+    public LinkedRecordQueryExecutionService()
+        : this(
+            new QueryValueEvaluationService(),
+            new ContinuationPagingService())
+    {
+    }
+
+    public LinkedRecordQueryExecutionService(
+        QueryValueEvaluationService queryValueEvaluationService,
+        ContinuationPagingService continuationPagingService)
+    {
+        this.queryValueEvaluationService = queryValueEvaluationService;
+        this.continuationPagingService = continuationPagingService;
+    }
+
     public PageResult<LinkedEntityRecord> Execute(
         LinkedRecordQuery query,
         TableDefinition rootTable,
@@ -40,31 +56,18 @@ public sealed class LinkedRecordQueryExecutionService
             sortedContexts = sortedContexts.Take(top).ToArray();
         }
 
-        string? continuationToken = null;
-        var pagedContexts = sortedContexts;
-
-        if (query.Page is { } page)
-        {
-            var offset = DecodeContinuationToken(page.ContinuationToken);
-            pagedContexts = sortedContexts
-                .Skip(offset)
-                .Take(page.Size)
-                .ToArray();
-
-            var nextOffset = offset + pagedContexts.Length;
-            continuationToken = nextOffset < sortedContexts.Length
-                ? EncodeContinuationToken(nextOffset)
-                : null;
-        }
-
-        var items = pagedContexts
+        var pageResult = continuationPagingService.Apply(sortedContexts, query.Page);
+        var items = pageResult.Items
             .Select(context => ToRecord(query, context))
             .ToArray();
 
-        return new PageResult<LinkedEntityRecord>(items, continuationToken);
+        return new PageResult<LinkedEntityRecord>(
+            items,
+            pageResult.ContinuationToken,
+            pageResult.TotalCount);
     }
 
-    private static List<LinkedEntityContext> JoinContexts(
+    private List<LinkedEntityContext> JoinContexts(
         IReadOnlyList<LinkedEntityContext> contexts,
         string rootScopeName,
         LinkedRecordJoin join,
@@ -84,7 +87,7 @@ public sealed class LinkedRecordQueryExecutionService
             {
                 if (!linkedRow.Values.TryGetValue(join.ToAttributeName, out var rightValue)
                     || rightValue is null
-                    || !AreEqual(leftValue, rightValue))
+                    || !queryValueEvaluationService.AreEqual(leftValue, rightValue))
                 {
                     continue;
                 }
@@ -102,7 +105,7 @@ public sealed class LinkedRecordQueryExecutionService
         return joinedContexts;
     }
 
-    private static bool Matches(
+    private bool Matches(
         LinkedEntityContext context,
         string rootScopeName,
         LinkedRecordFilter filter)
@@ -122,7 +125,7 @@ public sealed class LinkedRecordQueryExecutionService
             : results.All(result => result);
     }
 
-    private static bool Matches(
+    private bool Matches(
         LinkedEntityContext context,
         string rootScopeName,
         LinkedRecordCondition condition)
@@ -131,76 +134,13 @@ public sealed class LinkedRecordQueryExecutionService
             ? value
             : null;
 
-        if (condition.Operator == ConditionOperator.Equal)
-        {
-            return AreEqual(currentValue, condition.Values.FirstOrDefault());
-        }
-
-        if (condition.Operator == ConditionOperator.NotEqual)
-        {
-            return !AreEqual(currentValue, condition.Values.FirstOrDefault());
-        }
-
-        if (condition.Operator == ConditionOperator.Null)
-        {
-            return currentValue is null;
-        }
-
-        if (condition.Operator == ConditionOperator.NotNull)
-        {
-            return currentValue is not null;
-        }
-
-        if (condition.Operator == ConditionOperator.Like)
-        {
-            return currentValue is string text
-                && condition.Values.FirstOrDefault() is string pattern
-                && MatchesLike(text, pattern);
-        }
-
-        if (condition.Operator == ConditionOperator.BeginsWith)
-        {
-            return currentValue is string text
-                && condition.Values.FirstOrDefault() is string prefix
-                && text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
-        }
-
-        if (condition.Operator == ConditionOperator.EndsWith)
-        {
-            return currentValue is string text
-                && condition.Values.FirstOrDefault() is string suffix
-                && text.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
-        }
-
-        if (condition.Operator == ConditionOperator.GreaterThan)
-        {
-            return Compare(currentValue, condition.Values.FirstOrDefault()) is > 0;
-        }
-
-        if (condition.Operator == ConditionOperator.GreaterThanOrEqual)
-        {
-            return Compare(currentValue, condition.Values.FirstOrDefault()) is >= 0;
-        }
-
-        if (condition.Operator == ConditionOperator.LessThan)
-        {
-            return Compare(currentValue, condition.Values.FirstOrDefault()) is < 0;
-        }
-
-        if (condition.Operator == ConditionOperator.LessThanOrEqual)
-        {
-            return Compare(currentValue, condition.Values.FirstOrDefault()) is <= 0;
-        }
-
-        if (condition.Operator == ConditionOperator.In)
-        {
-            return condition.Values.Any(value => AreEqual(currentValue, value));
-        }
-
-        return false;
+        return queryValueEvaluationService.Matches(
+            condition.Operator,
+            currentValue,
+            condition.Values);
     }
 
-    private static IEnumerable<LinkedEntityContext> ApplySorting(
+    private IEnumerable<LinkedEntityContext> ApplySorting(
         IEnumerable<LinkedEntityContext> contexts,
         string rootScopeName,
         IReadOnlyList<LinkedRecordSort> sorts)
@@ -219,10 +159,10 @@ public sealed class LinkedRecordQueryExecutionService
                 ordered = sort.Direction == SortDirection.Ascending
                     ? contexts.OrderBy(
                         context => ToSortableValue(context, rootScopeName, sort),
-                        Comparer<object?>.Create(CompareValues))
+                        Comparer<object?>.Create(queryValueEvaluationService.CompareSortableValues))
                     : contexts.OrderByDescending(
                         context => ToSortableValue(context, rootScopeName, sort),
-                        Comparer<object?>.Create(CompareValues));
+                        Comparer<object?>.Create(queryValueEvaluationService.CompareSortableValues));
 
                 continue;
             }
@@ -230,10 +170,10 @@ public sealed class LinkedRecordQueryExecutionService
             ordered = sort.Direction == SortDirection.Ascending
                 ? ordered.ThenBy(
                     context => ToSortableValue(context, rootScopeName, sort),
-                    Comparer<object?>.Create(CompareValues))
+                    Comparer<object?>.Create(queryValueEvaluationService.CompareSortableValues))
                 : ordered.ThenByDescending(
                     context => ToSortableValue(context, rootScopeName, sort),
-                    Comparer<object?>.Create(CompareValues));
+                    Comparer<object?>.Create(queryValueEvaluationService.CompareSortableValues));
         }
 
         return ordered ?? contexts;
@@ -279,142 +219,6 @@ public sealed class LinkedRecordQueryExecutionService
 
         value = null;
         return false;
-    }
-
-    private static bool AreEqual(object? left, object? right)
-    {
-        if (left is string leftText && right is string rightText)
-        {
-            return string.Equals(leftText, rightText, StringComparison.OrdinalIgnoreCase);
-        }
-
-        return Equals(left, right);
-    }
-
-    private static bool MatchesLike(string input, string pattern)
-    {
-        var regexPattern = "^" + Regex.Escape(pattern)
-            .Replace("%", ".*", StringComparison.Ordinal)
-            .Replace("_", ".", StringComparison.Ordinal) + "$";
-
-        return Regex.IsMatch(
-            input,
-            regexPattern,
-            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-    }
-
-    private static int? Compare(object? left, object? right)
-    {
-        if (left is null || right is null)
-        {
-            return null;
-        }
-
-        if (left is string leftText && right is string rightText)
-        {
-            return StringComparer.OrdinalIgnoreCase.Compare(leftText, rightText);
-        }
-
-        if (TryToDecimal(left, out var leftDecimal) && TryToDecimal(right, out var rightDecimal))
-        {
-            return leftDecimal.CompareTo(rightDecimal);
-        }
-
-        if (TryToDateTimeOffset(left, out var leftDateTimeOffset) && TryToDateTimeOffset(right, out var rightDateTimeOffset))
-        {
-            return leftDateTimeOffset.CompareTo(rightDateTimeOffset);
-        }
-
-        if (left.GetType() == right.GetType() && left is IComparable comparable)
-        {
-            return comparable.CompareTo(right);
-        }
-
-        return StringComparer.OrdinalIgnoreCase.Compare(left.ToString(), right.ToString());
-    }
-
-    private static int CompareValues(object? left, object? right)
-    {
-        if (ReferenceEquals(left, right))
-        {
-            return 0;
-        }
-
-        if (left is null)
-        {
-            return -1;
-        }
-
-        if (right is null)
-        {
-            return 1;
-        }
-
-        if (left.GetType() == right.GetType() && left is IComparable comparable)
-        {
-            return comparable.CompareTo(right);
-        }
-
-        return StringComparer.OrdinalIgnoreCase.Compare(left.ToString(), right.ToString());
-    }
-
-    private static bool TryToDecimal(object value, out decimal decimalValue)
-    {
-        switch (value)
-        {
-            case decimal exact:
-                decimalValue = exact;
-                return true;
-            case double floating:
-                decimalValue = (decimal)floating;
-                return true;
-            case float single:
-                decimalValue = (decimal)single;
-                return true;
-            case int integer:
-                decimalValue = integer;
-                return true;
-            case long longInteger:
-                decimalValue = longInteger;
-                return true;
-            default:
-                decimalValue = default;
-                return false;
-        }
-    }
-
-    private static bool TryToDateTimeOffset(object value, out DateTimeOffset dateTimeOffset)
-    {
-        switch (value)
-        {
-            case DateTimeOffset exact:
-                dateTimeOffset = exact;
-                return true;
-            case DateTime dateTime:
-                dateTimeOffset = dateTime.Kind switch
-                {
-                    DateTimeKind.Utc => new DateTimeOffset(dateTime),
-                    DateTimeKind.Local => new DateTimeOffset(dateTime.ToUniversalTime()),
-                    _ => new DateTimeOffset(DateTime.SpecifyKind(dateTime, DateTimeKind.Utc))
-                };
-                return true;
-            default:
-                dateTimeOffset = default;
-                return false;
-        }
-    }
-
-    private static string EncodeContinuationToken(int offset)
-        => offset.ToString(CultureInfo.InvariantCulture);
-
-    private static int DecodeContinuationToken(string? continuationToken)
-    {
-        var normalizedToken = continuationToken?
-            .Split('|', 2, StringSplitOptions.TrimEntries)[0];
-
-        return int.TryParse(normalizedToken, NumberStyles.None, CultureInfo.InvariantCulture, out var offset) && offset > 0
-            ? offset
-            : 0;
     }
 
     private sealed class LinkedEntityContext(EntityRecord rootRecord)

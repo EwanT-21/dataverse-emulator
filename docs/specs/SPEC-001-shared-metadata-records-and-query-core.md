@@ -44,6 +44,7 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
   - retrieve table definitions
 - Domain services for:
   - single-table query validation
+  - single-table query execution semantics for filtering, sorting, projection, and continuation paging
   - record validation
   - linked-query semantic validation against metadata
   - linked-query execution semantics for join, filter, sort, projection, and paging
@@ -71,7 +72,7 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
 - Relationship modeling is still narrow and only covers the currently seeded local workflow.
 - Durable persistence is not part of the current shared-core slice.
 - Query breadth is still limited by the compatibility slices built on top of this core.
-- Single-table provider-local query evaluation still duplicates some semantics that now also exist in the shared linked-query domain services.
+- Single-table and linked-query execution still use different domain executors because their query shapes are different, but they now share the same domain value-evaluation and continuation paging services.
 
 ## Out Of Scope
 
@@ -85,6 +86,7 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
 This slice is currently proven by:
 
 - domain tests for metadata and record invariants
+- domain tests for single-table query execution semantics
 - domain tests for linked-query validation and execution semantics
 - integration tests for application orchestration
 - hosted compatibility tests that exercise the same core through Xrm and Web API adapters

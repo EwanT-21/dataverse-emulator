@@ -27,6 +27,7 @@ Those scenarios may matter later, but they are not driving the current roadmap.
 The repository now implements a real first compatibility slice:
 
 - Shared in-memory core for metadata, records, and query orchestration.
+- Single-table and linked-query execution now share domain-owned value comparison, sorting, and continuation paging semantics.
 - Seeded `account` and `contact` metadata with entity sets `accounts` and `contacts`.
 - Local reset workflow that restores the default seeded state.
 - Hosted Xrm/C# compatibility for the real legacy `CrmServiceClient`.
@@ -35,6 +36,7 @@ The repository now implements a real first compatibility slice:
   - `Retrieve(string, Guid, ColumnSet)`
   - `Update(Entity)`
   - `Delete(string, Guid)`
+  - `UpsertRequest` for primary-id addressed upsert
   - `RetrieveMultiple(QueryExpression)`
   - `RetrieveMultiple(FetchExpression)`
 - Supported QueryExpression breadth:
@@ -66,12 +68,14 @@ The repository now implements a real first compatibility slice:
   - `RetrieveAttribute`
   - `RetrieveAllEntities`
 - Supported generic `Execute` coverage:
+  - `UpsertRequest` for create-or-update flows addressed by primary id
   - `ExecuteMultipleRequest` for batching currently supported request slices
 - Secondary Dataverse Web API support on `/api/data/v9.2/accounts` and `/api/data/v9.2/contacts`.
 - Shared error model mapped into:
   - SDK-style faults for Xrm/C#
   - Dataverse-style HTTP errors for Web API
 - AppHost packaging for a reusable Aspire emulator resource plus a generated `dataverse` connection string resource.
+- Snapshot export and import workflows on `/_emulator/v1/snapshot`.
 - Aspire-driven end-to-end tests, including a reusable `net48` harness that uses the real `CrmServiceClient`.
 
 ## Current Scope
@@ -100,10 +104,12 @@ The emulator is intentionally narrow right now:
 Not implemented yet:
 
 - broader multi-table coverage beyond the current seeded relational slice
+- alternate-key upsert
 - FetchXML joins
 - broader `Execute` message coverage beyond the current demand-driven slice
 - relationship modeling and traversal
 - auth emulation beyond permissive local bootstrap
+- multiple named seed scenarios
 - durable persistence providers
 
 ## Compatibility Tiers
@@ -190,6 +196,17 @@ POST /_emulator/v1/reset
 ```
 
 - The current reset flow restores the `default-seed` scenario for the in-memory `account` + `contact` slice.
+- Export the current in-memory emulator state with:
+
+```bash
+GET /_emulator/v1/snapshot
+```
+
+- Import a previously exported snapshot and replace the current in-memory state with:
+
+```bash
+POST /_emulator/v1/snapshot
+```
 
 ## Tests
 

@@ -119,6 +119,47 @@ public sealed class DataverseXrmRecordOperations(
             : Result.Success;
     }
 
+    public async Task<ErrorOr<UpsertRowResult>> UpsertAsync(
+        Entity entity,
+        CancellationToken cancellationToken)
+    {
+        if (entity is null)
+        {
+            return DataverseXrmErrors.ParameterRequired("entity");
+        }
+
+        if (entity.KeyAttributes.Count > 0)
+        {
+            return DataverseXrmErrors.UnsupportedOperation("Upsert alternate keys");
+        }
+
+        var tableResult = await mediator.Send(new GetTableDefinitionQuery(entity.LogicalName), cancellationToken);
+        if (tableResult.IsError)
+        {
+            return tableResult.Errors;
+        }
+
+        var valuesResult = DataverseXrmEntityMapper.ToCreateValues(entity, tableResult.Value);
+        if (valuesResult.IsError)
+        {
+            return valuesResult.Errors;
+        }
+
+        Guid? id = null;
+        if (entity.Id != Guid.Empty)
+        {
+            id = entity.Id;
+        }
+        else if (valuesResult.Value.TryGetValue(tableResult.Value.PrimaryIdAttribute, out var rawId) && rawId is Guid suppliedId)
+        {
+            id = suppliedId;
+        }
+
+        return await mediator.Send(
+            new UpsertRowCommand(tableResult.Value.LogicalName, id, valuesResult.Value),
+            cancellationToken);
+    }
+
     public async Task<ErrorOr<EntityCollection>> RetrieveMultipleAsync(
         QueryBase query,
         CancellationToken cancellationToken)

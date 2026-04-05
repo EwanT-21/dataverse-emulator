@@ -37,15 +37,17 @@ In progress:
 - add a first multi-table `QueryExpression` slice through top-level inner `LinkEntity` joins
 - move transport-agnostic linked-query semantics into the shared core and keep application responsible for orchestration
 - add demand-driven `Execute` coverage for batched request execution
+- add demand-driven `Execute` coverage for `UpsertRequest` on the primary-id path
 - add a first bounded `FetchExpression` slice through the shared query engine
+- converge duplicated single-table and linked-query comparison, sorting, and continuation paging rules into shared domain services
 
 Next likely steps:
 
 - add more `Execute` message coverage where real apps actually need it
 - expand QueryExpression and FetchXML support further where real apps need more operators or semantics
-- converge duplicated single-table and linked-query evaluation rules into shared domain semantics where practical
+- continue consolidating shared execution building blocks where query shapes can reuse the same domain semantics practically
 - add more tables only when a target local-dev scenario requires them
-- expand reset, seeding, and snapshot-oriented local workflows beyond the current default reset endpoint
+- expand reset, seeding, and snapshot-oriented local workflows beyond the current baseline reset and snapshot endpoints
 - keep Web API growth aligned with the same shared-core capabilities
 
 ## Phase 4: Aspire Packaging And Emulator Ergonomics
@@ -55,10 +57,12 @@ In progress:
 - package the emulator as a reusable AppHost resource with a generated connection string
 - keep the AppHost packaging surface public so it can later seed a dedicated Aspire toolkit extension
 - make the emulator easier to compose into local Aspire-based app environments
+- add snapshot export and import endpoints for moving local in-memory state between runs and environments
 
 Next likely steps:
 
-- add richer snapshot import/export and durable local persistence options
+- add multiple named seed scenarios plus richer snapshot ergonomics
+- add durable local persistence options
 - improve environment-shaping features where they materially help local developers
 
 ## Phase 5: Broader Compatibility Exploration

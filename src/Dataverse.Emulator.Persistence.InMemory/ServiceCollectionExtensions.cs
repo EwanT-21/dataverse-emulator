@@ -1,6 +1,7 @@
 using Dataverse.Emulator.Application.Abstractions;
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Records;
+using Dataverse.Emulator.Domain.Services;
 using Dataverse.Emulator.Persistence.InMemory.Metadata;
 using Dataverse.Emulator.Persistence.InMemory.Records;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IReadRepository<TableDefinition>>(sp => sp.GetRequiredService<InMemoryMetadataRepository>());
         services.AddSingleton<IRepository<TableDefinition>>(sp => sp.GetRequiredService<InMemoryMetadataRepository>());
 
-        services.AddSingleton<InMemoryRecordRepository>();
+        services.AddSingleton<InMemoryRecordRepository>(sp => new InMemoryRecordRepository(
+            sp.GetRequiredService<RecordQueryExecutionService>()));
         services.AddSingleton<IReadRepository<EntityRecord>>(sp => sp.GetRequiredService<InMemoryRecordRepository>());
         services.AddSingleton<IRepository<EntityRecord>>(sp => sp.GetRequiredService<InMemoryRecordRepository>());
         services.AddSingleton<IRecordQueryService>(sp => sp.GetRequiredService<InMemoryRecordRepository>());

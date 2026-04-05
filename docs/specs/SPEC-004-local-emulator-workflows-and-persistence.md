@@ -1,7 +1,7 @@
 # SPEC-004: Local Emulator Workflows And Persistence
 
 - Status: In Progress
-- Date: 2026-04-04
+- Date: 2026-04-05
 
 ## Summary
 
@@ -39,7 +39,12 @@ This is also the area where later Aspire packaging or a community toolkit can ad
 
 - The host exposes `POST /_emulator/v1/reset`.
 - Reset currently reapplies the source-controlled `default-seed` scenario.
-- The default seed scenario defines the in-memory `account` metadata slice and clears records back to the initial seeded state.
+- The host now also exposes:
+  - `GET /_emulator/v1/snapshot`
+  - `POST /_emulator/v1/snapshot`
+- Snapshot export captures the current in-memory metadata and rows into a stable document model owned by the application seeding layer.
+- Snapshot import restores that document back through the same application-owned seed execution flow rather than bypassing the shared core.
+- The default seed scenario defines the in-memory `account` + `contact` metadata slice and clears records back to the initial seeded state.
 - `AppHost` now packages the emulator through `AddDataverseEmulator()`.
 - The current AppHost packaging surface is public so it can later be moved or wrapped in a dedicated Aspire Community Toolkit-style extension package.
 - The current AppHost packaging emits:
@@ -48,11 +53,11 @@ This is also the area where later Aspire packaging or a community toolkit can ad
 - Aspire-hosted end-to-end tests verify that:
   - data created during a test run is removed after reset
   - metadata remains available after reset
+  - snapshot export and import can round-trip runtime-created state
   - the emulator connection string can be resolved from the packaged AppHost resource model
 
 ### Still To Add
 
-- snapshot export and import workflows
 - multiple named seed scenarios
 - richer AppHost ergonomics for distributing connection information to consuming apps beyond the current baseline packaging
 - durable local persistence providers layered behind the same abstractions

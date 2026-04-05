@@ -8,7 +8,10 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDataverseEmulatorApplication(this IServiceCollection services)
     {
+        services.AddSingleton<QueryValueEvaluationService>();
+        services.AddSingleton<ContinuationPagingService>();
         services.AddSingleton<QueryValidationService>();
+        services.AddSingleton<RecordQueryExecutionService>();
         services.AddSingleton<RecordValidationService>();
         services.AddSingleton<LinkedRecordQueryValidationService>();
         services.AddSingleton<LinkedRecordQueryExecutionService>();
@@ -23,8 +26,11 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IValidator<Records.ListLinkedRowsQuery>, Records.ListLinkedRowsQueryValidator>();
         services.AddTransient<IValidator<Records.ListRowsQuery>, Records.ListRowsQueryValidator>();
         services.AddTransient<IValidator<Records.UpdateRowCommand>, Records.UpdateRowCommandValidator>();
+        services.AddTransient<IValidator<Records.UpsertRowCommand>, Records.UpsertRowCommandValidator>();
 
         services.AddTransient<Seeding.SeedScenarioExecutor>();
+        services.AddTransient<Seeding.SeedScenarioSnapshotMapper>();
+        services.AddTransient<Seeding.SeedScenarioSnapshotService>();
 
         return services;
     }

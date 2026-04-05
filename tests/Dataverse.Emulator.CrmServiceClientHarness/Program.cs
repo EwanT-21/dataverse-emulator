@@ -36,11 +36,13 @@ internal static class Program
                 "linked-query" => RunLinkedQuery(connectionString),
                 "fetchxml" => RunFetchXmlQuery(connectionString),
                 "execute-multiple" => RunExecuteMultiple(connectionString),
+                "upsert" => RunUpsert(connectionString),
                 "metadata" => RunMetadata(connectionString),
                 "create" => RunCreate(connectionString, scenarioArgs),
                 "retrieve" => RunRetrieve(connectionString, scenarioArgs),
                 "unsupported-link-query" => RunUnsupportedLinkQuery(connectionString),
                 "unsupported-fetchxml-link-entity" => RunUnsupportedFetchXmlLinkEntity(connectionString),
+                "unsupported-upsert-alternate-key" => RunUnsupportedUpsertAlternateKey(connectionString),
                 _ => throw new InvalidOperationException("Unknown scenario '" + scenario + "'.")
             };
 
@@ -408,6 +410,42 @@ internal static class Program
         }
     }
 
+    private static IDictionary<string, object> RunUpsert(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var createResponse = (UpsertResponse)client.Execute(new UpsertRequest
+            {
+                Target = CreateAccountEntity("Upserted", "UP-100")
+            });
+
+            var createdId = createResponse.Target.Id;
+
+            var updateTarget = new Entity("account", createdId);
+            updateTarget["accountnumber"] = "UP-200";
+
+            var updateResponse = (UpsertResponse)client.Execute(new UpsertRequest
+            {
+                Target = updateTarget
+            });
+
+            var retrieved = client.Retrieve(
+                "account",
+                createdId,
+                new ColumnSet("name", "accountnumber"));
+
+            return new Dictionary<string, object>
+            {
+                ["createdId"] = createdId.ToString(),
+                ["createRecordCreated"] = createResponse.RecordCreated,
+                ["updateRecordCreated"] = updateResponse.RecordCreated,
+                ["updateTargetId"] = updateResponse.Target.Id.ToString(),
+                ["retrievedName"] = retrieved.GetAttributeValue<string>("name"),
+                ["retrievedAccountNumber"] = retrieved.GetAttributeValue<string>("accountnumber")
+            };
+        }
+    }
+
     private static IDictionary<string, object> RunRetrieve(string connectionString, string[] args)
     {
         if (args.Length < 1)
@@ -519,6 +557,38 @@ internal static class Program
                     "<link-entity name='account' from='accountid' to='accountid' alias='child' />" +
                     "</entity>" +
                     "</fetch>"));
+
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = false
+                };
+            }
+            catch (FaultException<OrganizationServiceFault> fault)
+            {
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = true,
+                    ["errorCode"] = fault.Detail.ErrorCode,
+                    ["message"] = fault.Detail.Message
+                };
+            }
+        }
+    }
+
+    private static IDictionary<string, object> RunUnsupportedUpsertAlternateKey(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            try
+            {
+                var target = new Entity("account");
+                target.KeyAttributes["accountnumber"] = "A-100";
+                target["name"] = "Alternate Key Upsert";
+
+                client.Execute(new UpsertRequest
+                {
+                    Target = target
+                });
 
                 return new Dictionary<string, object>
                 {

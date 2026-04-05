@@ -37,6 +37,7 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - Prefer concrete, tested request coverage over broad speculative message support.
 - Keep unsupported messages faulting clearly rather than silently approximating behavior.
 - `ExecuteMultipleRequest` support for batching currently implemented request slices is now part of the hosted Xrm surface.
+- `UpsertRequest` on the primary-id path is now part of the hosted Xrm surface, while alternate-key upsert remains explicitly unsupported.
 
 ### QueryExpression Expansion
 
@@ -92,7 +93,9 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - `RetrieveMultiple(QueryExpression)` now supports grouped filters and common operators including `NotEqual`, `Null`, `NotNull`, `Like`, `BeginsWith`, `EndsWith`, range comparisons, and `In`.
 - `RetrieveMultiple(QueryExpression)` now supports top-level inner `LinkEntity` joins with aliased linked-column projection for the seeded relational slice.
 - The current linked-query slice now translates in the Xrm adapter, orchestrates in the application layer, and executes its transport-agnostic semantics through shared domain services.
+- Single-table and linked-query execution now share domain-owned value comparison, sorting, and continuation paging semantics, reducing evaluator drift between Xrm-facing query shapes.
 - `RetrieveMultiple(FetchExpression)` now supports a bounded one-table slice for projection, nested filters, common operators, ordering, and paging through the shared query engine.
 - `ExecuteMultipleRequest` is now implemented for batching the request slices the emulator already supports, and is verified through the real `CrmServiceClient` harness.
+- `UpsertRequest` is now implemented for primary-id addressed create-or-update flows and is verified through the real `CrmServiceClient` harness, while alternate-key upsert continues to fault clearly.
 - Metadata-oriented Xrm reads for the seeded table slice are now implemented through `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveAllEntities`.
-- The next likely Xrm expansion points are additional demand-driven `Execute` request coverage, deeper query semantics where a real local app needs them, convergence of duplicated single-table and linked-query evaluation logic, and additional tables only when they are justified by a concrete local workflow.
+- The next likely Xrm expansion points are additional demand-driven `Execute` request coverage, deeper query semantics where a real local app needs them, further consolidation of shared execution helpers where it stays clear, and additional tables only when they are justified by a concrete local workflow.

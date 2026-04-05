@@ -62,6 +62,7 @@ Owns the transport-agnostic language of the emulator:
 - row identity and invariants
 - query concepts that should exist regardless of transport
 - validation-oriented domain services
+- single-table query execution semantics such as filtering, sorting, projection, and continuation paging
 - transport-agnostic linked-query semantics such as join, scoped filter, sort, projection, and paging rules
 
 This project stays free from HTTP, SOAP, SDK, and storage concerns.
@@ -163,6 +164,7 @@ Owns the emulator process itself:
 - local emulator administration endpoints
 - protocol registration
 - seeded startup
+- snapshot import and export endpoints that compose application-owned seeding services
 
 ### `Dataverse.Emulator.AppHost`
 
@@ -183,12 +185,14 @@ The current proven slice is intentionally narrow:
 - one seeded lookup path: `contact.parentcustomerid -> account.accountid`
 - in-memory state only
 - hosted organization service bootstrap at `/org/XRMServices/2011/Organization.svc`
+- single-table and linked-query execution now share domain-owned value comparison, sorting, and continuation paging services
 - transport-agnostic linked-query semantics now live in the shared core rather than the Xrm protocol layer
 - C# operations:
   - `Create`
   - `Retrieve`
   - `Update`
   - `Delete`
+  - `UpsertRequest` on the primary-id path
   - `RetrieveMultiple(QueryExpression)`
   - `RetrieveMultiple(FetchExpression)`
   - `RetrieveMultiple(QueryExpression)` paging via `PageInfo`
@@ -202,9 +206,11 @@ The current proven slice is intentionally narrow:
   - `RetrieveAttribute`
   - `RetrieveAllEntities`
 - generic `Execute` message coverage:
+  - `UpsertRequest` for primary-id addressed create-or-update flows
   - `ExecuteMultipleRequest` for batching currently supported slices
 - secondary Web API CRUD on `/api/data/v9.2/accounts` and `/api/data/v9.2/contacts`
 - local reset endpoint on `/_emulator/v1/reset` for restoring the default seeded state
+- local snapshot export and import endpoints on `/_emulator/v1/snapshot` for moving in-memory emulator state through a source-controllable document shape
 - public AppHost helper packaging that emits a reusable emulator project resource plus a generated `dataverse` connection string resource
 - shared error model mapped to either SDK faults or HTTP errors
 
@@ -215,7 +221,7 @@ That slice is locked down with:
 - Aspire-hosted end-to-end tests
 - a reusable `net48` harness that uses the real `CrmServiceClient`
 
-One current cleanup direction still worth tracking: the single-table in-memory query evaluator and the linked-query domain execution service still duplicate some comparison and filter logic. That is now a cohesion concern rather than a layering problem, and future work should converge those rules where practical.
+One current cleanup direction still worth tracking: single-table and linked-query execution now share common domain value-evaluation and paging services, but their traversal and projection steps are still specialized per query shape. Future work should only consolidate those remaining paths where it keeps the model clearer rather than more generic.
 
 ## Scope Guidance
 

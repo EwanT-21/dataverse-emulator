@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
@@ -237,6 +238,19 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
     }
 
     [Fact]
+    public async Task CrmServiceClient_UpsertRequest_Composes_Create_And_Update_Flow()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("upsert");
+
+        Assert.True(result.GetProperty("createRecordCreated").GetBoolean());
+        Assert.False(result.GetProperty("updateRecordCreated").GetBoolean());
+        Assert.Equal(result.GetProperty("createdId").GetString(), result.GetProperty("updateTargetId").GetString());
+        Assert.Equal("Upserted", result.GetProperty("retrievedName").GetString());
+        Assert.Equal("UP-200", result.GetProperty("retrievedAccountNumber").GetString());
+    }
+
+    [Fact]
     public async Task CrmServiceClient_Can_Read_Seeded_Metadata()
     {
         await fixture.ResetAsync();
@@ -272,6 +286,16 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
 
         Assert.True(result.GetProperty("faulted").GetBoolean());
         Assert.Contains("link-entity", result.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Unsupported_Upsert_AlternateKey_Features_Surface_As_SdkFaults()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("unsupported-upsert-alternate-key");
+
+        Assert.True(result.GetProperty("faulted").GetBoolean());
+        Assert.Contains("alternate keys", result.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
     }
 
     private static string[] ReadStringArray(JsonElement payload, string propertyName)
@@ -357,6 +381,68 @@ public sealed class LocalWorkflowAspireTests(DataverseEmulatorFixture fixture)
         Assert.Equal(2, metadata.GetProperty("allEntitiesCount").GetInt32());
         Assert.Equal("account", metadata.GetProperty("entityLogicalName").GetString());
     }
+
+    [Fact]
+    public async Task Snapshot_Export_And_Import_RoundTrips_Runtime_State()
+    {
+        await fixture.ResetAsync();
+
+        using var client = fixture.CreateClient();
+        var accountCreateResponse = await client.PostAsJsonAsync("/api/data/v9.2/accounts", new
+        {
+            name = "Snapshot Account",
+            accountnumber = "SN-100"
+        });
+
+        Assert.Equal(HttpStatusCode.NoContent, accountCreateResponse.StatusCode);
+
+        var accountEntityUri = accountCreateResponse.Headers.GetValues("OData-EntityId").Single();
+        var accountId = ExtractId(accountEntityUri);
+
+        var contactCreateResponse = await client.PostAsJsonAsync("/api/data/v9.2/contacts", new
+        {
+            fullname = "Snapshot Contact",
+            emailaddress1 = "snapshot@example.com",
+            parentcustomerid = accountId
+        });
+
+        Assert.Equal(HttpStatusCode.NoContent, contactCreateResponse.StatusCode);
+
+        var snapshot = await fixture.ExportSnapshotAsync();
+
+        Assert.Equal("1.0", snapshot.GetProperty("schemaVersion").GetString());
+        Assert.Equal(2, snapshot.GetProperty("tables").GetArrayLength());
+        Assert.Equal(2, snapshot.GetProperty("records").GetArrayLength());
+
+        await fixture.ResetAsync();
+
+        var afterResetResponse = await client.GetAsync($"/api/data/v9.2/accounts({accountId})?$select=name");
+        Assert.Equal(HttpStatusCode.NotFound, afterResetResponse.StatusCode);
+
+        var importResult = await fixture.ImportSnapshotAsync(snapshot);
+
+        Assert.Equal("imported", importResult.GetProperty("status").GetString());
+        Assert.Equal("1.0", importResult.GetProperty("schemaVersion").GetString());
+        Assert.Equal(2, importResult.GetProperty("tableCount").GetInt32());
+        Assert.Equal(2, importResult.GetProperty("recordCount").GetInt32());
+
+        var restoredAccountResponse = await client.GetAsync($"/api/data/v9.2/accounts({accountId})?$select=name,accountnumber");
+        var restoredAccount = await restoredAccountResponse.ReadRequiredJsonAsync();
+        var restoredContactsResponse = await client.GetAsync("/api/data/v9.2/contacts?$select=fullname,emailaddress1,parentcustomerid&$filter=fullname eq 'Snapshot Contact'");
+        var restoredContacts = await restoredContactsResponse.ReadRequiredJsonAsync();
+
+        Assert.Equal("Snapshot Account", restoredAccount.GetProperty("name").GetString());
+        Assert.Equal("SN-100", restoredAccount.GetProperty("accountnumber").GetString());
+        Assert.Single(restoredContacts.GetProperty("value").EnumerateArray());
+        Assert.Equal(accountId, restoredContacts.GetProperty("value")[0].GetProperty("parentcustomerid").GetGuid());
+    }
+
+    private static Guid ExtractId(string entityUri)
+    {
+        var start = entityUri.IndexOf('(');
+        var end = entityUri.IndexOf(')', start + 1);
+        return Guid.Parse(entityUri[(start + 1)..end]);
+    }
 }
 
 public sealed class DataverseEmulatorFixture : IAsyncLifetime
@@ -420,6 +506,21 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
 
         Assert.Equal("reset", payload.GetProperty("status").GetString());
         Assert.Equal("default-seed", payload.GetProperty("scenario").GetString());
+    }
+
+    public async Task<JsonElement> ExportSnapshotAsync()
+    {
+        using var client = CreateClient();
+        var response = await client.GetAsync("/_emulator/v1/snapshot");
+        return await response.ReadRequiredJsonAsync();
+    }
+
+    public async Task<JsonElement> ImportSnapshotAsync(JsonElement snapshot)
+    {
+        using var client = CreateClient();
+        using var content = new StringContent(snapshot.GetRawText(), Encoding.UTF8, "application/json");
+        var response = await client.PostAsync("/_emulator/v1/snapshot", content);
+        return await response.ReadRequiredJsonAsync();
     }
 
     public async Task<JsonElement> RunCrmHarnessAsync(string scenario, params string[] args)

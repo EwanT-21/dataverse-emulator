@@ -24,6 +24,7 @@ public static class DataverseXrmProtocolExtensions
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveCurrentOrganizationXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, WhoAmIXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, CreateXrmRequestHandler>();
+        services.AddScoped<IXrmOrganizationRequestHandler, UpsertXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, UpdateXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, DeleteXrmRequestHandler>();

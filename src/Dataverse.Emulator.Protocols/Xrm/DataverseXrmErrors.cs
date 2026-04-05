@@ -29,6 +29,16 @@ internal static class DataverseXrmErrors
             code: "Protocol.Xrm.Query.Unsupported",
             description: $"QueryExpression feature '{feature}' is not supported by the local Dataverse emulator.");
 
+    public static Error InvalidFetchXml(string message)
+        => Error.Validation(
+            code: "Protocol.Xrm.FetchXml.Invalid",
+            description: message);
+
+    public static Error UnsupportedFetchXmlFeature(string feature)
+        => Error.Validation(
+            code: "Protocol.Xrm.FetchXml.Unsupported",
+            description: $"FetchXML feature '{feature}' is not supported by the local Dataverse emulator.");
+
     public static Error InvalidPagingRequest(string message)
         => Error.Validation(
             code: "Protocol.Xrm.Query.PagingInvalid",

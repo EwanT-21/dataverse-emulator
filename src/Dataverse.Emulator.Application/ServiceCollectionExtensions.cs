@@ -10,12 +10,17 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<QueryValidationService>();
         services.AddSingleton<RecordValidationService>();
+        services.AddSingleton<LinkedRecordQueryValidationService>();
+        services.AddSingleton<LinkedRecordQueryExecutionService>();
+
+        services.AddTransient<Records.LinkedRecordQueryService>();
 
         services.AddTransient<IValidator<Metadata.GetTableDefinitionByEntitySetNameQuery>, Metadata.GetTableDefinitionByEntitySetNameQueryValidator>();
         services.AddTransient<IValidator<Metadata.GetTableDefinitionQuery>, Metadata.GetTableDefinitionQueryValidator>();
         services.AddTransient<IValidator<Records.CreateRowCommand>, Records.CreateRowCommandValidator>();
         services.AddTransient<IValidator<Records.DeleteRowCommand>, Records.DeleteRowCommandValidator>();
         services.AddTransient<IValidator<Records.GetRowByIdQuery>, Records.GetRowByIdQueryValidator>();
+        services.AddTransient<IValidator<Records.ListLinkedRowsQuery>, Records.ListLinkedRowsQueryValidator>();
         services.AddTransient<IValidator<Records.ListRowsQuery>, Records.ListRowsQueryValidator>();
         services.AddTransient<IValidator<Records.UpdateRowCommand>, Records.UpdateRowCommandValidator>();
 

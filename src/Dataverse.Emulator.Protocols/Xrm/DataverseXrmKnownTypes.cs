@@ -21,8 +21,12 @@ internal static class DataverseXrmKnownTypes
         var knownTypes = new HashSet<Type>
         {
             typeof(OrganizationRequest),
+            typeof(OrganizationRequestCollection),
             typeof(OrganizationResponse),
             typeof(OrganizationServiceFault),
+            typeof(ExecuteMultipleSettings),
+            typeof(ExecuteMultipleResponseItem),
+            typeof(ExecuteMultipleResponseItemCollection),
             typeof(Entity),
             typeof(EntityCollection),
             typeof(EntityReference),
@@ -31,6 +35,7 @@ internal static class DataverseXrmKnownTypes
             typeof(ColumnSet),
             typeof(QueryBase),
             typeof(QueryExpression),
+            typeof(LinkEntity),
             typeof(FilterExpression),
             typeof(ConditionExpression),
             typeof(OrderExpression),

@@ -4,6 +4,7 @@ using Dataverse.Emulator.Protocols.Xrm.Execution;
 using Dataverse.Emulator.Protocols.Xrm.Operations;
 using Dataverse.Emulator.Protocols.Xrm.Requests.Bootstrap;
 using Dataverse.Emulator.Protocols.Xrm.Requests.Crud;
+using Dataverse.Emulator.Protocols.Xrm.Requests.Execution;
 using Dataverse.Emulator.Protocols.Xrm.Requests.Metadata;
 using Dataverse.Emulator.Protocols.Xrm.Requests.Queries;
 using Microsoft.AspNetCore.Builder;
@@ -27,6 +28,7 @@ public static class DataverseXrmProtocolExtensions
         services.AddScoped<IXrmOrganizationRequestHandler, UpdateXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, DeleteXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveMultipleXrmRequestHandler>();
+        services.AddScoped<IXrmOrganizationRequestHandler, ExecuteMultipleXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveEntityMetadataXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveAttributeXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveAllEntitiesXrmRequestHandler>();

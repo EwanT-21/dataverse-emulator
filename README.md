@@ -27,7 +27,7 @@ Those scenarios may matter later, but they are not driving the current roadmap.
 The repository now implements a real first compatibility slice:
 
 - Shared in-memory core for metadata, records, and query orchestration.
-- Seeded `account` metadata with entity set `accounts`.
+- Seeded `account` and `contact` metadata with entity sets `accounts` and `contacts`.
 - Local reset workflow that restores the default seeded state.
 - Hosted Xrm/C# compatibility for the real legacy `CrmServiceClient`.
 - Supported C# operations:
@@ -36,7 +36,9 @@ The repository now implements a real first compatibility slice:
   - `Update(Entity)`
   - `Delete(string, Guid)`
   - `RetrieveMultiple(QueryExpression)`
+  - `RetrieveMultiple(FetchExpression)`
 - Supported QueryExpression breadth:
+  - rooted queries over `account` and `contact`
   - grouped `AND` / `OR` filters
   - `Equal`
   - `NotEqual`
@@ -49,37 +51,57 @@ The repository now implements a real first compatibility slice:
   - `OrderExpression`
   - `TopCount`
   - `PageInfo` paging
+  - top-level `LinkEntity` inner joins across the seeded tables
+  - aliased linked-column projection in `RetrieveMultiple`
+- Supported FetchXML breadth:
+  - one-table queries over the seeded tables
+  - `<attribute>` projection and `<all-attributes />`
+  - nested `<filter type='and|or'>`
+  - `eq`, `ne`, `null`, `not-null`, `like`, `begins-with`, `ends-with`
+  - `gt`, `ge`, `lt`, `le`, `in`
+  - `<order>`
+  - `count`, `page`, and `paging-cookie`
 - Supported Xrm metadata reads:
   - `RetrieveEntity`
   - `RetrieveAttribute`
   - `RetrieveAllEntities`
-- Secondary Dataverse Web API support on `/api/data/v9.2/accounts`.
+- Supported generic `Execute` coverage:
+  - `ExecuteMultipleRequest` for batching currently supported request slices
+- Secondary Dataverse Web API support on `/api/data/v9.2/accounts` and `/api/data/v9.2/contacts`.
 - Shared error model mapped into:
   - SDK-style faults for Xrm/C#
   - Dataverse-style HTTP errors for Web API
+- AppHost packaging for a reusable Aspire emulator resource plus a generated `dataverse` connection string resource.
 - Aspire-driven end-to-end tests, including a reusable `net48` harness that uses the real `CrmServiceClient`.
 
 ## Current Scope
 
 The emulator is intentionally narrow right now:
 
-- One table: `account`
+- Two seeded tables: `account` and `contact`
+- One seeded lookup path: `contact.parentcustomerid -> account.accountid`
 - In-memory storage only
 - One default seed scenario: `default-seed`
 - QueryExpression support limited to:
-  - one-table queries only
-  - no `LinkEntity`
-  - no FetchXML
+  - top-level `LinkEntity` inner joins only
+  - no nested `LinkEntity`
+  - no left outer joins
   - no aggregates or `Distinct`
   - no total-count paging
+- FetchXML support limited to:
+  - one-table queries only
+  - no `link-entity`
+  - no aggregates or `distinct`
+  - no aliases
+  - no total-count paging
 - Metadata reads limited to the current seeded table slice
-- Web API support limited to matching CRUD plus metadata for the current table slice
+- Web API support limited to matching CRUD plus metadata for the current seeded tables
 
 Not implemented yet:
 
-- multi-table support
-- FetchXML
-- broader `Execute` message coverage
+- broader multi-table coverage beyond the current seeded relational slice
+- FetchXML joins
+- broader `Execute` message coverage beyond the current demand-driven slice
 - relationship modeling and traversal
 - auth emulation beyond permissive local bootstrap
 - durable persistence providers
@@ -143,6 +165,22 @@ Local emulator connection string for the current slice:
 AuthType=AD;Url=http://localhost:{port}/org;Domain=EMULATOR;Username=local;Password=local
 ```
 
+AppHost packaging for the current slice:
+
+```csharp
+var builder = DistributedApplication.CreateBuilder(args);
+
+builder.AddDataverseEmulator();
+
+var app = builder.Build();
+app.Run();
+```
+
+- The packaged emulator currently exposes:
+  - project resource name: `dataverse-emulator`
+  - connection string resource name: `dataverse`
+- `AddDataverseEmulator()` and `DataverseEmulatorAppHostResource` are public so the packaging seam can later move into a dedicated Aspire Community Toolkit-style extension library cleanly.
+
 ## Local Workflow Support
 
 - Reset the emulator back to its default seeded state with:
@@ -151,7 +189,7 @@ AuthType=AD;Url=http://localhost:{port}/org;Domain=EMULATOR;Username=local;Passw
 POST /_emulator/v1/reset
 ```
 
-- The current reset flow restores the `default-seed` scenario for the in-memory `account` slice.
+- The current reset flow restores the `default-seed` scenario for the in-memory `account` + `contact` slice.
 
 ## Tests
 
@@ -171,3 +209,4 @@ Key ADRs for the current shape:
 - `ADR-006` for Aspire-first local orchestration.
 - `ADR-011` for hosted `CrmServiceClient` compatibility as the first external contract.
 - `ADR-012` for optional validators in the Mediator pipeline.
+- `ADR-013` for keeping transport-agnostic query semantics in the domain.

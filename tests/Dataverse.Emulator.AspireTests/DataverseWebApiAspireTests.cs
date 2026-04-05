@@ -26,8 +26,11 @@ public sealed class ServiceDocumentAspireTests(DataverseEmulatorFixture fixture)
         var metadataDocument = await metadataResponse.ReadRequiredStringAsync();
 
         Assert.Contains("accounts", serviceDocument.GetProperty("value").EnumerateArray().Select(item => item.GetProperty("name").GetString()));
+        Assert.Contains("contacts", serviceDocument.GetProperty("value").EnumerateArray().Select(item => item.GetProperty("name").GetString()));
         Assert.Contains("EntitySet Name=\"accounts\"", metadataDocument, StringComparison.Ordinal);
         Assert.Contains("EntityType Name=\"account\"", metadataDocument, StringComparison.Ordinal);
+        Assert.Contains("EntitySet Name=\"contacts\"", metadataDocument, StringComparison.Ordinal);
+        Assert.Contains("EntityType Name=\"contact\"", metadataDocument, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -40,6 +43,22 @@ public sealed class ServiceDocumentAspireTests(DataverseEmulatorFixture fixture)
 
         Assert.Contains("IOrganizationService", wsdl, StringComparison.Ordinal);
         Assert.Contains("Organization.svc?wsdl=wsdl0", wsdl, StringComparison.Ordinal);
+    }
+}
+
+public sealed class AppHostPackagingAspireTests(DataverseEmulatorFixture fixture)
+    : IClassFixture<DataverseEmulatorFixture>
+{
+    [Fact]
+    public async Task AppHost_Exposes_Emulator_ConnectionString()
+    {
+        var connectionString = await fixture.GetConnectionStringAsync();
+
+        Assert.Contains("AuthType=AD;", connectionString, StringComparison.Ordinal);
+        Assert.Contains("/org;", connectionString, StringComparison.Ordinal);
+        Assert.Contains("Domain=EMULATOR;", connectionString, StringComparison.Ordinal);
+        Assert.Contains("Username=local;", connectionString, StringComparison.Ordinal);
+        Assert.Contains("Password=local", connectionString, StringComparison.Ordinal);
     }
 }
 
@@ -178,6 +197,46 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
     }
 
     [Fact]
+    public async Task CrmServiceClient_Linked_QueryExpression_RoundTrips_Across_Tables()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("linked-query");
+
+        Assert.Equal(2, result.GetProperty("count").GetInt32());
+        Assert.Equal(["Alice Alpha", "Aria Alpha"], ReadStringArray(result, "names"));
+        Assert.Equal(["Alpha Account", "Alpha Account"], ReadStringArray(result, "accountNames"));
+        Assert.Equal(["A-100", "A-100"], ReadStringArray(result, "accountNumbers"));
+    }
+
+    [Fact]
+    public async Task CrmServiceClient_FetchXml_RetrieveMultiple_RoundTrips()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("fetchxml");
+
+        Assert.Equal(2, result.GetProperty("firstPageCount").GetInt32());
+        Assert.Equal(["Alpha", "Alpine"], ReadStringArray(result, "firstPageNames"));
+        Assert.True(result.GetProperty("firstMoreRecords").GetBoolean());
+        Assert.True(result.GetProperty("firstPagingCookiePresent").GetBoolean());
+        Assert.Equal(1, result.GetProperty("secondPageCount").GetInt32());
+        Assert.Equal(["Charlie"], ReadStringArray(result, "secondPageNames"));
+        Assert.False(result.GetProperty("secondMoreRecords").GetBoolean());
+    }
+
+    [Fact]
+    public async Task CrmServiceClient_ExecuteMultiple_Composes_Existing_Request_Slices()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("execute-multiple");
+
+        Assert.False(result.GetProperty("isFaulted").GetBoolean());
+        Assert.Equal(3, result.GetProperty("responseCount").GetInt32());
+        Assert.Equal([0, 1, 2], ReadIntArray(result, "successIndices"));
+        Assert.Equal(2, result.GetProperty("createdCount").GetInt32());
+        Assert.Equal(["Alpha", "Bravo"], ReadStringArray(result, "createdNames"));
+    }
+
+    [Fact]
     public async Task CrmServiceClient_Can_Read_Seeded_Metadata()
     {
         await fixture.ResetAsync();
@@ -192,7 +251,7 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
         Assert.Equal("name", result.GetProperty("attributeLogicalName").GetString());
         Assert.Equal("String", result.GetProperty("attributeType").GetString());
         Assert.Equal("ApplicationRequired", result.GetProperty("attributeRequiredLevel").GetString());
-        Assert.Equal(1, result.GetProperty("allEntitiesCount").GetInt32());
+        Assert.Equal(2, result.GetProperty("allEntitiesCount").GetInt32());
     }
 
     [Fact]
@@ -202,13 +261,29 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
         var result = await fixture.RunCrmHarnessAsync("unsupported-link-query");
 
         Assert.True(result.GetProperty("faulted").GetBoolean());
-        Assert.Contains("LinkEntity", result.GetProperty("message").GetString(), StringComparison.Ordinal);
+        Assert.Contains("Join operator", result.GetProperty("message").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Unsupported_FetchXml_Features_Surface_As_SdkFaults()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("unsupported-fetchxml-link-entity");
+
+        Assert.True(result.GetProperty("faulted").GetBoolean());
+        Assert.Contains("link-entity", result.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
     }
 
     private static string[] ReadStringArray(JsonElement payload, string propertyName)
         => payload.GetProperty(propertyName)
             .EnumerateArray()
             .Select(item => item.GetString()!)
+            .ToArray();
+
+    private static int[] ReadIntArray(JsonElement payload, string propertyName)
+        => payload.GetProperty(propertyName)
+            .EnumerateArray()
+            .Select(item => item.GetInt32())
             .ToArray();
 }
 
@@ -279,7 +354,7 @@ public sealed class LocalWorkflowAspireTests(DataverseEmulatorFixture fixture)
         var metadata = await fixture.RunCrmHarnessAsync("metadata");
 
         Assert.Equal(HttpStatusCode.NotFound, afterResetResponse.StatusCode);
-        Assert.Equal(1, metadata.GetProperty("allEntitiesCount").GetInt32());
+        Assert.Equal(2, metadata.GetProperty("allEntitiesCount").GetInt32());
         Assert.Equal("account", metadata.GetProperty("entityLogicalName").GetString());
     }
 }
@@ -288,6 +363,7 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
     private DistributedApplication? app;
+    private string? connectionString;
 
     public async Task InitializeAsync()
     {
@@ -312,6 +388,8 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
             await app.ResourceNotifications
                 .WaitForResourceHealthyAsync("dataverse-emulator", cts.Token)
                 .WaitAsync(DefaultTimeout, cts.Token);
+            connectionString = await app.GetConnectionStringAsync("dataverse", cts.Token).AsTask()
+                .WaitAsync(DefaultTimeout, cts.Token);
         }
         catch
         {
@@ -331,12 +409,8 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
         return app.CreateHttpClient("dataverse-emulator", "http");
     }
 
-    public string CreateConnectionString()
-    {
-        using var client = CreateClient();
-        var orgUrl = new Uri(client.BaseAddress!, "/org").ToString().TrimEnd('/');
-        return $"AuthType=AD;Url={orgUrl};Domain=EMULATOR;Username=local;Password=local";
-    }
+    public Task<string> GetConnectionStringAsync()
+        => Task.FromResult(connectionString ?? throw new InvalidOperationException("The emulator connection string has not been initialized."));
 
     public async Task ResetAsync()
     {
@@ -362,7 +436,7 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
         };
 
         startInfo.ArgumentList.Add(scenario);
-        startInfo.ArgumentList.Add(CreateConnectionString());
+        startInfo.ArgumentList.Add(await GetConnectionStringAsync());
 
         foreach (var arg in args)
         {

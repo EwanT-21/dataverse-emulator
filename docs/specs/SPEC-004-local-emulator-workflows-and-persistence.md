@@ -40,15 +40,21 @@ This is also the area where later Aspire packaging or a community toolkit can ad
 - The host exposes `POST /_emulator/v1/reset`.
 - Reset currently reapplies the source-controlled `default-seed` scenario.
 - The default seed scenario defines the in-memory `account` metadata slice and clears records back to the initial seeded state.
+- `AppHost` now packages the emulator through `AddDataverseEmulator()`.
+- The current AppHost packaging surface is public so it can later be moved or wrapped in a dedicated Aspire Community Toolkit-style extension package.
+- The current AppHost packaging emits:
+  - project resource name `dataverse-emulator`
+  - generated connection string resource name `dataverse`
 - Aspire-hosted end-to-end tests verify that:
   - data created during a test run is removed after reset
   - metadata remains available after reset
+  - the emulator connection string can be resolved from the packaged AppHost resource model
 
 ### Still To Add
 
 - snapshot export and import workflows
 - multiple named seed scenarios
-- richer AppHost ergonomics for distributing connection information to consuming apps
+- richer AppHost ergonomics for distributing connection information to consuming apps beyond the current baseline packaging
 - durable local persistence providers layered behind the same abstractions
 
 ### Persistence Evolution
@@ -68,6 +74,7 @@ This is also the area where later Aspire packaging or a community toolkit can ad
 - Faster inner-loop feedback should win over heavyweight infrastructure.
 - New local workflows should not bypass the shared application or domain model.
 - These workflows should continue to serve the Xrm/C#-first local emulator story before broader ecosystem scenarios.
+- Local workflow features such as reset, snapshots, or Aspire packaging should compose existing application and domain behavior rather than re-encoding emulator rules in host-only utilities.
 
 ## Out Of Scope
 

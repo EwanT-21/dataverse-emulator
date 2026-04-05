@@ -31,6 +31,29 @@ internal static class DefaultSeedScenarioFactory
             "isactive",
             AttributeType.Boolean,
             RequiredLevel.None);
+        var contactId = ColumnDefinition.Create(
+            "contactid",
+            AttributeType.UniqueIdentifier,
+            RequiredLevel.SystemRequired,
+            isPrimaryId: true);
+        var contactFullName = ColumnDefinition.Create(
+            "fullname",
+            AttributeType.String,
+            RequiredLevel.ApplicationRequired,
+            isPrimaryName: true);
+        var contactEmail = ColumnDefinition.Create(
+            "emailaddress1",
+            AttributeType.String,
+            RequiredLevel.None);
+        var contactParentCustomer = ColumnDefinition.Create(
+            "parentcustomerid",
+            AttributeType.Lookup,
+            RequiredLevel.None,
+            lookupTargetTable: "account");
+        var contactCreatedOn = ColumnDefinition.Create(
+            "createdon",
+            AttributeType.DateTime,
+            RequiredLevel.None);
 
         var accountTable = TableDefinition.Create(
             logicalName: "account",
@@ -45,11 +68,36 @@ internal static class DefaultSeedScenarioFactory
                 createdOn.Value,
                 active.Value
             ]);
+        var contactTable = TableDefinition.Create(
+            logicalName: "contact",
+            entitySetName: "contacts",
+            primaryIdAttribute: "contactid",
+            primaryNameAttribute: "fullname",
+            columns:
+            [
+                contactId.Value,
+                contactFullName.Value,
+                contactEmail.Value,
+                contactParentCustomer.Value,
+                contactCreatedOn.Value
+            ]);
 
-        Validate(accountId, accountName, accountNumber, createdOn, active, accountTable);
+        Validate(
+            accountId,
+            accountName,
+            accountNumber,
+            createdOn,
+            active,
+            contactId,
+            contactFullName,
+            contactEmail,
+            contactParentCustomer,
+            contactCreatedOn,
+            accountTable,
+            contactTable);
 
         return new SeedScenario(
-            Tables: [accountTable.Value],
+            Tables: [accountTable.Value, contactTable.Value],
             Records: Array.Empty<EntityRecord>());
     }
 
@@ -59,9 +107,26 @@ internal static class DefaultSeedScenarioFactory
         ErrorOr<ColumnDefinition> accountNumber,
         ErrorOr<ColumnDefinition> createdOn,
         ErrorOr<ColumnDefinition> active,
-        ErrorOr<TableDefinition> accountTable)
+        ErrorOr<ColumnDefinition> contactId,
+        ErrorOr<ColumnDefinition> contactFullName,
+        ErrorOr<ColumnDefinition> contactEmail,
+        ErrorOr<ColumnDefinition> contactParentCustomer,
+        ErrorOr<ColumnDefinition> contactCreatedOn,
+        ErrorOr<TableDefinition> accountTable,
+        ErrorOr<TableDefinition> contactTable)
     {
-        if (accountId.IsError || accountName.IsError || accountNumber.IsError || createdOn.IsError || active.IsError || accountTable.IsError)
+        if (accountId.IsError
+            || accountName.IsError
+            || accountNumber.IsError
+            || createdOn.IsError
+            || active.IsError
+            || contactId.IsError
+            || contactFullName.IsError
+            || contactEmail.IsError
+            || contactParentCustomer.IsError
+            || contactCreatedOn.IsError
+            || accountTable.IsError
+            || contactTable.IsError)
         {
             throw new InvalidOperationException("Default emulator seed scenario could not be created.");
         }

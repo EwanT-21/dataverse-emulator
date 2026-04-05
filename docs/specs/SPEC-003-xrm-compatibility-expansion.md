@@ -1,7 +1,7 @@
 # SPEC-003: Xrm Compatibility Expansion
 
 - Status: In Progress
-- Date: 2026-04-04
+- Date: 2026-04-05
 
 ## Summary
 
@@ -10,6 +10,16 @@ The next Xrm-focused delivery slice should deepen compatibility for real local-d
 The key principle is demand-driven expansion: support only the metadata, messages, and query features required by real consumer apps that are being validated against the emulator.
 
 This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does not treat broader connector compatibility as the near-term target.
+
+## Boundary Expectations
+
+- The Xrm layer may translate `QueryExpression`, `FetchExpression`, and request DTOs into shared query or command models.
+- Transport-agnostic query semantics such as join evaluation, scoped filtering, sorting, and paging should live in the shared core, not in the Xrm adapter.
+- Application handlers and services should orchestrate repository access and use-case flow.
+- Protocol adapters should stay focused on translation, fault mapping, and contract shaping.
+- Domain-owned smart enums and query types should remain the shared vocabulary after translation rather than Xrm-specific equivalents leaking inward.
+- Expected unsupported or invalid outcomes should stay on the shared `ErrorOr` path until the Xrm edge maps them into SDK-style faults.
+- FluentValidation should guard application request boundaries for new Xrm slices, while semantic invariants still belong to the domain model and domain services.
 
 ## Goals
 
@@ -26,6 +36,7 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - Add more `OrganizationRequest` handling where it is required by real target applications.
 - Prefer concrete, tested request coverage over broad speculative message support.
 - Keep unsupported messages faulting clearly rather than silently approximating behavior.
+- `ExecuteMultipleRequest` support for batching currently implemented request slices is now part of the hosted Xrm surface.
 
 ### QueryExpression Expansion
 
@@ -33,6 +44,13 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - `PageInfo` paging is now part of the implemented Xrm slice and should remain covered by hosted compatibility tests.
 - Expand sorting and filter behavior while continuing to translate through the shared `RecordQuery` model when practical.
 - Grouped `AND` / `OR` filters and a first common set of condition operators are now part of the implemented slice.
+- A first top-level `LinkEntity` slice is now part of the implemented Xrm surface for the seeded `account` / `contact` relationship and now executes through shared-core linked-query semantics rather than protocol-owned evaluation logic.
+
+### FetchXML Expansion
+
+- Add `RetrieveMultiple(FetchExpression)` support only where it can translate into the shared query model cleanly.
+- Keep the first FetchXML slice narrow and table-scoped.
+- Prefer explicit faults for joins, aggregates, aliases, and broader platform behavior the emulator does not yet implement.
 
 ### Metadata-Oriented SDK Reads
 
@@ -51,12 +69,12 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - New coverage should be backed by Aspire-hosted compatibility tests.
 - The emulator should continue to behave like a local development dependency, not a full Dataverse clone.
 - Power BI or Power Automate scenarios should not drive this spec unless they emerge from a concrete local developer workflow we intentionally choose to support.
+- New Xrm breadth should deepen the shared core where necessary, not create a second evaluator inside the protocol layer.
 
 ## Out Of Scope
 
 - blanket support for all `OrganizationRequest` messages
 - full QueryExpression parity
-- FetchXML as part of this spec
 - full metadata parity across the Dataverse platform
 - relationship-heavy behavior unless directly required by a target application
 - broad connector-oriented behavior that does not materially improve the local C# developer experience
@@ -72,5 +90,9 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - Xrm request handling now has a cleaner enhancement seam through small request-oriented handlers instead of a single growing dispatch implementation.
 - `RetrieveMultiple(QueryExpression)` paging through `PageInfo` is implemented and verified through the real `CrmServiceClient` Aspire harness.
 - `RetrieveMultiple(QueryExpression)` now supports grouped filters and common operators including `NotEqual`, `Null`, `NotNull`, `Like`, `BeginsWith`, `EndsWith`, range comparisons, and `In`.
+- `RetrieveMultiple(QueryExpression)` now supports top-level inner `LinkEntity` joins with aliased linked-column projection for the seeded relational slice.
+- The current linked-query slice now translates in the Xrm adapter, orchestrates in the application layer, and executes its transport-agnostic semantics through shared domain services.
+- `RetrieveMultiple(FetchExpression)` now supports a bounded one-table slice for projection, nested filters, common operators, ordering, and paging through the shared query engine.
+- `ExecuteMultipleRequest` is now implemented for batching the request slices the emulator already supports, and is verified through the real `CrmServiceClient` harness.
 - Metadata-oriented Xrm reads for the seeded table slice are now implemented through `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveAllEntities`.
-- The next likely Xrm expansion points are additional demand-driven `Execute` request coverage, deeper query semantics where a real local app needs them, and additional tables only when they are justified by a concrete local workflow.
+- The next likely Xrm expansion points are additional demand-driven `Execute` request coverage, deeper query semantics where a real local app needs them, convergence of duplicated single-table and linked-query evaluation logic, and additional tables only when they are justified by a concrete local workflow.

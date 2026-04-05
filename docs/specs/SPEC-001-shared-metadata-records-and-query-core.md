@@ -1,7 +1,7 @@
 # SPEC-001: Shared Metadata, Records, And Query Core
 
 - Status: Implemented
-- Date: 2026-04-04
+- Date: 2026-04-05
 
 ## Summary
 
@@ -14,6 +14,7 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
 - Model table and column metadata in a way that is independent of HTTP and SOAP.
 - Support seeded local state for repeatable development and test workflows.
 - Provide shared CRUD and list/query behavior through the application layer.
+- Keep transport-agnostic query semantics in the shared core rather than in protocol adapters.
 - Keep persistence replaceable so later providers can reuse the same core abstractions.
 - Return expected failures through a shared error model rather than transport-specific behavior.
 
@@ -32,23 +33,45 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
   - sorting
   - top
   - paging inputs and continuation tokens
+  - linked-table query language for root scope, linked scopes, projection, and paging
 - Application-layer commands and queries for:
   - create row
   - retrieve row by id
   - update row
   - delete row
   - list rows
+  - list linked rows
   - retrieve table definitions
+- Domain services for:
+  - single-table query validation
+  - record validation
+  - linked-query semantic validation against metadata
+  - linked-query execution semantics for join, filter, sort, projection, and paging
 - In-memory persistence for metadata and records.
-- Seeded startup state for the current `account` table slice.
+- Seeded startup state for the current `account` and `contact` slice.
 - Shared `ErrorOr`-based result flow and validation/domain-service enforcement.
+
+## Boundary Expectations
+
+- Domain owns transport-agnostic query and validation semantics.
+- Application owns use-case orchestration and repository composition.
+- Protocols translate external contracts into the shared query language and map results out again.
+- Persistence providers should reuse the shared-core query semantics where practical instead of re-inventing them per protocol.
+
+## ADR Alignment
+
+- Smart enums and other domain-owned value types should express emulator language in the shared core rather than protocol-specific equivalents.
+- `ErrorOr` remains the expected path for validation failures, unknown metadata, unsupported shared semantics, and other non-exceptional outcomes that higher layers must map cleanly.
+- FluentValidation applies at the application boundary for request-shape and use-case-entry validation, but it does not replace domain invariants or domain validation services.
+- Shared-core behavior should remain explainable without HTTP, SOAP, `QueryExpression`, or `FetchExpression` terminology after translation has occurred.
 
 ## Current Constraints
 
-- The implemented slice is intentionally centered on one table: `account`.
-- Relationship modeling is not part of the current shared-core slice.
+- The implemented slice is intentionally centered on the seeded `account` / `contact` relationship path.
+- Relationship modeling is still narrow and only covers the currently seeded local workflow.
 - Durable persistence is not part of the current shared-core slice.
-- Query breadth is limited by the compatibility slices built on top of this core.
+- Query breadth is still limited by the compatibility slices built on top of this core.
+- Single-table provider-local query evaluation still duplicates some semantics that now also exist in the shared linked-query domain services.
 
 ## Out Of Scope
 
@@ -62,5 +85,6 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
 This slice is currently proven by:
 
 - domain tests for metadata and record invariants
+- domain tests for linked-query validation and execution semantics
 - integration tests for application orchestration
 - hosted compatibility tests that exercise the same core through Xrm and Web API adapters

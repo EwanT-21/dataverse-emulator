@@ -53,6 +53,11 @@ internal static class DataverseXrmEntityMapper
     }
 
     public static ErrorOr<IReadOnlyList<string>> ResolveSelectedColumns(ColumnSet columnSet)
+        => ResolveSelectedColumns(columnSet, allowEmptySelection: false);
+
+    public static ErrorOr<IReadOnlyList<string>> ResolveSelectedColumns(
+        ColumnSet columnSet,
+        bool allowEmptySelection)
     {
         if (columnSet is null)
         {
@@ -66,6 +71,11 @@ internal static class DataverseXrmEntityMapper
 
         if (columnSet.Columns.Count == 0)
         {
+            if (allowEmptySelection)
+            {
+                return Array.Empty<string>();
+            }
+
             return DomainErrors.Validation(
                 "Protocol.Xrm.ColumnSet.Required",
                 "ColumnSet must specify one or more columns or use AllColumns.");
@@ -75,6 +85,9 @@ internal static class DataverseXrmEntityMapper
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
+
+    public static object? ToReadAttributeValue(object? value, ColumnDefinition? column)
+        => ToAttributeValue(value, column);
 
     public static Entity ToEntity(TableDefinition table, EntityRecord record)
     {
@@ -110,6 +123,58 @@ internal static class DataverseXrmEntityMapper
         foreach (var record in pageResult.Items)
         {
             collection.Entities.Add(ToEntity(table, record));
+        }
+
+        return collection;
+    }
+
+    public static EntityCollection ToEntityCollection(
+        TableDefinition rootTable,
+        IReadOnlyDictionary<string, TableDefinition> linkedTablesByAlias,
+        LinkedRecordQuery query,
+        PageResult<LinkedEntityRecord> pageResult,
+        int currentPageNumber)
+    {
+        var collection = new EntityCollection
+        {
+            EntityName = rootTable.LogicalName,
+            MoreRecords = pageResult.ContinuationToken is not null,
+            PagingCookie = pageResult.ContinuationToken is not null
+                ? DataverseXrmPagingCookie.Create(pageResult.ContinuationToken, currentPageNumber + 1)
+                : null
+        };
+
+        foreach (var linkedRecord in pageResult.Items)
+        {
+            var entity = ToEntity(rootTable, linkedRecord.RootRecord);
+
+            foreach (var join in query.Joins)
+            {
+                if (!linkedRecord.LinkedRecords.TryGetValue(join.Alias, out var relatedRecord)
+                    || !linkedTablesByAlias.TryGetValue(join.Alias, out var linkedTable))
+                {
+                    continue;
+                }
+
+                var columnNames = join.ReturnAllColumns
+                    ? linkedTable.Columns.Select(column => column.LogicalName)
+                    : join.SelectedColumns;
+
+                foreach (var columnName in columnNames.Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    if (!relatedRecord.Values.TryGetValue(columnName, out var value))
+                    {
+                        continue;
+                    }
+
+                    entity[$"{join.Alias}.{columnName}"] = new AliasedValue(
+                        join.Alias,
+                        columnName,
+                        ToAttributeValue(value, linkedTable.FindColumn(columnName)));
+                }
+            }
+
+            collection.Entities.Add(entity);
         }
 
         return collection;

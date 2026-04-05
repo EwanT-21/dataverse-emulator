@@ -51,3 +51,7 @@ Cross-aggregate workflows belong in application services and handlers rather tha
 - Transport adapters depend on application/domain, not the reverse.
 - Persistence implementations depend on application/domain abstractions, not the reverse.
 - New compatibility work should generally begin as a domain/application slice before a new protocol adapter is added.
+- Transport-agnostic emulator semantics must not settle permanently in protocol adapters just because a protocol introduced them first.
+- Emulator language such as operators, required levels, or sort direction should be expressed with domain-owned types such as smart enums rather than transport-specific constants.
+- Expected failures should move through the core as `ErrorOr` results and only be mapped into protocol-specific faults or HTTP responses at the edge.
+- FluentValidation should guard Mediator request boundaries, while domain invariants remain enforced in the domain model and domain services.

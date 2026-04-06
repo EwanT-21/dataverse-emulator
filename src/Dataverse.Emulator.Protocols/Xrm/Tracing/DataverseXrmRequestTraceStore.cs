@@ -1,11 +1,10 @@
 using System.Diagnostics;
 using System.ServiceModel;
-using Dataverse.Emulator.Application.Runtime;
 using Microsoft.Xrm.Sdk;
 
 namespace Dataverse.Emulator.Protocols.Xrm.Tracing;
 
-public sealed class DataverseXrmRequestTraceStore(DataverseEmulatorRuntimeSettings runtimeSettings)
+public sealed class DataverseXrmRequestTraceStore(DataverseXrmTraceOptions traceOptions)
 {
     private readonly object gate = new();
     private readonly LinkedList<DataverseXrmRequestTraceEntry> entries = [];
@@ -56,7 +55,7 @@ public sealed class DataverseXrmRequestTraceStore(DataverseEmulatorRuntimeSettin
         lock (gate)
         {
             return entries
-                .Take(Math.Max(0, limit ?? runtimeSettings.XrmTraceLimit))
+                .Take(Math.Max(0, limit ?? traceOptions.TraceLimit))
                 .ToArray();
         }
     }
@@ -90,7 +89,7 @@ public sealed class DataverseXrmRequestTraceStore(DataverseEmulatorRuntimeSettin
                 StartedAtUtc: startedAtUtc,
                 DurationMilliseconds: durationMilliseconds));
 
-            while (entries.Count > runtimeSettings.XrmTraceLimit)
+            while (entries.Count > traceOptions.TraceLimit)
             {
                 entries.RemoveLast();
             }

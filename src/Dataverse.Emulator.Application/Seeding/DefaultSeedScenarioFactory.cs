@@ -1,9 +1,8 @@
-using Dataverse.Emulator.Application.Seeding;
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Records;
 using ErrorOr;
 
-namespace Dataverse.Emulator.Host;
+namespace Dataverse.Emulator.Application.Seeding;
 
 internal static class DefaultSeedScenarioFactory
 {

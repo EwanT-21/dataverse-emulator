@@ -1,6 +1,7 @@
 using Dataverse.Emulator.Domain.Services;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Dataverse.Emulator.Application;
 
@@ -8,6 +9,9 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddDataverseEmulatorApplication(this IServiceCollection services)
     {
+        services.TryAddSingleton(new Seeding.DataverseEmulatorBaselineSettings(
+            Seeding.DataverseEmulatorBaselineSettings.DefaultSeedScenarioName,
+            SnapshotPath: null));
         services.AddSingleton<QueryValueEvaluationService>();
         services.AddSingleton<ContinuationPagingService>();
         services.AddSingleton<QueryValidationService>();
@@ -33,6 +37,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IValidator<Records.UpdateRowCommand>, Records.UpdateRowCommandValidator>();
         services.AddTransient<IValidator<Records.UpsertRowCommand>, Records.UpsertRowCommandValidator>();
 
+        services.AddTransient<Seeding.DataverseEmulatorBaselineStateService>();
         services.AddTransient<Seeding.SeedScenarioExecutor>();
         services.AddTransient<Seeding.SeedScenarioSnapshotMapper>();
         services.AddTransient<Seeding.SeedScenarioSnapshotService>();

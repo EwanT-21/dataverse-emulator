@@ -67,6 +67,14 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
 - Protocols translate external contracts into the shared query language and map results out again.
 - Persistence providers should reuse the shared-core query semantics where practical instead of re-inventing them per protocol.
 
+## Compatibility-Driven Next Targets
+
+- `QueryByAttribute` support, if added, should still terminate in the existing shared query/filter vocabulary instead of introducing an Xrm-shaped query model into the core.
+- The next linked-query expansion should add transport-agnostic outer-join and nested-join semantics in the shared linked-query model so Xrm `LinkEntity` and future FetchXML joins reuse the same domain rules.
+- Any FetchXML join support should converge on the same shared linked-query execution path rather than create a second protocol-owned evaluator.
+- Transactional envelopes such as `ExecuteTransaction` should remain application orchestration over shared repositories and shared validation rather than a protocol-local mutation engine.
+- Metadata-expansion work such as `RetrieveMetadataChanges` should continue to project from shared metadata concepts and application queries instead of leaking SDK metadata contracts inward.
+
 ## ADR Alignment
 
 - Smart enums and other domain-owned value types should express emulator language in the shared core rather than protocol-specific equivalents.
@@ -81,6 +89,7 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
 - Durable persistence is not part of the current shared-core slice.
 - Query breadth is still limited by the compatibility slices built on top of this core.
 - Single-table and linked-query execution still use different domain executors because their query shapes are different, but they now share the same domain value-evaluation and continuation paging services.
+- Outer-join, nested-join, and transactional orchestration semantics are not yet part of the shared-core implementation and are currently being driven by red integration tests in the Xrm slice.
 
 ## Out Of Scope
 

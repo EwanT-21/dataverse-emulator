@@ -37,9 +37,21 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - Prefer concrete, tested request coverage over broad speculative message support.
 - Keep unsupported messages faulting clearly rather than silently approximating behavior.
 - `ExecuteMultipleRequest` support for batching currently implemented request slices is now part of the hosted Xrm surface.
+- `ExecuteMultipleRequest` fault shaping should match SDK expectations for per-item faults on supported batched request paths rather than throwing out of the batch envelope.
+- `ExecuteTransactionRequest` is part of the next desired Xrm slice for atomic request batching where real local apps need it.
 - `UpsertRequest` on the primary-id path is now part of the hosted Xrm surface, while alternate-key upsert remains explicitly unsupported.
 - `RetrieveVersionRequest` is now part of the hosted Xrm surface for basic client version reads.
+- `RetrieveAvailableLanguagesRequest` and `RetrieveDeprovisionedLanguagesRequest` are now part of the hosted Xrm surface for bounded local language-catalog reads.
 - `RetrieveProvisionedLanguagesRequest` is now part of the hosted Xrm surface for bounded local language metadata reads.
+- `RetrieveInstalledLanguagePackVersionRequest` and `RetrieveProvisionedLanguagePackVersionRequest` are now part of the hosted Xrm surface for bounded local language-pack version reads.
+- `RetrieveInstalledLanguagePacksRequest` and `RetrieveOrganizationInfoRequest` are now part of the hosted Xrm surface for bounded startup-oriented organization reads.
+- `RetrieveMetadataChangesRequest` is part of the next desired metadata-read slice for bounded startup and schema-introspection flows.
+
+### QueryByAttribute Expansion
+
+- `QueryByAttribute` should be treated as a supported local-dev query shape when it can translate cleanly into the shared query model.
+- The preferred implementation is translation through the same shared filtering, sorting, top, and paging semantics already used by `QueryExpression`.
+- `QueryByAttribute` support should cover both direct `RetrieveMultiple(QueryBase)` usage and execute-wrapped request paths.
 
 ### QueryExpression Expansion
 
@@ -48,17 +60,24 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - Expand sorting and filter behavior while continuing to translate through the shared `RecordQuery` model when practical.
 - Grouped `AND` / `OR` filters and a first common set of condition operators are now part of the implemented slice.
 - A first top-level `LinkEntity` slice is now part of the implemented Xrm surface for the seeded `account` / `contact` relationship and now executes through shared-core linked-query semantics rather than protocol-owned evaluation logic.
+- Inner-join `LinkCriteria` on the current top-level `LinkEntity` slice should remain supported through the shared linked-query model.
+- The next desired linked-query expansion is bounded `LeftOuter` join support for local apps that need root-row preservation without a linked match.
+- The next desired linked-query expansion also includes nested `LinkEntity` translation where it can still converge on shared linked-query semantics.
 
 ### FetchXML Expansion
 
 - Add `RetrieveMultiple(FetchExpression)` support only where it can translate into the shared query model cleanly.
 - Keep the first FetchXML slice narrow and table-scoped.
 - Prefer explicit faults for joins, aggregates, aliases, and broader platform behavior the emulator does not yet implement.
+- The next desired FetchXML slice is bounded `link-entity` projection over the same shared linked-query semantics used for `QueryExpression`.
 
 ### Metadata-Oriented SDK Reads
 
 - Add targeted metadata request support for the current table slice where local apps need it.
 - Keep metadata expansion bounded to the local-emulator scenario rather than broad platform parity.
+- Metadata-id selectors for `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveRelationship` are part of the supported metadata surface and should remain covered.
+- Relationship-aware `RetrieveAllEntities` reads are part of the supported metadata surface for the current seeded relationship slice.
+- `RetrieveMetadataChangesRequest` should project bounded entity, attribute, and relationship metadata without introducing SDK contracts into the shared core.
 
 ### Relationship Expansion
 
@@ -95,6 +114,27 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - unsupported requests continue to fail explicitly and predictably
 - real local-app request traces can show which Xrm messages were served or rejected during a run
 
+## Current Compatibility Contracts Under Test
+
+Supported and currently covered by green integration tests:
+
+- metadata-id selectors for `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveRelationship`
+- relationship-aware `RetrieveAllEntities` reads for the seeded `account` / `contact` path
+- direct request-dispatch execution for `RetrieveMultipleRequest` over `QueryExpression` and one-table `FetchExpression`
+- direct runtime request execution for version, installed-language-pack, and organization-info reads
+- multi-target `Associate` / `Disassociate` behavior on the seeded lookup relationship
+- primary-id-addressed `UpsertRequest` flows where the primary id is supplied as an attribute rather than through `Entity.Id`
+- supported inner `LinkEntity` link-criteria evaluation through the shared linked-query path
+
+Desired next contracts currently expressed as red integration tests:
+
+- `QueryByAttribute` translation and execution through record operations and the public organization-service surface
+- bounded `LeftOuter` and nested `LinkEntity` support through shared linked-query semantics
+- bounded FetchXML `link-entity` projection through the shared linked-query path
+- `ExecuteTransactionRequest` atomic commit, rollback, and response shaping
+- `RetrieveMetadataChangesRequest` for bounded entity, attribute, and relationship metadata snapshots
+- `ExecuteMultipleRequest` per-item fault capture that stays inside the batch response envelope on supported batched request paths
+
 ## Current Progress Notes
 
 - Xrm request handling now has a cleaner enhancement seam through small request-oriented handlers instead of a single growing dispatch implementation.
@@ -104,11 +144,15 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - The current linked-query slice now translates in the Xrm adapter, orchestrates in the application layer, and executes its transport-agnostic semantics through shared domain services.
 - Single-table and linked-query execution now share domain-owned value comparison, sorting, and continuation paging semantics, reducing evaluator drift between Xrm-facing query shapes.
 - `RetrieveMultiple(FetchExpression)` now supports a bounded one-table slice for projection, nested filters, common operators, ordering, and paging through the shared query engine.
-- `ExecuteMultipleRequest` is now implemented for batching the request slices the emulator already supports, and is verified through the real `CrmServiceClient` harness.
+- `ExecuteMultipleRequest` is now implemented for successful batching of the request slices the emulator already supports, and is verified through the real `CrmServiceClient` harness; per-item fault shaping is still being tightened through direct integration tests.
 - `UpsertRequest` is now implemented for primary-id addressed create-or-update flows and is verified through the real `CrmServiceClient` harness, while alternate-key upsert continues to fault clearly.
 - `RetrieveVersionRequest` is now implemented and verified through the real `CrmServiceClient` harness.
+- `RetrieveAvailableLanguagesRequest` and `RetrieveDeprovisionedLanguagesRequest` are now implemented and verified through the real `CrmServiceClient` harness.
 - `RetrieveProvisionedLanguagesRequest` is now implemented and verified through the real `CrmServiceClient` harness.
-- Metadata-oriented Xrm reads for the seeded table slice are now implemented through `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveAllEntities`.
+- `RetrieveInstalledLanguagePackVersionRequest` and `RetrieveProvisionedLanguagePackVersionRequest` are now implemented and verified through the real `CrmServiceClient` harness.
+- `RetrieveInstalledLanguagePacksRequest` and `RetrieveOrganizationInfoRequest` are now implemented and verified through the real `CrmServiceClient` harness.
+- Metadata-oriented Xrm reads for the seeded table slice are now implemented through `RetrieveEntity`, `RetrieveAttribute`, `RetrieveRelationship`, and `RetrieveAllEntities`, including metadata-id selector coverage for the bounded seeded slice.
 - A first bounded lookup-relationship slice is now implemented through `Associate`, `Disassociate`, `AssociateRequest`, `DisassociateRequest`, and `RetrieveRelationshipRequest` for the seeded `contact_customer_accounts` relationship.
+- Multi-target lookup association behavior, direct request-dispatch coverage, runtime-request execution, primary-id-only upsert, and supported inner-join link criteria are now covered through direct integration tests in addition to the hosted harness.
 - Xrm request trace capture is now implemented so local runs can inspect which direct operations and `Execute` requests were served or rejected.
-- The next likely Xrm expansion points are additional demand-driven `Execute` request coverage, deeper query semantics where a real local app needs them, further consolidation of shared execution helpers where it stays clear, and additional tables only when they are justified by a concrete local workflow.
+- The next likely Xrm expansion points are `QueryByAttribute`, bounded outer/nested join semantics, bounded FetchXML joins, `ExecuteTransaction`, `RetrieveMetadataChanges`, and aligning `ExecuteMultiple` batch-fault behavior with SDK expectations, while continuing to deepen shared execution helpers only where they stay transport-agnostic.

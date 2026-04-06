@@ -1,24 +1,22 @@
 using System.Text.Json;
-using Dataverse.Emulator.Application.Runtime;
-using Dataverse.Emulator.Application.Seeding;
 using ErrorOr;
 
-namespace Dataverse.Emulator.Host;
+namespace Dataverse.Emulator.Application.Seeding;
 
-internal sealed class DataverseEmulatorBaselineStateService(
-    DataverseEmulatorRuntimeSettings runtimeSettings,
+public sealed class DataverseEmulatorBaselineStateService(
+    DataverseEmulatorBaselineSettings baselineSettings,
     SeedScenarioExecutor seedScenarioExecutor,
     SeedScenarioSnapshotService snapshotService)
 {
     public async ValueTask<ErrorOr<DataverseEmulatorBaselineState>> RestoreConfiguredBaselineAsync(
         CancellationToken cancellationToken = default)
     {
-        if (!string.IsNullOrWhiteSpace(runtimeSettings.SnapshotPath))
+        if (!string.IsNullOrWhiteSpace(baselineSettings.SnapshotPath))
         {
-            return await RestoreSnapshotFileAsync(runtimeSettings.SnapshotPath, cancellationToken);
+            return await RestoreSnapshotFileAsync(baselineSettings.SnapshotPath, cancellationToken);
         }
 
-        return await RestoreScenarioAsync(runtimeSettings.SeedScenarioName, cancellationToken);
+        return await RestoreScenarioAsync(baselineSettings.SeedScenarioName, cancellationToken);
     }
 
     public async ValueTask<ErrorOr<DataverseEmulatorBaselineState>> RestoreScenarioAsync(
@@ -34,7 +32,7 @@ internal sealed class DataverseEmulatorBaselineStateService(
         await seedScenarioExecutor.ExecuteAsync(scenarioResult.Value, cancellationToken);
 
         var normalizedScenarioName = string.IsNullOrWhiteSpace(scenarioName)
-            ? DataverseEmulatorRuntimeSettings.DefaultSeedScenarioName
+            ? DataverseEmulatorBaselineSettings.DefaultSeedScenarioName
             : scenarioName.Trim();
 
         return new DataverseEmulatorBaselineState("scenario", normalizedScenarioName);
@@ -75,6 +73,6 @@ internal sealed class DataverseEmulatorBaselineStateService(
     }
 }
 
-internal sealed record DataverseEmulatorBaselineState(
+public sealed record DataverseEmulatorBaselineState(
     string Kind,
     string Name);

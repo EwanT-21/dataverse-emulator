@@ -39,13 +39,22 @@ internal static class Program
                 "execute-multiple" => RunExecuteMultiple(connectionString),
                 "upsert" => RunUpsert(connectionString),
                 "version" => RunVersion(connectionString),
+                "available-languages" => RunAvailableLanguages(connectionString),
+                "deprovisioned-languages" => RunDeprovisionedLanguages(connectionString),
                 "provisioned-languages" => RunProvisionedLanguages(connectionString),
+                "installed-language-pack-version" => RunInstalledLanguagePackVersion(connectionString),
+                "provisioned-language-pack-version" => RunProvisionedLanguagePackVersion(connectionString),
+                "whoami" => RunWhoAmI(connectionString),
+                "current-organization" => RunCurrentOrganization(connectionString),
+                "installed-language-packs" => RunInstalledLanguagePacks(connectionString),
+                "organization-info" => RunOrganizationInfo(connectionString),
                 "metadata" => RunMetadata(connectionString),
                 "associate" => RunAssociate(connectionString),
                 "relationship-metadata" => RunRelationshipMetadata(connectionString),
                 "create" => RunCreate(connectionString, scenarioArgs),
                 "retrieve" => RunRetrieve(connectionString, scenarioArgs),
                 "unsupported-request" => RunUnsupportedRequest(connectionString),
+                "unsupported-installed-language-pack-version" => RunUnsupportedInstalledLanguagePackVersion(connectionString),
                 "unsupported-link-query" => RunUnsupportedLinkQuery(connectionString),
                 "unsupported-fetchxml-link-entity" => RunUnsupportedFetchXmlLinkEntity(connectionString),
                 "unsupported-upsert-alternate-key" => RunUnsupportedUpsertAlternateKey(connectionString),
@@ -465,6 +474,32 @@ internal static class Program
         }
     }
 
+    private static IDictionary<string, object> RunAvailableLanguages(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var response = (RetrieveAvailableLanguagesResponse)client.Execute(new RetrieveAvailableLanguagesRequest());
+
+            return new Dictionary<string, object>
+            {
+                ["languages"] = response.LocaleIds
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunDeprovisionedLanguages(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var response = (RetrieveDeprovisionedLanguagesResponse)client.Execute(new RetrieveDeprovisionedLanguagesRequest());
+
+            return new Dictionary<string, object>
+            {
+                ["languages"] = response.RetrieveDeprovisionedLanguages.Cast<int>().ToArray()
+            };
+        }
+    }
+
     private static IDictionary<string, object> RunProvisionedLanguages(string connectionString)
     {
         using (var client = OpenClient(connectionString))
@@ -475,6 +510,127 @@ internal static class Program
             {
                 ["languages"] = response.RetrieveProvisionedLanguages.Cast<int>().ToArray()
             };
+        }
+    }
+
+    private static IDictionary<string, object> RunInstalledLanguagePackVersion(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var response = (RetrieveInstalledLanguagePackVersionResponse)client.Execute(new RetrieveInstalledLanguagePackVersionRequest
+            {
+                Language = 1033
+            });
+
+            return new Dictionary<string, object>
+            {
+                ["language"] = 1033,
+                ["version"] = response.Version
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunProvisionedLanguagePackVersion(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var response = (RetrieveProvisionedLanguagePackVersionResponse)client.Execute(new RetrieveProvisionedLanguagePackVersionRequest
+            {
+                Language = 1033
+            });
+
+            return new Dictionary<string, object>
+            {
+                ["language"] = 1033,
+                ["version"] = response.Version
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunWhoAmI(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var response = (WhoAmIResponse)client.Execute(new WhoAmIRequest());
+
+            return new Dictionary<string, object>
+            {
+                ["userId"] = response.UserId.ToString(),
+                ["businessUnitId"] = response.BusinessUnitId.ToString(),
+                ["organizationId"] = response.OrganizationId.ToString()
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunCurrentOrganization(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var response = (RetrieveCurrentOrganizationResponse)client.Execute(new RetrieveCurrentOrganizationRequest());
+
+            return new Dictionary<string, object>
+            {
+                ["friendlyName"] = response.Detail.FriendlyName,
+                ["uniqueName"] = response.Detail.UniqueName,
+                ["organizationVersion"] = response.Detail.OrganizationVersion,
+                ["organizationServiceEndpoint"] = response.Detail.Endpoints != null
+                    && response.Detail.Endpoints.ContainsKey(Microsoft.Xrm.Sdk.Organization.EndpointType.OrganizationService)
+                        ? response.Detail.Endpoints[Microsoft.Xrm.Sdk.Organization.EndpointType.OrganizationService]
+                        : string.Empty
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunInstalledLanguagePacks(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            try
+            {
+                var response = (RetrieveInstalledLanguagePacksResponse)client.Execute(new RetrieveInstalledLanguagePacksRequest());
+
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = false,
+                    ["languages"] = response.RetrieveInstalledLanguagePacks.Cast<int>().ToArray()
+                };
+            }
+            catch (FaultException<OrganizationServiceFault> fault)
+            {
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = true,
+                    ["errorCode"] = fault.Detail.ErrorCode,
+                    ["message"] = fault.Detail.Message
+                };
+            }
+        }
+    }
+
+    private static IDictionary<string, object> RunOrganizationInfo(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            try
+            {
+                var response = (RetrieveOrganizationInfoResponse)client.Execute(new RetrieveOrganizationInfoRequest());
+
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = false,
+                    ["instanceType"] = response.organizationInfo.InstanceType.ToString(),
+                    ["solutionsCount"] = response.organizationInfo.Solutions != null ? response.organizationInfo.Solutions.Count : 0
+                };
+            }
+            catch (FaultException<OrganizationServiceFault> fault)
+            {
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = true,
+                    ["errorCode"] = fault.Detail.ErrorCode,
+                    ["message"] = fault.Detail.Message
+                };
+            }
         }
     }
 
@@ -729,6 +885,34 @@ internal static class Program
                 };
 
                 client.Execute(request);
+
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = false
+                };
+            }
+            catch (FaultException<OrganizationServiceFault> fault)
+            {
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = true,
+                    ["errorCode"] = fault.Detail.ErrorCode,
+                    ["message"] = fault.Detail.Message
+                };
+            }
+        }
+    }
+
+    private static IDictionary<string, object> RunUnsupportedInstalledLanguagePackVersion(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            try
+            {
+                client.Execute(new RetrieveInstalledLanguagePackVersionRequest
+                {
+                    Language = 1041
+                });
 
                 return new Dictionary<string, object>
                 {

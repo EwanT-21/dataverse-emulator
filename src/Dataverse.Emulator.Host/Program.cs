@@ -1,11 +1,11 @@
 using Dataverse.Emulator.Application;
 using Dataverse.Emulator.Application.Behaviors;
-using Dataverse.Emulator.Application.Runtime;
 using Dataverse.Emulator.Application.Seeding;
 using Dataverse.Emulator.Host;
 using Dataverse.Emulator.Persistence.InMemory;
 using Dataverse.Emulator.Protocols.WebApi;
 using Dataverse.Emulator.Protocols.Xrm;
+using Dataverse.Emulator.Protocols.Xrm.Runtime;
 using Dataverse.Emulator.Protocols.Xrm.Tracing;
 using ErrorOr;
 using Mediator;
@@ -15,12 +15,22 @@ builder.AddServiceDefaults();
 builder.Services.AddDataverseEmulatorApplication();
 builder.Services.AddDataverseEmulatorInMemoryPersistence();
 builder.Services.AddDataverseEmulatorXrmProtocol();
-builder.Services.AddSingleton(_ => new DataverseEmulatorRuntimeSettings(
-    SeedScenarioName: ResolveSeedScenarioName(builder.Configuration[DataverseEmulatorRuntimeSettings.SeedScenarioEnvironmentVariableName]),
-    SnapshotPath: ResolveSnapshotPath(builder.Configuration[DataverseEmulatorRuntimeSettings.SnapshotPathEnvironmentVariableName]),
-    OrganizationVersion: ResolveOrganizationVersion(builder.Configuration[DataverseEmulatorRuntimeSettings.OrganizationVersionEnvironmentVariableName]),
-    XrmTraceLimit: ResolveXrmTraceLimit(builder.Configuration[DataverseEmulatorRuntimeSettings.XrmTraceLimitEnvironmentVariableName])));
-builder.Services.AddTransient<DataverseEmulatorBaselineStateService>();
+builder.Services.AddSingleton(_ => new DataverseEmulatorBaselineSettings(
+    SeedScenarioName: ResolveSeedScenarioName(builder.Configuration[DataverseEmulatorHostEnvironmentVariables.SeedScenarioEnvironmentVariableName]),
+    SnapshotPath: ResolveSnapshotPath(builder.Configuration[DataverseEmulatorHostEnvironmentVariables.SnapshotPathEnvironmentVariableName])));
+builder.Services.AddSingleton(_ => new DataverseXrmCompatibilitySettings(
+    OrganizationVersion: ResolveOrganizationVersion(builder.Configuration[DataverseEmulatorHostEnvironmentVariables.OrganizationVersionEnvironmentVariableName]),
+    OrganizationId: DataverseXrmCompatibilitySettings.DefaultOrganizationId,
+    OrganizationFriendlyName: DataverseXrmCompatibilitySettings.DefaultOrganizationFriendlyName,
+    OrganizationUniqueName: DataverseXrmCompatibilitySettings.DefaultOrganizationUniqueName,
+    DefaultUserId: DataverseXrmCompatibilitySettings.DefaultOrganizationUserId,
+    DefaultBusinessUnitId: DataverseXrmCompatibilitySettings.DefaultOrganizationBusinessUnitId,
+    ProvisionedLanguages: DataverseXrmCompatibilitySettings.DefaultProvisionedLanguages.ToArray(),
+    InstalledLanguagePacks: DataverseXrmCompatibilitySettings.DefaultInstalledLanguagePacks.ToArray(),
+    OrganizationTypeName: DataverseXrmCompatibilitySettings.DefaultOrganizationTypeName,
+    SolutionUniqueNames: DataverseXrmCompatibilitySettings.DefaultSolutionUniqueNames.ToArray()));
+builder.Services.AddSingleton(_ => new DataverseXrmTraceOptions(
+    ResolveXrmTraceLimit(builder.Configuration[DataverseEmulatorHostEnvironmentVariables.XrmTraceLimitEnvironmentVariableName])));
 builder.Services.AddHostedService<DefaultSeedHostedService>();
 builder.Services.AddMediator(options =>
 {
@@ -157,7 +167,7 @@ static IResult ToAdminErrorResult(IReadOnlyList<Error> errors)
 
 static string ResolveSeedScenarioName(string? configuredSeedScenarioName)
     => string.IsNullOrWhiteSpace(configuredSeedScenarioName)
-        ? DataverseEmulatorRuntimeSettings.DefaultSeedScenarioName
+        ? DataverseEmulatorBaselineSettings.DefaultSeedScenarioName
         : configuredSeedScenarioName.Trim();
 
 static string? ResolveSnapshotPath(string? configuredSnapshotPath)
@@ -167,13 +177,13 @@ static string? ResolveSnapshotPath(string? configuredSnapshotPath)
 
 static string ResolveOrganizationVersion(string? configuredOrganizationVersion)
     => string.IsNullOrWhiteSpace(configuredOrganizationVersion)
-        ? DataverseEmulatorRuntimeSettings.DefaultOrganizationVersion
+        ? DataverseXrmCompatibilitySettings.DefaultOrganizationVersion
         : configuredOrganizationVersion.Trim();
 
 static int ResolveXrmTraceLimit(string? configuredTraceLimit)
     => int.TryParse(configuredTraceLimit, out var traceLimit) && traceLimit > 0
         ? traceLimit
-        : DataverseEmulatorRuntimeSettings.DefaultXrmTraceLimit;
+        : DataverseXrmTraceOptions.DefaultTraceLimit;
 
 public sealed record EmulatorDescriptor(
     string Name,

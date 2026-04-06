@@ -1,4 +1,5 @@
 using Dataverse.Emulator.Application.Abstractions;
+using Dataverse.Emulator.Application.Seeding;
 using Dataverse.Emulator.Domain.Metadata;
 
 namespace Dataverse.Emulator.Host;

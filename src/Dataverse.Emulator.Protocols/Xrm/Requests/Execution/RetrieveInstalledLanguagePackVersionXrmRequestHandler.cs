@@ -7,23 +7,23 @@ using Microsoft.Xrm.Sdk;
 
 namespace Dataverse.Emulator.Protocols.Xrm.Requests.Execution;
 
-internal sealed class RetrieveVersionXrmRequestHandler(
+internal sealed class RetrieveInstalledLanguagePackVersionXrmRequestHandler(
     DataverseXrmRuntimeOperations runtimeOperations,
     IHttpContextAccessor httpContextAccessor)
     : DataverseXrmRequestHandlerBase(httpContextAccessor), IXrmOrganizationRequestHandler
 {
-    public string RequestName => "RetrieveVersion";
+    public string RequestName => "RetrieveInstalledLanguagePackVersion";
 
     public OrganizationResponse Handle(OrganizationRequest request)
     {
-        if (request is not RetrieveVersionRequest)
+        if (request is not RetrieveInstalledLanguagePackVersionRequest typedRequest)
         {
             throw DataverseProtocolErrorMapper.ToFaultException(
-                [DataverseXrmErrors.ParameterRequired("RetrieveVersionRequest")]);
+                [DataverseXrmErrors.ParameterRequired("RetrieveInstalledLanguagePackVersionRequest")]);
         }
 
-        var response = new RetrieveVersionResponse();
-        response.Results["Version"] = Invoke(ct => runtimeOperations.GetOrganizationProfileAsync(ct)).OrganizationVersion;
+        var response = new RetrieveInstalledLanguagePackVersionResponse();
+        response.Results["Version"] = Invoke(ct => runtimeOperations.GetInstalledLanguagePackVersionAsync(typedRequest.Language, ct));
         return response;
     }
 }

@@ -74,7 +74,13 @@ The repository now implements a real first compatibility slice:
   - `RetrieveRelationship`
 - Supported generic `Execute` coverage:
   - `RetrieveVersionRequest` for client version reads
+  - `RetrieveAvailableLanguagesRequest` for bounded language-catalog reads
+  - `RetrieveDeprovisionedLanguagesRequest` for bounded language-catalog reads
   - `RetrieveProvisionedLanguagesRequest` for local language metadata reads
+  - `RetrieveInstalledLanguagePackVersionRequest` for installed language-pack version reads
+  - `RetrieveProvisionedLanguagePackVersionRequest` for provisioned language-pack version reads
+  - `RetrieveInstalledLanguagePacksRequest` for installed language metadata reads
+  - `RetrieveOrganizationInfoRequest` for bounded local organization info reads
   - `UpsertRequest` for create-or-update flows addressed by primary id
   - `ExecuteMultipleRequest` for batching currently supported request slices
   - `AssociateRequest` and `DisassociateRequest` for the seeded lookup relationship

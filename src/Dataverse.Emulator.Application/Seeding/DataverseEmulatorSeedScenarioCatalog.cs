@@ -1,34 +1,32 @@
-using Dataverse.Emulator.Application.Runtime;
-using Dataverse.Emulator.Application.Seeding;
 using Dataverse.Emulator.Domain.Metadata;
 using Dataverse.Emulator.Domain.Records;
 using ErrorOr;
 
-namespace Dataverse.Emulator.Host;
+namespace Dataverse.Emulator.Application.Seeding;
 
 internal static class DataverseEmulatorSeedScenarioCatalog
 {
     public static IReadOnlyList<string> SupportedScenarioNames =>
     [
-        DataverseEmulatorRuntimeSettings.DefaultSeedScenarioName,
-        DataverseEmulatorRuntimeSettings.EmptySeedScenarioName
+        DataverseEmulatorBaselineSettings.DefaultSeedScenarioName,
+        DataverseEmulatorBaselineSettings.EmptySeedScenarioName
     ];
 
     public static ErrorOr<SeedScenario> Create(string? scenarioName)
     {
         var normalizedScenarioName = string.IsNullOrWhiteSpace(scenarioName)
-            ? DataverseEmulatorRuntimeSettings.DefaultSeedScenarioName
+            ? DataverseEmulatorBaselineSettings.DefaultSeedScenarioName
             : scenarioName.Trim();
 
         if (normalizedScenarioName.Equals(
-                DataverseEmulatorRuntimeSettings.DefaultSeedScenarioName,
+                DataverseEmulatorBaselineSettings.DefaultSeedScenarioName,
                 StringComparison.OrdinalIgnoreCase))
         {
             return DefaultSeedScenarioFactory.Create();
         }
 
         if (normalizedScenarioName.Equals(
-                DataverseEmulatorRuntimeSettings.EmptySeedScenarioName,
+                DataverseEmulatorBaselineSettings.EmptySeedScenarioName,
                 StringComparison.OrdinalIgnoreCase))
         {
             return new SeedScenario(Array.Empty<TableDefinition>(), Array.Empty<EntityRecord>());

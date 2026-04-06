@@ -27,6 +27,16 @@ internal static class DataverseXrmKnownTypes
             typeof(ExecuteMultipleSettings),
             typeof(ExecuteMultipleResponseItem),
             typeof(ExecuteMultipleResponseItemCollection),
+            typeof(AssociateRequest),
+            typeof(AssociateResponse),
+            typeof(DisassociateRequest),
+            typeof(DisassociateResponse),
+            typeof(RetrieveVersionRequest),
+            typeof(RetrieveVersionResponse),
+            typeof(RetrieveProvisionedLanguagesRequest),
+            typeof(RetrieveProvisionedLanguagesResponse),
+            typeof(RetrieveRelationshipRequest),
+            typeof(RetrieveRelationshipResponse),
             typeof(Entity),
             typeof(EntityCollection),
             typeof(EntityReference),
@@ -50,6 +60,8 @@ internal static class DataverseXrmKnownTypes
             typeof(BooleanManagedProperty),
             typeof(AttributeMetadata),
             typeof(EntityMetadata),
+            typeof(OneToManyRelationshipMetadata),
+            typeof(RelationshipMetadataBase),
             typeof(StringAttributeMetadata),
             typeof(BooleanAttributeMetadata),
             typeof(DateTimeAttributeMetadata),
@@ -57,6 +69,8 @@ internal static class DataverseXrmKnownTypes
             typeof(IntegerAttributeMetadata),
             typeof(UniqueIdentifierAttributeMetadata),
             typeof(LookupAttributeMetadata),
+            typeof(AssociatedMenuConfiguration),
+            typeof(CascadeConfiguration),
             typeof(OptionMetadata),
             typeof(BooleanOptionSetMetadata),
             typeof(AttributeRequiredLevelManagedProperty)
@@ -66,6 +80,7 @@ internal static class DataverseXrmKnownTypes
         {
             typeof(Entity).Assembly,
             typeof(CreateRequest).Assembly,
+            typeof(RetrieveVersionRequest).Assembly,
             typeof(RetrieveCurrentOrganizationRequest).Assembly,
             typeof(EntityMetadata).Assembly
         }.Distinct();

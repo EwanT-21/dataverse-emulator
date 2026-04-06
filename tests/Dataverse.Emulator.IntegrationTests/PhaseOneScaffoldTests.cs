@@ -145,6 +145,12 @@ public class PhaseOneScaffoldTests
             AttributeType.String,
             RequiredLevel.ApplicationRequired,
             isPrimaryName: true);
+        var primaryCustomerColumn = ColumnDefinition.Create(
+            "primarycontactid",
+            AttributeType.Lookup,
+            RequiredLevel.None,
+            lookupTargetTable: "contact",
+            lookupRelationshipName: "account_primary_contact");
         var table = TableDefinition.Create(
             logicalName: "account",
             entitySetName: "accounts",
@@ -153,7 +159,8 @@ public class PhaseOneScaffoldTests
             columns:
             [
                 idColumn.Value,
-                nameColumn.Value
+                nameColumn.Value,
+                primaryCustomerColumn.Value
             ]);
         var recordValues = Dataverse.Emulator.Domain.Records.RecordValues.Create(
             new Dictionary<string, object?>
@@ -168,6 +175,7 @@ public class PhaseOneScaffoldTests
 
         Assert.False(idColumn.IsError);
         Assert.False(nameColumn.IsError);
+        Assert.False(primaryCustomerColumn.IsError);
         Assert.False(table.IsError);
         Assert.False(recordValues.IsError);
         Assert.False(record.IsError);
@@ -190,6 +198,7 @@ public class PhaseOneScaffoldTests
         Assert.Single(restoredTables);
         Assert.Single(restoredRecords);
         Assert.Equal("account", restoredTables[0].LogicalName);
+        Assert.Equal("account_primary_contact", restoredTables[0].FindColumn("primarycontactid")!.LookupRelationshipName);
         Assert.Equal("Snapshot Account", restoredRecords[0].Values["name"]);
     }
 }

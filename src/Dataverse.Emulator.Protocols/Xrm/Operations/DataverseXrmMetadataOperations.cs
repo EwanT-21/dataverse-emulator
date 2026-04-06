@@ -26,7 +26,16 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
             return tableResult.Errors;
         }
 
-        return DataverseXrmMetadataMapper.ToEntityMetadata(tableResult.Value, request.EntityFilters);
+        var relationshipsResult = await mediator.Send(new ListRelationshipDefinitionsQuery(), cancellationToken);
+        if (relationshipsResult.IsError)
+        {
+            return relationshipsResult.Errors;
+        }
+
+        return DataverseXrmMetadataMapper.ToEntityMetadata(
+            tableResult.Value,
+            request.EntityFilters,
+            relationshipsResult.Value);
     }
 
     public async Task<ErrorOr<IReadOnlyList<EntityMetadata>>> RetrieveAllEntitiesAsync(
@@ -39,8 +48,17 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
         }
 
         var tables = await mediator.Send(new ListTableDefinitionsQuery(), cancellationToken);
+        var relationshipsResult = await mediator.Send(new ListRelationshipDefinitionsQuery(), cancellationToken);
+        if (relationshipsResult.IsError)
+        {
+            return relationshipsResult.Errors;
+        }
+
         return tables
-            .Select(table => DataverseXrmMetadataMapper.ToEntityMetadata(table, request.EntityFilters))
+            .Select(table => DataverseXrmMetadataMapper.ToEntityMetadata(
+                table,
+                request.EntityFilters,
+                relationshipsResult.Value))
             .ToArray();
     }
 
@@ -84,6 +102,49 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
         }
 
         return DataverseXrmMetadataMapper.ToAttributeMetadata(tableResult.Value, attributeResult.Value);
+    }
+
+    public async Task<ErrorOr<OneToManyRelationshipMetadata>> RetrieveRelationshipAsync(
+        RetrieveRelationshipRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request is null)
+        {
+            return DataverseXrmErrors.ParameterRequired("request");
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Name))
+        {
+            var relationshipResult = await mediator.Send(
+                new GetRelationshipDefinitionQuery(request.Name),
+                cancellationToken);
+
+            return relationshipResult.IsError
+                ? relationshipResult.Errors
+                : DataverseXrmMetadataMapper.ToRelationshipMetadata(relationshipResult.Value);
+        }
+
+        if (request.MetadataId != Guid.Empty)
+        {
+            var relationshipsResult = await mediator.Send(new ListRelationshipDefinitionsQuery(), cancellationToken);
+            if (relationshipsResult.IsError)
+            {
+                return relationshipsResult.Errors;
+            }
+
+            var relationship = relationshipsResult.Value.SingleOrDefault(candidate =>
+                DataverseXrmMetadataMapper.CreateRelationshipMetadataId(candidate.SchemaName) == request.MetadataId);
+
+            return relationship is not null
+                ? DataverseXrmMetadataMapper.ToRelationshipMetadata(relationship)
+                : DomainErrors.Validation(
+                    "Protocol.Xrm.Metadata.RelationshipSelectorUnsupported",
+                    $"Relationship metadata id '{request.MetadataId}' is not known to the local Dataverse emulator.");
+        }
+
+        return DomainErrors.Validation(
+            "Protocol.Xrm.Metadata.RelationshipSelectorRequired",
+            "A relationship schema name or metadata id is required for this metadata request.");
     }
 
     private async Task<ErrorOr<TableDefinition>> ResolveTableAsync(

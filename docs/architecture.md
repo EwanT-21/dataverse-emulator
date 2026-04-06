@@ -59,6 +59,7 @@ These rules matter because they keep the emulator's meaning stable even as compa
 Owns the transport-agnostic language of the emulator:
 
 - tables and columns
+- lookup relationship definitions derived from shared metadata
 - row identity and invariants
 - query concepts that should exist regardless of transport
 - validation-oriented domain services
@@ -74,6 +75,7 @@ Owns orchestration and use cases:
 - Mediator commands, queries, handlers, and pipeline behaviors
 - CRUD workflows
 - metadata loading and seeded startup behavior
+- lookup association and disassociation orchestration through shared relationship definitions
 - abstractions for persistence and query execution
 - cross-aggregate orchestration that composes repository access with domain services
 
@@ -145,6 +147,41 @@ flowchart LR
 
 The key point is that the protocol layer may describe the query in emulator terms, but it should not own the actual emulator semantics for evaluating that query.
 
+## Lookup Relationship Flow
+
+The current lookup-association slice follows the same boundary rule:
+
+```mermaid
+flowchart LR
+    subgraph P["Protocols"]
+        A["Associate / Disassociate / RetrieveRelationship\nXrm requests"]
+        B["Translate to shared commands and metadata queries"]
+        G["Map ErrorOr results to SDK faults"]
+    end
+
+    subgraph APL["Application"]
+        C["Mediator handlers and association service"]
+    end
+
+    subgraph PST["Persistence"]
+        D["Load tables and rows"]
+        E["Persist related-row updates"]
+    end
+
+    subgraph DDD["Domain"]
+        F["Resolve lookup relationship definitions\nand enforce semantic invariants"]
+    end
+
+    A --> B --> C
+    C --> D
+    C --> F
+    D --> C
+    F --> C
+    C --> E --> C --> G
+```
+
+The transport layer can describe the relationship operation in SDK terms, but the relationship meaning itself still comes from the shared metadata model and shared-core services.
+
 ## Boundary Drift Signals
 
 The architecture should be treated as drifting when any of these start to appear:
@@ -174,6 +211,8 @@ Owns local orchestration:
 - Aspire health wiring
 - reusable emulator resource packaging
 - generated connection-string resource shaping for consuming Aspire apps
+- public helpers for binding that connection string into a consumer's chosen environment variable
+- public resource-shaping methods for startup baseline and organization-version configuration
 - future companion resources or supporting services
 
 ## Current Implemented Slice
@@ -182,7 +221,8 @@ The current proven slice is intentionally narrow:
 
 - two seeded tables: `account` and `contact`
 - two entity sets: `accounts` and `contacts`
-- one seeded lookup path: `contact.parentcustomerid -> account.accountid`
+- one seeded lookup relationship: `contact.parentcustomerid -> account.accountid`
+  - schema name: `contact_customer_accounts`
 - in-memory state only
 - hosted organization service bootstrap at `/org/XRMServices/2011/Organization.svc`
 - single-table and linked-query execution now share domain-owned value comparison, sorting, and continuation paging services
@@ -192,7 +232,10 @@ The current proven slice is intentionally narrow:
   - `Retrieve`
   - `Update`
   - `Delete`
+  - `Associate`
+  - `Disassociate`
   - `UpsertRequest` on the primary-id path
+  - `RetrieveVersionRequest`
   - `RetrieveMultiple(QueryExpression)`
   - `RetrieveMultiple(FetchExpression)`
   - `RetrieveMultiple(QueryExpression)` paging via `PageInfo`
@@ -205,13 +248,17 @@ The current proven slice is intentionally narrow:
   - `RetrieveEntity`
   - `RetrieveAttribute`
   - `RetrieveAllEntities`
+  - `RetrieveRelationship`
 - generic `Execute` message coverage:
+  - `RetrieveVersionRequest`
   - `UpsertRequest` for primary-id addressed create-or-update flows
   - `ExecuteMultipleRequest` for batching currently supported slices
+  - `AssociateRequest` and `DisassociateRequest` for the seeded lookup relationship
+  - `RetrieveRelationshipRequest` for seeded relationship metadata
 - secondary Web API CRUD on `/api/data/v9.2/accounts` and `/api/data/v9.2/contacts`
-- local reset endpoint on `/_emulator/v1/reset` for restoring the default seeded state
+- local reset endpoint on `/_emulator/v1/reset` for restoring the configured or named baseline state
 - local snapshot export and import endpoints on `/_emulator/v1/snapshot` for moving in-memory emulator state through a source-controllable document shape
-- public AppHost helper packaging that emits a reusable emulator project resource plus a generated `dataverse` connection string resource
+- public AppHost helper packaging that emits a reusable emulator project resource plus a generated `dataverse` connection string resource, consumer-facing connection-string binding helpers, and fluent shaping methods for startup baseline and organization version
 - shared error model mapped to either SDK faults or HTTP errors
 
 That slice is locked down with:

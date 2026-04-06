@@ -30,13 +30,17 @@ The repository now implements a real first compatibility slice:
 - Single-table and linked-query execution now share domain-owned value comparison, sorting, and continuation paging semantics.
 - Seeded `account` and `contact` metadata with entity sets `accounts` and `contacts`.
 - Local reset workflow that restores the default seeded state.
+- Local reset workflow that restores a configured or named baseline state.
 - Hosted Xrm/C# compatibility for the real legacy `CrmServiceClient`.
 - Supported C# operations:
   - `Create(Entity)`
   - `Retrieve(string, Guid, ColumnSet)`
   - `Update(Entity)`
   - `Delete(string, Guid)`
+  - `Associate(string, Guid, Relationship, EntityReferenceCollection)`
+  - `Disassociate(string, Guid, Relationship, EntityReferenceCollection)`
   - `UpsertRequest` for primary-id addressed upsert
+  - `RetrieveVersionRequest`
   - `RetrieveMultiple(QueryExpression)`
   - `RetrieveMultiple(FetchExpression)`
 - Supported QueryExpression breadth:
@@ -67,15 +71,23 @@ The repository now implements a real first compatibility slice:
   - `RetrieveEntity`
   - `RetrieveAttribute`
   - `RetrieveAllEntities`
+  - `RetrieveRelationship`
 - Supported generic `Execute` coverage:
+  - `RetrieveVersionRequest` for client version reads
+  - `RetrieveProvisionedLanguagesRequest` for local language metadata reads
   - `UpsertRequest` for create-or-update flows addressed by primary id
   - `ExecuteMultipleRequest` for batching currently supported request slices
+  - `AssociateRequest` and `DisassociateRequest` for the seeded lookup relationship
+  - `RetrieveRelationshipRequest` for seeded relationship metadata
 - Secondary Dataverse Web API support on `/api/data/v9.2/accounts` and `/api/data/v9.2/contacts`.
 - Shared error model mapped into:
   - SDK-style faults for Xrm/C#
   - Dataverse-style HTTP errors for Web API
 - AppHost packaging for a reusable Aspire emulator resource plus a generated `dataverse` connection string resource.
+- AppHost resource shaping methods for seed scenario selection, snapshot-backed startup, organization version configuration, and Xrm trace retention.
+- AppHost consumer helper for mapping the generated emulator connection string into a project or executable resource's chosen environment variable.
 - Snapshot export and import workflows on `/_emulator/v1/snapshot`.
+- Xrm request trace inspection and clear workflows on `/_emulator/v1/traces/xrm`.
 - Aspire-driven end-to-end tests, including a reusable `net48` harness that uses the real `CrmServiceClient`.
 
 ## Current Scope
@@ -83,9 +95,12 @@ The repository now implements a real first compatibility slice:
 The emulator is intentionally narrow right now:
 
 - Two seeded tables: `account` and `contact`
-- One seeded lookup path: `contact.parentcustomerid -> account.accountid`
+- One seeded lookup relationship: `contact.parentcustomerid -> account.accountid`
+  - schema name: `contact_customer_accounts`
 - In-memory storage only
-- One default seed scenario: `default-seed`
+- Named seed baselines:
+  - `default-seed`
+  - `empty`
 - QueryExpression support limited to:
   - top-level `LinkEntity` inner joins only
   - no nested `LinkEntity`
@@ -99,6 +114,7 @@ The emulator is intentionally narrow right now:
   - no aliases
   - no total-count paging
 - Metadata reads limited to the current seeded table slice
+- Relationship support limited to direct lookup association and metadata for the seeded relationship slice
 - Web API support limited to matching CRUD plus metadata for the current seeded tables
 
 Not implemented yet:
@@ -107,7 +123,7 @@ Not implemented yet:
 - alternate-key upsert
 - FetchXML joins
 - broader `Execute` message coverage beyond the current demand-driven slice
-- relationship modeling and traversal
+- broader relationship modeling and traversal beyond the current bounded lookup-association slice
 - auth emulation beyond permissive local bootstrap
 - multiple named seed scenarios
 - durable persistence providers
@@ -182,20 +198,54 @@ var app = builder.Build();
 app.Run();
 ```
 
+AppHost shaping for local environments:
+
+```csharp
+var dataverse = builder.AddDataverseEmulator()
+    .WithSeedScenario("empty")
+    .WithOrganizationVersion("9.2.0.0")
+    .WithXrmTraceLimit(100);
+```
+
+Snapshot-backed startup:
+
+```csharp
+var dataverse = builder.AddDataverseEmulator()
+    .WithSnapshotFile(@"C:\snapshots\baseline.json");
+```
+
+Legacy executable resource wiring:
+
+```csharp
+var dataverse = builder.AddDataverseEmulator();
+
+builder.AddExecutable("legacy-xrm-app", @"C:\apps\LegacyXrmApp.exe", @"C:\apps")
+    .WithDataverseConnectionString(dataverse, "CrmConnectionString");
+```
+
+- This is the intended Aspire bridge for legacy `.NET Framework` Xrm apps: they participate as executable resources and receive the emulator connection string through the setting name they already expect.
+
 - The packaged emulator currently exposes:
   - project resource name: `dataverse-emulator`
   - connection string resource name: `dataverse`
-- `AddDataverseEmulator()` and `DataverseEmulatorAppHostResource` are public so the packaging seam can later move into a dedicated Aspire Community Toolkit-style extension library cleanly.
+- `AddDataverseEmulator()`, `DataverseEmulatorAppHostResource`, `WithDataverseConnectionString(...)`, `WithSeedScenario(...)`, `WithSnapshotFile(...)`, and `WithOrganizationVersion(...)` are public so the packaging seam can later move into a dedicated Aspire Community Toolkit-style extension library cleanly.
+- `AddDataverseEmulator()`, `DataverseEmulatorAppHostResource`, `WithDataverseConnectionString(...)`, `WithSeedScenario(...)`, `WithSnapshotFile(...)`, `WithOrganizationVersion(...)`, and `WithXrmTraceLimit(...)` are public so the packaging seam can later move into a dedicated Aspire Community Toolkit-style extension library cleanly.
 
 ## Local Workflow Support
 
 - Reset the emulator back to its default seeded state with:
-
+ 
 ```bash
 POST /_emulator/v1/reset
 ```
 
-- The current reset flow restores the `default-seed` scenario for the in-memory `account` + `contact` slice.
+- Reset the emulator to a named baseline state with:
+
+```bash
+POST /_emulator/v1/reset?scenario=empty
+```
+
+- Without a query parameter, reset restores the configured startup baseline.
 - Export the current in-memory emulator state with:
 
 ```bash
@@ -206,6 +256,18 @@ GET /_emulator/v1/snapshot
 
 ```bash
 POST /_emulator/v1/snapshot
+```
+
+- Inspect captured Xrm request traces with:
+
+```bash
+GET /_emulator/v1/traces/xrm
+```
+
+- Clear captured Xrm request traces with:
+
+```bash
+DELETE /_emulator/v1/traces/xrm
 ```
 
 ## Tests

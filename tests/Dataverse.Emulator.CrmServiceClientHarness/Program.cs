@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
 using System.Web.Script.Serialization;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
@@ -37,9 +38,14 @@ internal static class Program
                 "fetchxml" => RunFetchXmlQuery(connectionString),
                 "execute-multiple" => RunExecuteMultiple(connectionString),
                 "upsert" => RunUpsert(connectionString),
+                "version" => RunVersion(connectionString),
+                "provisioned-languages" => RunProvisionedLanguages(connectionString),
                 "metadata" => RunMetadata(connectionString),
+                "associate" => RunAssociate(connectionString),
+                "relationship-metadata" => RunRelationshipMetadata(connectionString),
                 "create" => RunCreate(connectionString, scenarioArgs),
                 "retrieve" => RunRetrieve(connectionString, scenarioArgs),
+                "unsupported-request" => RunUnsupportedRequest(connectionString),
                 "unsupported-link-query" => RunUnsupportedLinkQuery(connectionString),
                 "unsupported-fetchxml-link-entity" => RunUnsupportedFetchXmlLinkEntity(connectionString),
                 "unsupported-upsert-alternate-key" => RunUnsupportedUpsertAlternateKey(connectionString),
@@ -446,6 +452,32 @@ internal static class Program
         }
     }
 
+    private static IDictionary<string, object> RunVersion(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var response = (RetrieveVersionResponse)client.Execute(new RetrieveVersionRequest());
+
+            return new Dictionary<string, object>
+            {
+                ["version"] = response.Version
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunProvisionedLanguages(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var response = (RetrieveProvisionedLanguagesResponse)client.Execute(new RetrieveProvisionedLanguagesRequest());
+
+            return new Dictionary<string, object>
+            {
+                ["languages"] = response.RetrieveProvisionedLanguages.Cast<int>().ToArray()
+            };
+        }
+    }
+
     private static IDictionary<string, object> RunRetrieve(string connectionString, string[] args)
     {
         if (args.Length < 1)
@@ -509,6 +541,84 @@ internal static class Program
                     ? attributeMetadata.RequiredLevel.Value.ToString()
                     : string.Empty,
                 ["allEntitiesCount"] = allEntitiesResponse.EntityMetadata.Length
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunAssociate(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var accountId = CreateAccount(client, "Associated Account", "AS-100", new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var contactId = CreateContact(client, "Unassigned Contact", "unassigned@example.com", null, new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+            var relationship = new Relationship("contact_customer_accounts");
+            var relatedEntities = new EntityReferenceCollection
+            {
+                new EntityReference("contact", contactId)
+            };
+
+            client.Associate("account", accountId, relationship, relatedEntities);
+
+            var associatedContact = client.Retrieve(
+                "contact",
+                contactId,
+                new ColumnSet("fullname", "parentcustomerid"));
+            var associatedReference = associatedContact.GetAttributeValue<EntityReference>("parentcustomerid");
+
+            client.Execute(new DisassociateRequest
+            {
+                Target = new EntityReference("account", accountId),
+                Relationship = relationship,
+                RelatedEntities = relatedEntities
+            });
+
+            var disassociatedContact = client.Retrieve(
+                "contact",
+                contactId,
+                new ColumnSet("fullname", "parentcustomerid"));
+            var disassociatedReference = disassociatedContact.GetAttributeValue<EntityReference>("parentcustomerid");
+
+            return new Dictionary<string, object>
+            {
+                ["accountId"] = accountId.ToString(),
+                ["contactId"] = contactId.ToString(),
+                ["associatedParentId"] = associatedReference != null ? associatedReference.Id.ToString() : string.Empty,
+                ["associatedParentLogicalName"] = associatedReference != null ? associatedReference.LogicalName : string.Empty,
+                ["disassociatedParentPresent"] = disassociatedReference != null
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunRelationshipMetadata(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var relationshipResponse = (RetrieveRelationshipResponse)client.Execute(new RetrieveRelationshipRequest
+            {
+                Name = "contact_customer_accounts"
+            });
+            var relationshipMetadata = (OneToManyRelationshipMetadata)relationshipResponse.RelationshipMetadata;
+            var accountEntityResponse = (RetrieveEntityResponse)client.Execute(new RetrieveEntityRequest
+            {
+                LogicalName = "account",
+                EntityFilters = EntityFilters.Entity | EntityFilters.Relationships
+            });
+            var contactEntityResponse = (RetrieveEntityResponse)client.Execute(new RetrieveEntityRequest
+            {
+                LogicalName = "contact",
+                EntityFilters = EntityFilters.Entity | EntityFilters.Relationships
+            });
+
+            return new Dictionary<string, object>
+            {
+                ["schemaName"] = relationshipMetadata.SchemaName,
+                ["referencedEntity"] = relationshipMetadata.ReferencedEntity,
+                ["referencingEntity"] = relationshipMetadata.ReferencingEntity,
+                ["referencingAttribute"] = relationshipMetadata.ReferencingAttribute,
+                ["accountOneToManyCount"] = accountEntityResponse.EntityMetadata.OneToManyRelationships.Length,
+                ["accountOneToManyNames"] = accountEntityResponse.EntityMetadata.OneToManyRelationships.Select(relationship => relationship.SchemaName).ToArray(),
+                ["contactManyToOneCount"] = contactEntityResponse.EntityMetadata.ManyToOneRelationships.Length,
+                ["contactManyToOneNames"] = contactEntityResponse.EntityMetadata.ManyToOneRelationships.Select(relationship => relationship.SchemaName).ToArray()
             };
         }
     }
@@ -607,6 +717,36 @@ internal static class Program
         }
     }
 
+    private static IDictionary<string, object> RunUnsupportedRequest(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            try
+            {
+                var request = new OrganizationRequest
+                {
+                    RequestName = "RetrieveUserLicenseInfo"
+                };
+
+                client.Execute(request);
+
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = false
+                };
+            }
+            catch (FaultException<OrganizationServiceFault> fault)
+            {
+                return new Dictionary<string, object>
+                {
+                    ["faulted"] = true,
+                    ["errorCode"] = fault.Detail.ErrorCode,
+                    ["message"] = fault.Detail.Message
+                };
+            }
+        }
+    }
+
     private static CrmServiceClient OpenClient(string connectionString)
     {
         var client = new CrmServiceClient(connectionString);
@@ -635,13 +775,17 @@ internal static class Program
         CrmServiceClient client,
         string fullName,
         string emailAddress,
-        Guid parentCustomerId,
+        Guid? parentCustomerId,
         DateTime createdOn)
     {
         var target = new Entity("contact");
         target["fullname"] = fullName;
         target["emailaddress1"] = emailAddress;
-        target["parentcustomerid"] = new EntityReference("account", parentCustomerId);
+        if (parentCustomerId.HasValue)
+        {
+            target["parentcustomerid"] = new EntityReference("account", parentCustomerId.Value);
+        }
+
         target["createdon"] = createdOn;
         return client.Create(target);
     }

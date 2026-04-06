@@ -12,6 +12,7 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
 ## Goals
 
 - Model table and column metadata in a way that is independent of HTTP and SOAP.
+- Model lookup relationship definitions in a way that is independent of HTTP and SOAP.
 - Support seeded local state for repeatable development and test workflows.
 - Provide shared CRUD and list/query behavior through the application layer.
 - Keep transport-agnostic query semantics in the shared core rather than in protocol adapters.
@@ -26,7 +27,9 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
   - primary id and primary name attributes
   - required levels
   - attribute types
+  - lookup target tables and relationship schema names
 - Record model for entity rows and record values.
+- Shared lookup relationship definitions derived from the metadata model.
 - Shared query concepts including:
   - selected columns
   - conditions
@@ -42,10 +45,14 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
   - list rows
   - list linked rows
   - retrieve table definitions
+  - associate related rows through shared lookup relationship definitions
+  - disassociate related rows through shared lookup relationship definitions
+  - retrieve lookup relationship definitions
 - Domain services for:
   - single-table query validation
   - single-table query execution semantics for filtering, sorting, projection, and continuation paging
   - record validation
+  - lookup relationship definition discovery and validation against metadata
   - linked-query semantic validation against metadata
   - linked-query execution semantics for join, filter, sort, projection, and paging
 - In-memory persistence for metadata and records.
@@ -55,6 +62,7 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
 ## Boundary Expectations
 
 - Domain owns transport-agnostic query and validation semantics.
+- Domain owns transport-agnostic relationship definitions and semantic validation.
 - Application owns use-case orchestration and repository composition.
 - Protocols translate external contracts into the shared query language and map results out again.
 - Persistence providers should reuse the shared-core query semantics where practical instead of re-inventing them per protocol.
@@ -69,7 +77,7 @@ This is the foundation that both the hosted Xrm surface and the secondary Web AP
 ## Current Constraints
 
 - The implemented slice is intentionally centered on the seeded `account` / `contact` relationship path.
-- Relationship modeling is still narrow and only covers the currently seeded local workflow.
+- Relationship modeling is still narrow and only covers the currently seeded lookup workflow.
 - Durable persistence is not part of the current shared-core slice.
 - Query breadth is still limited by the compatibility slices built on top of this core.
 - Single-table and linked-query execution still use different domain executors because their query shapes are different, but they now share the same domain value-evaluation and continuation paging services.

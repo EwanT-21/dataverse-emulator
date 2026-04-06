@@ -49,7 +49,8 @@ internal static class DefaultSeedScenarioFactory
             "parentcustomerid",
             AttributeType.Lookup,
             RequiredLevel.None,
-            lookupTargetTable: "account");
+            lookupTargetTable: "account",
+            lookupRelationshipName: "contact_customer_accounts");
         var contactCreatedOn = ColumnDefinition.Create(
             "createdon",
             AttributeType.DateTime,

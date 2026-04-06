@@ -38,28 +38,43 @@ This is also the area where later Aspire packaging or a community toolkit can ad
 ### Implemented Baseline
 
 - The host exposes `POST /_emulator/v1/reset`.
-- Reset currently reapplies the source-controlled `default-seed` scenario.
+- Reset now restores either:
+  - the configured startup baseline
+  - or an explicitly requested named seed scenario through `POST /_emulator/v1/reset?scenario=...`
 - The host now also exposes:
   - `GET /_emulator/v1/snapshot`
   - `POST /_emulator/v1/snapshot`
 - Snapshot export captures the current in-memory metadata and rows into a stable document model owned by the application seeding layer.
+- Snapshot export captures lookup relationship metadata such as lookup target tables and relationship schema names alongside the current in-memory rows.
 - Snapshot import restores that document back through the same application-owned seed execution flow rather than bypassing the shared core.
 - The default seed scenario defines the in-memory `account` + `contact` metadata slice and clears records back to the initial seeded state.
+- Named seed baselines currently include:
+  - `default-seed`
+  - `empty`
 - `AppHost` now packages the emulator through `AddDataverseEmulator()`.
 - The current AppHost packaging surface is public so it can later be moved or wrapped in a dedicated Aspire Community Toolkit-style extension package.
 - The current AppHost packaging emits:
   - project resource name `dataverse-emulator`
   - generated connection string resource name `dataverse`
+- The current AppHost packaging also exposes fluent shaping methods for:
+  - startup seed scenario selection
+  - snapshot-backed startup
+  - emulator organization version configuration
+  - Xrm trace retention limit configuration
+- The current AppHost packaging can now map the generated emulator connection string into a consuming project's or executable resource's chosen environment variable, which is the intended bridge for legacy Xrm apps participating in Aspire as executable resources.
+- The host now also exposes Xrm trace inspection and clear endpoints so local runs can capture the real Xrm message mix a consuming app is generating.
 - Aspire-hosted end-to-end tests verify that:
   - data created during a test run is removed after reset
   - metadata remains available after reset
   - snapshot export and import can round-trip runtime-created state
+  - captured Xrm traces show both supported and unsupported request flows
   - the emulator connection string can be resolved from the packaged AppHost resource model
+  - the packaged AppHost helper can inject the emulator connection string into a consumer-defined environment variable without forcing the default `ConnectionStrings__dataverse` name
 
 ### Still To Add
 
-- multiple named seed scenarios
-- richer AppHost ergonomics for distributing connection information to consuming apps beyond the current baseline packaging
+- more named seed scenarios
+- more consumer-oriented AppHost helpers beyond the current connection-string injection seam
 - durable local persistence providers layered behind the same abstractions
 
 ### Persistence Evolution

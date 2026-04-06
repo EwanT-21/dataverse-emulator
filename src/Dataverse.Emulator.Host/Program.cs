@@ -1,10 +1,12 @@
 using Dataverse.Emulator.Application;
 using Dataverse.Emulator.Application.Behaviors;
+using Dataverse.Emulator.Application.Runtime;
 using Dataverse.Emulator.Application.Seeding;
 using Dataverse.Emulator.Host;
 using Dataverse.Emulator.Persistence.InMemory;
 using Dataverse.Emulator.Protocols.WebApi;
 using Dataverse.Emulator.Protocols.Xrm;
+using Dataverse.Emulator.Protocols.Xrm.Tracing;
 using ErrorOr;
 using Mediator;
 
@@ -13,6 +15,12 @@ builder.AddServiceDefaults();
 builder.Services.AddDataverseEmulatorApplication();
 builder.Services.AddDataverseEmulatorInMemoryPersistence();
 builder.Services.AddDataverseEmulatorXrmProtocol();
+builder.Services.AddSingleton(_ => new DataverseEmulatorRuntimeSettings(
+    SeedScenarioName: ResolveSeedScenarioName(builder.Configuration[DataverseEmulatorRuntimeSettings.SeedScenarioEnvironmentVariableName]),
+    SnapshotPath: ResolveSnapshotPath(builder.Configuration[DataverseEmulatorRuntimeSettings.SnapshotPathEnvironmentVariableName]),
+    OrganizationVersion: ResolveOrganizationVersion(builder.Configuration[DataverseEmulatorRuntimeSettings.OrganizationVersionEnvironmentVariableName]),
+    XrmTraceLimit: ResolveXrmTraceLimit(builder.Configuration[DataverseEmulatorRuntimeSettings.XrmTraceLimitEnvironmentVariableName])));
+builder.Services.AddTransient<DataverseEmulatorBaselineStateService>();
 builder.Services.AddHostedService<DefaultSeedHostedService>();
 builder.Services.AddMediator(options =>
 {
@@ -27,7 +35,7 @@ app.MapGet(
     () => Results.Ok(
         new EmulatorDescriptor(
             "Dataverse Emulator",
-            "Local emulator slice implemented for hosted Xrm/C# compatibility, shared account and contact semantics, secondary Web API CRUD, and reset plus snapshot workflows",
+            "Local emulator slice implemented for hosted Xrm/C# compatibility, shared account and contact semantics, demand-driven Execute coverage, secondary Web API CRUD, reset plus snapshot workflows, Xrm trace capture, and Aspire-friendly baseline shaping",
             [
                 "Xrm/C# organization service",
                 "Dataverse Web API"
@@ -39,13 +47,22 @@ app.MapGet("/status", () => Results.Ok(new HealthDescriptor("healthy", DateTimeO
 
 app.MapPost(
     "/_emulator/v1/reset",
-    async (SeedScenarioExecutor seedScenarioExecutor, CancellationToken cancellationToken) =>
+    async (
+        string? scenario,
+        DataverseEmulatorBaselineStateService baselineStateService,
+        CancellationToken cancellationToken) =>
     {
-        await seedScenarioExecutor.ExecuteAsync(DefaultSeedScenarioFactory.Create(), cancellationToken);
-        return Results.Ok(new EmulatorResetDescriptor(
-            "reset",
-            "default-seed",
-            DateTimeOffset.UtcNow));
+        var restoreResult = string.IsNullOrWhiteSpace(scenario)
+            ? await baselineStateService.RestoreConfiguredBaselineAsync(cancellationToken)
+            : await baselineStateService.RestoreScenarioAsync(scenario, cancellationToken);
+
+        return restoreResult.IsError
+            ? ToAdminErrorResult(restoreResult.Errors)
+            : Results.Ok(new EmulatorResetDescriptor(
+                "reset",
+                restoreResult.Value.Kind,
+                restoreResult.Value.Name,
+                DateTimeOffset.UtcNow));
     });
 
 app.MapGet(
@@ -96,9 +113,37 @@ app.MapGet(
         {
             "Primary compatibility target: hosted CrmServiceClient bootstrap against /org with real Xrm/C# CRUD, query, metadata, and demand-driven Execute coverage.",
             "Current table slice: seeded account and contact metadata, shared single-table and linked-query semantics, and matching Web API CRUD on /api/data/v9.2/accounts and /api/data/v9.2/contacts.",
-            "Current local workflow support: reset the emulator to its default seeded state through /_emulator/v1/reset.",
-            "Current local workflow support: export and import snapshot documents through /_emulator/v1/snapshot."
+            "Current local workflow support: reset the emulator to a configured or named baseline through /_emulator/v1/reset.",
+            "Current local workflow support: export and import snapshot documents through /_emulator/v1/snapshot.",
+            "Current local workflow support: inspect and clear captured Xrm request traces through /_emulator/v1/traces/xrm."
         }));
+
+app.MapGet(
+    "/_emulator/v1/traces/xrm",
+    (int? limit, DataverseXrmRequestTraceStore traceStore) =>
+    {
+        var items = traceStore.List(limit)
+            .Select(entry => new EmulatorXrmTraceItem(
+                entry.Sequence,
+                entry.Source,
+                entry.Name,
+                entry.Succeeded,
+                entry.ErrorCode,
+                entry.Message,
+                entry.StartedAtUtc,
+                entry.DurationMilliseconds))
+            .ToArray();
+
+        return Results.Ok(new EmulatorXrmTraceDescriptor(items.Length, items));
+    });
+
+app.MapDelete(
+    "/_emulator/v1/traces/xrm",
+    (DataverseXrmRequestTraceStore traceStore) =>
+    {
+        traceStore.Clear();
+        return Results.Ok(new EmulatorTraceResetDescriptor("cleared", "xrm"));
+    });
 
 app.MapDataverseWebApi();
 app.MapDataverseXrm();
@@ -109,6 +154,26 @@ static IResult ToAdminErrorResult(IReadOnlyList<Error> errors)
     => Results.BadRequest(new EmulatorAdminErrorDescriptor(
         "invalid-request",
         errors.Select(error => new EmulatorAdminErrorItem(error.Code, error.Description)).ToArray()));
+
+static string ResolveSeedScenarioName(string? configuredSeedScenarioName)
+    => string.IsNullOrWhiteSpace(configuredSeedScenarioName)
+        ? DataverseEmulatorRuntimeSettings.DefaultSeedScenarioName
+        : configuredSeedScenarioName.Trim();
+
+static string? ResolveSnapshotPath(string? configuredSnapshotPath)
+    => string.IsNullOrWhiteSpace(configuredSnapshotPath)
+        ? null
+        : configuredSnapshotPath.Trim();
+
+static string ResolveOrganizationVersion(string? configuredOrganizationVersion)
+    => string.IsNullOrWhiteSpace(configuredOrganizationVersion)
+        ? DataverseEmulatorRuntimeSettings.DefaultOrganizationVersion
+        : configuredOrganizationVersion.Trim();
+
+static int ResolveXrmTraceLimit(string? configuredTraceLimit)
+    => int.TryParse(configuredTraceLimit, out var traceLimit) && traceLimit > 0
+        ? traceLimit
+        : DataverseEmulatorRuntimeSettings.DefaultXrmTraceLimit;
 
 public sealed record EmulatorDescriptor(
     string Name,
@@ -121,7 +186,8 @@ public sealed record HealthDescriptor(string Status, DateTimeOffset UtcNow);
 
 public sealed record EmulatorResetDescriptor(
     string Status,
-    string Scenario,
+    string BaselineKind,
+    string BaselineName,
     DateTimeOffset UtcNow);
 
 public sealed record EmulatorSnapshotImportedDescriptor(
@@ -130,6 +196,24 @@ public sealed record EmulatorSnapshotImportedDescriptor(
     int TableCount,
     int RecordCount,
     DateTimeOffset UtcNow);
+
+public sealed record EmulatorXrmTraceDescriptor(
+    int Count,
+    EmulatorXrmTraceItem[] Items);
+
+public sealed record EmulatorXrmTraceItem(
+    long Sequence,
+    string Source,
+    string Name,
+    bool Succeeded,
+    int? ErrorCode,
+    string? Message,
+    DateTimeOffset StartedAtUtc,
+    long DurationMilliseconds);
+
+public sealed record EmulatorTraceResetDescriptor(
+    string Status,
+    string TraceKind);
 
 public sealed record EmulatorAdminErrorDescriptor(
     string Error,

@@ -1,10 +1,12 @@
 using Dataverse.Emulator.Protocols.Common;
+using Dataverse.Emulator.Protocols.Xrm.Tracing;
 using Microsoft.Xrm.Sdk;
 
 namespace Dataverse.Emulator.Protocols.Xrm.Execution;
 
 public sealed class DataverseXrmOrganizationRequestDispatcher(
-    IEnumerable<IXrmOrganizationRequestHandler> handlers)
+    IEnumerable<IXrmOrganizationRequestHandler> handlers,
+    DataverseXrmRequestTraceStore traceStore)
 {
     private readonly IReadOnlyDictionary<string, IXrmOrganizationRequestHandler> handlersByName = handlers
         .ToDictionary(handler => handler.RequestName, StringComparer.OrdinalIgnoreCase);
@@ -18,12 +20,15 @@ public sealed class DataverseXrmOrganizationRequestDispatcher(
         }
 
         var requestName = request.RequestName ?? request.GetType().Name;
-        if (!handlersByName.TryGetValue(requestName, out var handler))
+        return traceStore.Trace("ExecuteRequest", requestName, () =>
         {
-            throw DataverseProtocolErrorMapper.ToFaultException(
-                [DataverseXrmErrors.UnsupportedOrganizationRequest(requestName)]);
-        }
+            if (!handlersByName.TryGetValue(requestName, out var handler))
+            {
+                throw DataverseProtocolErrorMapper.ToFaultException(
+                    [DataverseXrmErrors.UnsupportedOrganizationRequest(requestName)]);
+            }
 
-        return handler.Handle(request);
+            return handler.Handle(request);
+        });
     }
 }

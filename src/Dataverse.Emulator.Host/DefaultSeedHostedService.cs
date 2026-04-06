@@ -1,12 +1,11 @@
 using Dataverse.Emulator.Application.Abstractions;
-using Dataverse.Emulator.Application.Seeding;
 using Dataverse.Emulator.Domain.Metadata;
 
 namespace Dataverse.Emulator.Host;
 
-public sealed class DefaultSeedHostedService(
+internal sealed class DefaultSeedHostedService(
     IReadRepository<TableDefinition> tableRepository,
-    SeedScenarioExecutor seedScenarioExecutor)
+    DataverseEmulatorBaselineStateService baselineStateService)
     : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -16,7 +15,12 @@ public sealed class DefaultSeedHostedService(
             return;
         }
 
-        await seedScenarioExecutor.ExecuteAsync(DefaultSeedScenarioFactory.Create(), cancellationToken);
+        var restoreResult = await baselineStateService.RestoreConfiguredBaselineAsync(cancellationToken);
+        if (restoreResult.IsError)
+        {
+            throw new InvalidOperationException(
+                $"The emulator baseline state could not be restored: {string.Join(" | ", restoreResult.Errors.Select(error => error.Description))}");
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

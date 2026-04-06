@@ -20,7 +20,8 @@ public sealed record SeedScenarioSnapshotColumnDocument(
     string RequiredLevel,
     bool IsPrimaryId,
     bool IsPrimaryName,
-    string? LookupTargetTable);
+    string? LookupTargetTable,
+    string? LookupRelationshipName);
 
 public sealed record SeedScenarioSnapshotAlternateKeyDocument(
     string LogicalName,

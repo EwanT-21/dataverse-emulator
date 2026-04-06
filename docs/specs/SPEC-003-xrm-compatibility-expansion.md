@@ -38,6 +38,8 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - Keep unsupported messages faulting clearly rather than silently approximating behavior.
 - `ExecuteMultipleRequest` support for batching currently implemented request slices is now part of the hosted Xrm surface.
 - `UpsertRequest` on the primary-id path is now part of the hosted Xrm surface, while alternate-key upsert remains explicitly unsupported.
+- `RetrieveVersionRequest` is now part of the hosted Xrm surface for basic client version reads.
+- `RetrieveProvisionedLanguagesRequest` is now part of the hosted Xrm surface for bounded local language metadata reads.
 
 ### QueryExpression Expansion
 
@@ -57,6 +59,12 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 
 - Add targeted metadata request support for the current table slice where local apps need it.
 - Keep metadata expansion bounded to the local-emulator scenario rather than broad platform parity.
+
+### Relationship Expansion
+
+- Add bounded relationship behavior only when real local apps need it.
+- Prefer seeded lookup relationships backed by the shared metadata model over speculative general relationship emulation.
+- Keep relationship semantics transport-agnostic after translation so Xrm support continues to reuse the shared core.
 
 ### Additional Tables
 
@@ -85,6 +93,7 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - a real target application or harness can run locally with broader Xrm behavior than the current `account` CRUD/query slice
 - newly supported requests and query features are covered by hosted end-to-end tests
 - unsupported requests continue to fail explicitly and predictably
+- real local-app request traces can show which Xrm messages were served or rejected during a run
 
 ## Current Progress Notes
 
@@ -97,5 +106,9 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - `RetrieveMultiple(FetchExpression)` now supports a bounded one-table slice for projection, nested filters, common operators, ordering, and paging through the shared query engine.
 - `ExecuteMultipleRequest` is now implemented for batching the request slices the emulator already supports, and is verified through the real `CrmServiceClient` harness.
 - `UpsertRequest` is now implemented for primary-id addressed create-or-update flows and is verified through the real `CrmServiceClient` harness, while alternate-key upsert continues to fault clearly.
+- `RetrieveVersionRequest` is now implemented and verified through the real `CrmServiceClient` harness.
+- `RetrieveProvisionedLanguagesRequest` is now implemented and verified through the real `CrmServiceClient` harness.
 - Metadata-oriented Xrm reads for the seeded table slice are now implemented through `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveAllEntities`.
+- A first bounded lookup-relationship slice is now implemented through `Associate`, `Disassociate`, `AssociateRequest`, `DisassociateRequest`, and `RetrieveRelationshipRequest` for the seeded `contact_customer_accounts` relationship.
+- Xrm request trace capture is now implemented so local runs can inspect which direct operations and `Execute` requests were served or rejected.
 - The next likely Xrm expansion points are additional demand-driven `Execute` request coverage, deeper query semantics where a real local app needs them, further consolidation of shared execution helpers where it stays clear, and additional tables only when they are justified by a concrete local workflow.

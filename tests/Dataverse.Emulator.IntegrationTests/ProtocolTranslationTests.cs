@@ -209,6 +209,55 @@ public sealed class ProtocolTranslationTests
     }
 
     [Fact]
+    public void Relationship_Metadata_Maps_To_OneToManyRelationshipMetadata()
+    {
+        var relationship = new Dataverse.Emulator.Domain.Metadata.LookupRelationshipDefinition(
+            "contact_customer_accounts",
+            "account",
+            "accountid",
+            "contact",
+            "parentcustomerid");
+
+        var metadata = DataverseXrmMetadataMapper.ToRelationshipMetadata(relationship);
+
+        Assert.Equal("contact_customer_accounts", metadata.SchemaName);
+        Assert.Equal("account", metadata.ReferencedEntity);
+        Assert.Equal("accountid", metadata.ReferencedAttribute);
+        Assert.Equal("contact", metadata.ReferencingEntity);
+        Assert.Equal("parentcustomerid", metadata.ReferencingAttribute);
+        Assert.Equal(
+            DataverseXrmMetadataMapper.CreateRelationshipMetadataId("contact_customer_accounts"),
+            metadata.MetadataId.GetValueOrDefault());
+    }
+
+    [Fact]
+    public void Entity_Metadata_Includes_Lookup_Relationships_When_Requested()
+    {
+        var account = CreateAccountTable();
+        var contact = CreateContactTable();
+        var relationship = new Dataverse.Emulator.Domain.Metadata.LookupRelationshipDefinition(
+            "contact_customer_accounts",
+            "account",
+            "accountid",
+            "contact",
+            "parentcustomerid");
+
+        var accountMetadata = DataverseXrmMetadataMapper.ToEntityMetadata(
+            account,
+            EntityFilters.Entity | EntityFilters.Relationships,
+            [relationship]);
+        var contactMetadata = DataverseXrmMetadataMapper.ToEntityMetadata(
+            contact,
+            EntityFilters.Entity | EntityFilters.Relationships,
+            [relationship]);
+
+        Assert.Single(accountMetadata.OneToManyRelationships);
+        Assert.Equal("contact_customer_accounts", accountMetadata.OneToManyRelationships[0].SchemaName);
+        Assert.Single(contactMetadata.ManyToOneRelationships);
+        Assert.Equal("contact_customer_accounts", contactMetadata.ManyToOneRelationships[0].SchemaName);
+    }
+
+    [Fact]
     public void Shared_Error_Model_Maps_To_Sdk_Faults()
     {
         var fault = DataverseProtocolErrorMapper.ToFaultException(
@@ -259,6 +308,35 @@ public sealed class ProtocolTranslationTests
             "accountid",
             "name",
             [accountId.Value, name.Value, accountNumber.Value, active.Value]);
+
+        Assert.False(table.IsError);
+        return table.Value;
+    }
+
+    private static Dataverse.Emulator.Domain.Metadata.TableDefinition CreateContactTable()
+    {
+        var contactId = Dataverse.Emulator.Domain.Metadata.ColumnDefinition.Create(
+            "contactid",
+            Dataverse.Emulator.Domain.Metadata.AttributeType.UniqueIdentifier,
+            Dataverse.Emulator.Domain.Metadata.RequiredLevel.SystemRequired,
+            isPrimaryId: true);
+        var fullName = Dataverse.Emulator.Domain.Metadata.ColumnDefinition.Create(
+            "fullname",
+            Dataverse.Emulator.Domain.Metadata.AttributeType.String,
+            Dataverse.Emulator.Domain.Metadata.RequiredLevel.ApplicationRequired,
+            isPrimaryName: true);
+        var parentCustomerId = Dataverse.Emulator.Domain.Metadata.ColumnDefinition.Create(
+            "parentcustomerid",
+            Dataverse.Emulator.Domain.Metadata.AttributeType.Lookup,
+            Dataverse.Emulator.Domain.Metadata.RequiredLevel.None,
+            lookupTargetTable: "account",
+            lookupRelationshipName: "contact_customer_accounts");
+        var table = Dataverse.Emulator.Domain.Metadata.TableDefinition.Create(
+            "contact",
+            "contacts",
+            "contactid",
+            "fullname",
+            [contactId.Value, fullName.Value, parentCustomerId.Value]);
 
         Assert.False(table.IsError);
         return table.Value;

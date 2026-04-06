@@ -6,6 +6,7 @@ using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
+using Dataverse.Emulator.AppHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Projects;
@@ -60,6 +61,47 @@ public sealed class AppHostPackagingAspireTests(DataverseEmulatorFixture fixture
         Assert.Contains("Domain=EMULATOR;", connectionString, StringComparison.Ordinal);
         Assert.Contains("Username=local;", connectionString, StringComparison.Ordinal);
         Assert.Contains("Password=local", connectionString, StringComparison.Ordinal);
+    }
+}
+
+public sealed class AppHostModelAspireTests
+{
+    [Fact]
+    public async Task AppHost_Helper_Can_Map_Emulator_ConnectionString_Into_A_Custom_Environment_Variable()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var service = builder.AddProject<Dataverse_Emulator_Host>("dataverse-emulator-model");
+        var connectionString = builder.AddConnectionString("dataverse-model", expression =>
+            expression.AppendLiteral("AuthType=AD;Url=http://localhost:5100/org;Domain=EMULATOR;Username=local;Password=local"));
+        var emulator = new DataverseEmulatorAppHostResource(service, connectionString);
+        var consumer = builder.AddExecutable("legacy-consumer", "cmd.exe", Environment.SystemDirectory)
+            .WithDataverseConnectionString(emulator, "CRM_CONNECTION_STRING");
+
+        #pragma warning disable CS0618
+        var environment = await consumer.Resource.GetEnvironmentVariableValuesAsync(DistributedApplicationOperation.Publish);
+        #pragma warning restore CS0618
+        var environmentKeys = environment.Select(entry => entry.Key).ToArray();
+
+        Assert.Contains("CRM_CONNECTION_STRING", environmentKeys);
+        Assert.DoesNotContain("ConnectionStrings__dataverse", environmentKeys);
+
+        var resolvedConnectionString = environment.Single(entry => entry.Key == "CRM_CONNECTION_STRING").Value;
+        Assert.Equal("{dataverse-model.connectionString}", resolvedConnectionString);
+    }
+
+    [Fact]
+    public async Task AppHost_Helper_Can_Set_The_Xrm_Trace_Limit()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var emulator = builder.AddDataverseEmulator("dataverse-trace-model")
+            .WithXrmTraceLimit(25);
+
+        #pragma warning disable CS0618
+        var environment = await emulator.Service.Resource.GetEnvironmentVariableValuesAsync(DistributedApplicationOperation.Publish);
+        #pragma warning restore CS0618
+
+        var traceLimit = environment.Single(entry => entry.Key == "DATAVERSE_EMULATOR_XRM_TRACE_LIMIT").Value;
+        Assert.Equal("25", traceLimit);
     }
 }
 
@@ -251,6 +293,15 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
     }
 
     [Fact]
+    public async Task CrmServiceClient_Can_Read_Configured_Organization_Version()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("version");
+
+        Assert.Equal("9.2.0.0", result.GetProperty("version").GetString());
+    }
+
+    [Fact]
     public async Task CrmServiceClient_Can_Read_Seeded_Metadata()
     {
         await fixture.ResetAsync();
@@ -266,6 +317,44 @@ public sealed class CrmServiceClientAspireTests(DataverseEmulatorFixture fixture
         Assert.Equal("String", result.GetProperty("attributeType").GetString());
         Assert.Equal("ApplicationRequired", result.GetProperty("attributeRequiredLevel").GetString());
         Assert.Equal(2, result.GetProperty("allEntitiesCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task CrmServiceClient_Can_Associate_And_Disassociate_Seeded_Lookup_Relationship()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("associate");
+
+        Assert.False(string.IsNullOrWhiteSpace(result.GetProperty("accountId").GetString()));
+        Assert.False(string.IsNullOrWhiteSpace(result.GetProperty("contactId").GetString()));
+        Assert.Equal(result.GetProperty("accountId").GetString(), result.GetProperty("associatedParentId").GetString());
+        Assert.Equal("account", result.GetProperty("associatedParentLogicalName").GetString());
+        Assert.False(result.GetProperty("disassociatedParentPresent").GetBoolean());
+    }
+
+    [Fact]
+    public async Task CrmServiceClient_Can_Read_Seeded_Relationship_Metadata()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("relationship-metadata");
+
+        Assert.Equal("contact_customer_accounts", result.GetProperty("schemaName").GetString());
+        Assert.Equal("account", result.GetProperty("referencedEntity").GetString());
+        Assert.Equal("contact", result.GetProperty("referencingEntity").GetString());
+        Assert.Equal("parentcustomerid", result.GetProperty("referencingAttribute").GetString());
+        Assert.Equal(1, result.GetProperty("accountOneToManyCount").GetInt32());
+        Assert.Equal(["contact_customer_accounts"], ReadStringArray(result, "accountOneToManyNames"));
+        Assert.Equal(1, result.GetProperty("contactManyToOneCount").GetInt32());
+        Assert.Equal(["contact_customer_accounts"], ReadStringArray(result, "contactManyToOneNames"));
+    }
+
+    [Fact]
+    public async Task CrmServiceClient_Can_Read_Provisioned_Languages_Through_Execute()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("provisioned-languages");
+
+        Assert.Equal([1033], ReadIntArray(result, "languages"));
     }
 
     [Fact]
@@ -383,6 +472,25 @@ public sealed class LocalWorkflowAspireTests(DataverseEmulatorFixture fixture)
     }
 
     [Fact]
+    public async Task Reset_Can_Target_Empty_Seed_Scenario()
+    {
+        await fixture.ResetAsync();
+
+        using var client = fixture.CreateClient();
+        var response = await client.PostAsync("/_emulator/v1/reset?scenario=empty", content: null);
+        var payload = await response.ReadRequiredJsonAsync();
+        var serviceDocumentResponse = await client.GetAsync("/api/data/v9.2");
+        var serviceDocument = await serviceDocumentResponse.ReadRequiredJsonAsync();
+
+        Assert.Equal("reset", payload.GetProperty("status").GetString());
+        Assert.Equal("scenario", payload.GetProperty("baselineKind").GetString());
+        Assert.Equal("empty", payload.GetProperty("baselineName").GetString());
+        Assert.Empty(serviceDocument.GetProperty("value").EnumerateArray());
+
+        await fixture.ResetAsync();
+    }
+
+    [Fact]
     public async Task Snapshot_Export_And_Import_RoundTrips_Runtime_State()
     {
         await fixture.ResetAsync();
@@ -435,6 +543,32 @@ public sealed class LocalWorkflowAspireTests(DataverseEmulatorFixture fixture)
         Assert.Equal("SN-100", restoredAccount.GetProperty("accountnumber").GetString());
         Assert.Single(restoredContacts.GetProperty("value").EnumerateArray());
         Assert.Equal(accountId, restoredContacts.GetProperty("value")[0].GetProperty("parentcustomerid").GetGuid());
+    }
+
+    [Fact]
+    public async Task Xrm_Traces_Capture_Supported_And_Unsupported_Request_Flows()
+    {
+        await fixture.ResetAsync();
+        await fixture.ClearXrmTracesAsync();
+
+        await fixture.RunCrmHarnessAsync("provisioned-languages");
+        var supportedTraces = await fixture.GetXrmTracesAsync();
+
+        Assert.Contains(
+            supportedTraces.GetProperty("items").EnumerateArray(),
+            item => item.GetProperty("name").GetString() == "RetrieveProvisionedLanguages"
+                && item.GetProperty("source").GetString() == "ExecuteRequest"
+                && item.GetProperty("succeeded").GetBoolean());
+
+        await fixture.ClearXrmTracesAsync();
+        var unsupported = await fixture.RunCrmHarnessAsync("unsupported-request");
+        var unsupportedTraces = await fixture.GetXrmTracesAsync();
+
+        Assert.True(unsupported.GetProperty("faulted").GetBoolean());
+        Assert.Contains(
+            unsupportedTraces.GetProperty("items").EnumerateArray(),
+            item => item.GetProperty("name").GetString() == "RetrieveUserLicenseInfo"
+                && !item.GetProperty("succeeded").GetBoolean());
     }
 
     private static Guid ExtractId(string entityUri)
@@ -499,13 +633,23 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
         => Task.FromResult(connectionString ?? throw new InvalidOperationException("The emulator connection string has not been initialized."));
 
     public async Task ResetAsync()
+        => await ResetAsync(scenario: null);
+
+    public async Task ResetAsync(string? scenario)
     {
         using var client = CreateClient();
-        var response = await client.PostAsync("/_emulator/v1/reset", content: null);
+        var path = string.IsNullOrWhiteSpace(scenario)
+            ? "/_emulator/v1/reset"
+            : $"/_emulator/v1/reset?scenario={Uri.EscapeDataString(scenario)}";
+
+        var response = await client.PostAsync(path, content: null);
         var payload = await response.ReadRequiredJsonAsync();
 
         Assert.Equal("reset", payload.GetProperty("status").GetString());
-        Assert.Equal("default-seed", payload.GetProperty("scenario").GetString());
+        Assert.Equal("scenario", payload.GetProperty("baselineKind").GetString());
+        Assert.Equal(
+            string.IsNullOrWhiteSpace(scenario) ? "default-seed" : scenario,
+            payload.GetProperty("baselineName").GetString());
     }
 
     public async Task<JsonElement> ExportSnapshotAsync()
@@ -521,6 +665,26 @@ public sealed class DataverseEmulatorFixture : IAsyncLifetime
         using var content = new StringContent(snapshot.GetRawText(), Encoding.UTF8, "application/json");
         var response = await client.PostAsync("/_emulator/v1/snapshot", content);
         return await response.ReadRequiredJsonAsync();
+    }
+
+    public async Task<JsonElement> GetXrmTracesAsync(int? limit = null)
+    {
+        using var client = CreateClient();
+        var path = limit.HasValue
+            ? $"/_emulator/v1/traces/xrm?limit={limit.Value}"
+            : "/_emulator/v1/traces/xrm";
+        var response = await client.GetAsync(path);
+        return await response.ReadRequiredJsonAsync();
+    }
+
+    public async Task ClearXrmTracesAsync()
+    {
+        using var client = CreateClient();
+        var response = await client.DeleteAsync("/_emulator/v1/traces/xrm");
+        var payload = await response.ReadRequiredJsonAsync();
+
+        Assert.Equal("cleared", payload.GetProperty("status").GetString());
+        Assert.Equal("xrm", payload.GetProperty("traceKind").GetString());
     }
 
     public async Task<JsonElement> RunCrmHarnessAsync(string scenario, params string[] args)

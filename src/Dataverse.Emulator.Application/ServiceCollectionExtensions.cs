@@ -13,15 +13,20 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<QueryValidationService>();
         services.AddSingleton<RecordQueryExecutionService>();
         services.AddSingleton<RecordValidationService>();
+        services.AddSingleton<LookupRelationshipDefinitionService>();
         services.AddSingleton<LinkedRecordQueryValidationService>();
         services.AddSingleton<LinkedRecordQueryExecutionService>();
 
         services.AddTransient<Records.LinkedRecordQueryService>();
+        services.AddTransient<Records.LookupRelationshipAssociationService>();
 
+        services.AddTransient<IValidator<Metadata.GetRelationshipDefinitionQuery>, Metadata.GetRelationshipDefinitionQueryValidator>();
         services.AddTransient<IValidator<Metadata.GetTableDefinitionByEntitySetNameQuery>, Metadata.GetTableDefinitionByEntitySetNameQueryValidator>();
         services.AddTransient<IValidator<Metadata.GetTableDefinitionQuery>, Metadata.GetTableDefinitionQueryValidator>();
+        services.AddTransient<IValidator<Records.AssociateRowsCommand>, Records.AssociateRowsCommandValidator>();
         services.AddTransient<IValidator<Records.CreateRowCommand>, Records.CreateRowCommandValidator>();
         services.AddTransient<IValidator<Records.DeleteRowCommand>, Records.DeleteRowCommandValidator>();
+        services.AddTransient<IValidator<Records.DisassociateRowsCommand>, Records.DisassociateRowsCommandValidator>();
         services.AddTransient<IValidator<Records.GetRowByIdQuery>, Records.GetRowByIdQueryValidator>();
         services.AddTransient<IValidator<Records.ListLinkedRowsQuery>, Records.ListLinkedRowsQueryValidator>();
         services.AddTransient<IValidator<Records.ListRowsQuery>, Records.ListRowsQueryValidator>();

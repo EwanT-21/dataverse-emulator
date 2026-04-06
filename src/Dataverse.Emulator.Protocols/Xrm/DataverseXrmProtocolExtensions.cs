@@ -7,6 +7,7 @@ using Dataverse.Emulator.Protocols.Xrm.Requests.Crud;
 using Dataverse.Emulator.Protocols.Xrm.Requests.Execution;
 using Dataverse.Emulator.Protocols.Xrm.Requests.Metadata;
 using Dataverse.Emulator.Protocols.Xrm.Requests.Queries;
+using Dataverse.Emulator.Protocols.Xrm.Tracing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,7 +19,9 @@ public static class DataverseXrmProtocolExtensions
     {
         services.AddHttpContextAccessor();
         services.AddServiceModelServices();
+        services.AddSingleton<DataverseXrmRequestTraceStore>();
         services.AddScoped<DataverseXrmRecordOperations>();
+        services.AddScoped<DataverseXrmRelationshipOperations>();
         services.AddScoped<DataverseXrmMetadataOperations>();
         services.AddScoped<DataverseXrmOrganizationRequestDispatcher>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveCurrentOrganizationXrmRequestHandler>();
@@ -29,10 +32,15 @@ public static class DataverseXrmProtocolExtensions
         services.AddScoped<IXrmOrganizationRequestHandler, UpdateXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, DeleteXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveMultipleXrmRequestHandler>();
+        services.AddScoped<IXrmOrganizationRequestHandler, RetrieveVersionXrmRequestHandler>();
+        services.AddScoped<IXrmOrganizationRequestHandler, RetrieveProvisionedLanguagesXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, ExecuteMultipleXrmRequestHandler>();
+        services.AddScoped<IXrmOrganizationRequestHandler, AssociateXrmRequestHandler>();
+        services.AddScoped<IXrmOrganizationRequestHandler, DisassociateXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveEntityMetadataXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveAttributeXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveAllEntitiesXrmRequestHandler>();
+        services.AddScoped<IXrmOrganizationRequestHandler, RetrieveRelationshipXrmRequestHandler>();
         services.AddScoped<DataverseOrganizationService>();
 
         return services;

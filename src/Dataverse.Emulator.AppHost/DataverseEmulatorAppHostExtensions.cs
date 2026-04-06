@@ -6,6 +6,11 @@ namespace Dataverse.Emulator.AppHost;
 
 public static class DataverseEmulatorAppHostExtensions
 {
+    private const string SeedScenarioEnvironmentVariableName = "DATAVERSE_EMULATOR_SEED_SCENARIO";
+    private const string SnapshotPathEnvironmentVariableName = "DATAVERSE_EMULATOR_SNAPSHOT_PATH";
+    private const string OrganizationVersionEnvironmentVariableName = "DATAVERSE_EMULATOR_ORGANIZATION_VERSION";
+    private const string XrmTraceLimitEnvironmentVariableName = "DATAVERSE_EMULATOR_XRM_TRACE_LIMIT";
+
     public static DataverseEmulatorAppHostResource AddDataverseEmulator(
         this IDistributedApplicationBuilder builder,
         string resourceName = DataverseEmulatorAppHostResource.DefaultResourceName,
@@ -23,6 +28,74 @@ public static class DataverseEmulatorAppHostExtensions
         });
 
         return new DataverseEmulatorAppHostResource(emulator, connectionString);
+    }
+
+    public static IResourceBuilder<TDestination> WithDataverseConnectionString<TDestination>(
+        this IResourceBuilder<TDestination> destination,
+        DataverseEmulatorAppHostResource resource,
+        string environmentVariableName)
+        where TDestination : IResourceWithEnvironment, IResourceWithWaitSupport
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        ArgumentNullException.ThrowIfNull(resource);
+        ArgumentException.ThrowIfNullOrWhiteSpace(environmentVariableName);
+
+        destination.WithEnvironment(environmentVariableName, resource.ConnectionString);
+        destination.WaitFor(resource.Service);
+
+        return destination;
+    }
+
+    public static DataverseEmulatorAppHostResource WithSeedScenario(
+        this DataverseEmulatorAppHostResource resource,
+        string scenarioName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(scenarioName);
+
+        resource.Service.WithEnvironment(
+            SeedScenarioEnvironmentVariableName,
+            scenarioName);
+
+        return resource;
+    }
+
+    public static DataverseEmulatorAppHostResource WithSnapshotFile(
+        this DataverseEmulatorAppHostResource resource,
+        string snapshotPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(snapshotPath);
+
+        resource.Service.WithEnvironment(
+            SnapshotPathEnvironmentVariableName,
+            snapshotPath);
+
+        return resource;
+    }
+
+    public static DataverseEmulatorAppHostResource WithOrganizationVersion(
+        this DataverseEmulatorAppHostResource resource,
+        string organizationVersion)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(organizationVersion);
+
+        resource.Service.WithEnvironment(
+            OrganizationVersionEnvironmentVariableName,
+            organizationVersion);
+
+        return resource;
+    }
+
+    public static DataverseEmulatorAppHostResource WithXrmTraceLimit(
+        this DataverseEmulatorAppHostResource resource,
+        int traceLimit)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(traceLimit);
+
+        resource.Service.WithEnvironment(
+            XrmTraceLimitEnvironmentVariableName,
+            traceLimit.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+        return resource;
     }
 }
 

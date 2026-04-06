@@ -38,13 +38,18 @@ In progress:
 - move transport-agnostic linked-query semantics into the shared core and keep application responsible for orchestration
 - add demand-driven `Execute` coverage for batched request execution
 - add demand-driven `Execute` coverage for `UpsertRequest` on the primary-id path
+- add demand-driven `Execute` coverage for `RetrieveVersionRequest`
+- add demand-driven `Execute` coverage for `RetrieveProvisionedLanguagesRequest`
 - add a first bounded `FetchExpression` slice through the shared query engine
 - converge duplicated single-table and linked-query comparison, sorting, and continuation paging rules into shared domain services
+- add a first bounded lookup-relationship slice with `Associate`, `Disassociate`, and `RetrieveRelationshipRequest` over the seeded metadata path
+- add Xrm request trace capture so real local apps can show which messages the emulator is actually serving or rejecting
 
 Next likely steps:
 
 - add more `Execute` message coverage where real apps actually need it
 - expand QueryExpression and FetchXML support further where real apps need more operators or semantics
+- broaden relationship behavior only when a real local app needs more than the current seeded lookup-association slice
 - continue consolidating shared execution building blocks where query shapes can reuse the same domain semantics practically
 - add more tables only when a target local-dev scenario requires them
 - expand reset, seeding, and snapshot-oriented local workflows beyond the current baseline reset and snapshot endpoints
@@ -57,13 +62,16 @@ In progress:
 - package the emulator as a reusable AppHost resource with a generated connection string
 - keep the AppHost packaging surface public so it can later seed a dedicated Aspire toolkit extension
 - make the emulator easier to compose into local Aspire-based app environments
+- map the generated emulator connection string into a consuming resource's chosen environment variable for project and executable-resource scenarios
 - add snapshot export and import endpoints for moving local in-memory state between runs and environments
+- add public AppHost shaping methods for startup seed scenario, snapshot-backed startup, and organization version configuration
 
 Next likely steps:
 
-- add multiple named seed scenarios plus richer snapshot ergonomics
+- add more named seed scenarios plus richer snapshot ergonomics
 - add durable local persistence options
-- improve environment-shaping features where they materially help local developers
+- add more consumer-oriented AppHost helpers where they materially reduce local setup for real apps
+- keep local diagnostics such as Xrm trace capture configurable through the same AppHost packaging seam
 
 ## Phase 5: Broader Compatibility Exploration
 

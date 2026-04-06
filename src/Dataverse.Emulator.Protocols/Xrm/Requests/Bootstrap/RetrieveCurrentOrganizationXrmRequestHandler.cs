@@ -1,3 +1,4 @@
+using Dataverse.Emulator.Application.Runtime;
 using Dataverse.Emulator.Protocols.Xrm.Execution;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Crm.Sdk.Messages;
@@ -7,7 +8,9 @@ using OrganizationEndpointType = Microsoft.Xrm.Sdk.Organization.EndpointType;
 
 namespace Dataverse.Emulator.Protocols.Xrm.Requests.Bootstrap;
 
-internal sealed class RetrieveCurrentOrganizationXrmRequestHandler(IHttpContextAccessor httpContextAccessor)
+internal sealed class RetrieveCurrentOrganizationXrmRequestHandler(
+    DataverseEmulatorRuntimeSettings runtimeSettings,
+    IHttpContextAccessor httpContextAccessor)
     : DataverseXrmRequestHandlerBase(httpContextAccessor), IXrmOrganizationRequestHandler
 {
     public string RequestName => "RetrieveCurrentOrganization";
@@ -19,7 +22,7 @@ internal sealed class RetrieveCurrentOrganizationXrmRequestHandler(IHttpContextA
         {
             OrganizationId = DataverseXrmConstants.OrganizationId,
             FriendlyName = DataverseXrmConstants.OrganizationFriendlyName,
-            OrganizationVersion = DataverseXrmConstants.OrganizationVersion,
+            OrganizationVersion = runtimeSettings.OrganizationVersion,
             UniqueName = DataverseXrmConstants.OrganizationUniqueName,
             UrlName = DataverseXrmConstants.OrganizationUniqueName,
             State = OrganizationState.Enabled,

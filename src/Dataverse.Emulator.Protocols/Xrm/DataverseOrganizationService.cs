@@ -1,5 +1,6 @@
 using Dataverse.Emulator.Protocols.Xrm.Execution;
 using Dataverse.Emulator.Protocols.Xrm.Operations;
+using Dataverse.Emulator.Protocols.Xrm.Tracing;
 using Dataverse.Emulator.Protocols.Common;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
@@ -10,21 +11,23 @@ namespace Dataverse.Emulator.Protocols.Xrm;
 
 public sealed class DataverseOrganizationService(
     DataverseXrmRecordOperations recordOperations,
+    DataverseXrmRelationshipOperations relationshipOperations,
     DataverseXrmOrganizationRequestDispatcher requestDispatcher,
+    DataverseXrmRequestTraceStore traceStore,
     IHttpContextAccessor httpContextAccessor)
     : IOrganizationServiceSoap
 {
     public Guid Create(Entity entity)
-        => Invoke(ct => recordOperations.CreateAsync(entity, ct));
+        => traceStore.Trace("DirectOperation", "Create", () => Invoke(ct => recordOperations.CreateAsync(entity, ct)));
 
     public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet)
-        => Invoke(ct => recordOperations.RetrieveAsync(entityName, id, columnSet, ct));
+        => traceStore.Trace("DirectOperation", "Retrieve", () => Invoke(ct => recordOperations.RetrieveAsync(entityName, id, columnSet, ct)));
 
     public void Update(Entity entity)
-        => Invoke(ct => recordOperations.UpdateAsync(entity, ct));
+        => traceStore.Trace("DirectOperation", "Update", () => Invoke(ct => recordOperations.UpdateAsync(entity, ct)));
 
     public void Delete(string entityName, Guid id)
-        => Invoke(ct => recordOperations.DeleteAsync(entityName, id, ct));
+        => traceStore.Trace("DirectOperation", "Delete", () => Invoke(ct => recordOperations.DeleteAsync(entityName, id, ct)));
 
     public OrganizationResponse Execute(OrganizationRequest request)
         => requestDispatcher.Dispatch(request);
@@ -34,19 +37,23 @@ public sealed class DataverseOrganizationService(
         Guid entityId,
         Relationship relationship,
         EntityReferenceCollection relatedEntities)
-        => throw DataverseProtocolErrorMapper.ToFaultException(
-            [DataverseXrmErrors.UnsupportedOperation("Associate")]);
+        => traceStore.Trace(
+            "DirectOperation",
+            "Associate",
+            () => Invoke(ct => relationshipOperations.AssociateAsync(entityName, entityId, relationship, relatedEntities, ct)));
 
     public void Disassociate(
         string entityName,
         Guid entityId,
         Relationship relationship,
         EntityReferenceCollection relatedEntities)
-        => throw DataverseProtocolErrorMapper.ToFaultException(
-            [DataverseXrmErrors.UnsupportedOperation("Disassociate")]);
+        => traceStore.Trace(
+            "DirectOperation",
+            "Disassociate",
+            () => Invoke(ct => relationshipOperations.DisassociateAsync(entityName, entityId, relationship, relatedEntities, ct)));
 
     public EntityCollection RetrieveMultiple(QueryBase query)
-        => Invoke(ct => recordOperations.RetrieveMultipleAsync(query, ct));
+        => traceStore.Trace("DirectOperation", "RetrieveMultiple", () => Invoke(ct => recordOperations.RetrieveMultipleAsync(query, ct)));
 
     private T Invoke<T>(Func<CancellationToken, Task<ErrorOr<T>>> operation)
     {

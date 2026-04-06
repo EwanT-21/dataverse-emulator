@@ -12,9 +12,13 @@ internal static class DataverseXrmMetadataMapper
     private const int DefaultLanguageCode = 1033;
     private const int DefaultStringLength = 200;
 
-    public static EntityMetadata ToEntityMetadata(TableDefinition table, EntityFilters filters)
+    public static EntityMetadata ToEntityMetadata(
+        TableDefinition table,
+        EntityFilters filters,
+        IReadOnlyCollection<LookupRelationshipDefinition>? relationships = null)
     {
         var includeAttributes = IncludesAttributes(filters);
+        var includeRelationships = IncludesRelationships(filters);
         var metadata = new EntityMetadata();
         SetProperty(metadata, nameof(EntityMetadata.MetadataId), CreateDeterministicGuid($"table:{table.LogicalName}"));
         SetProperty(metadata, nameof(EntityMetadata.LogicalName), table.LogicalName);
@@ -64,8 +68,24 @@ internal static class DataverseXrmMetadataMapper
             includeAttributes
                 ? table.Columns.Select(column => ToAttributeMetadata(table, column)).ToArray()
                 : Array.Empty<AttributeMetadata>());
-        SetProperty(metadata, nameof(EntityMetadata.OneToManyRelationships), Array.Empty<OneToManyRelationshipMetadata>());
-        SetProperty(metadata, nameof(EntityMetadata.ManyToOneRelationships), Array.Empty<OneToManyRelationshipMetadata>());
+        SetProperty(
+            metadata,
+            nameof(EntityMetadata.OneToManyRelationships),
+            includeRelationships
+                ? (relationships ?? Array.Empty<LookupRelationshipDefinition>())
+                .Where(relationship => relationship.ReferencedTableLogicalName.Equals(table.LogicalName, StringComparison.OrdinalIgnoreCase))
+                .Select(ToRelationshipMetadata)
+                .ToArray()
+                : Array.Empty<OneToManyRelationshipMetadata>());
+        SetProperty(
+            metadata,
+            nameof(EntityMetadata.ManyToOneRelationships),
+            includeRelationships
+                ? (relationships ?? Array.Empty<LookupRelationshipDefinition>())
+                .Where(relationship => relationship.ReferencingTableLogicalName.Equals(table.LogicalName, StringComparison.OrdinalIgnoreCase))
+                .Select(ToRelationshipMetadata)
+                .ToArray()
+                : Array.Empty<OneToManyRelationshipMetadata>());
         SetProperty(metadata, nameof(EntityMetadata.ManyToManyRelationships), Array.Empty<ManyToManyRelationshipMetadata>());
         SetProperty(metadata, nameof(EntityMetadata.Privileges), Array.Empty<SecurityPrivilegeMetadata>());
         SetProperty(metadata, nameof(EntityMetadata.Keys), Array.Empty<EntityKeyMetadata>());
@@ -115,6 +135,27 @@ internal static class DataverseXrmMetadataMapper
 
     public static Guid CreateColumnMetadataId(string tableLogicalName, string columnLogicalName)
         => CreateDeterministicGuid($"table:{tableLogicalName}:column:{columnLogicalName}");
+
+    public static Guid CreateRelationshipMetadataId(string schemaName)
+        => CreateDeterministicGuid($"relationship:{schemaName}");
+
+    public static OneToManyRelationshipMetadata ToRelationshipMetadata(
+        LookupRelationshipDefinition relationship)
+    {
+        var metadata = new OneToManyRelationshipMetadata();
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.MetadataId), CreateRelationshipMetadataId(relationship.SchemaName));
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.SchemaName), relationship.SchemaName);
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.ReferencedEntity), relationship.ReferencedTableLogicalName);
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.ReferencedAttribute), relationship.ReferencedAttributeLogicalName);
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.ReferencingEntity), relationship.ReferencingTableLogicalName);
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.ReferencingAttribute), relationship.ReferencingAttributeLogicalName);
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.IsCustomRelationship), false);
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.IsManaged), false);
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.IsHierarchical), false);
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.AssociatedMenuConfiguration), new AssociatedMenuConfiguration());
+        SetProperty(metadata, nameof(OneToManyRelationshipMetadata.CascadeConfiguration), new CascadeConfiguration());
+        return metadata;
+    }
 
     private static AttributeMetadata CreateAttributeMetadata(ColumnDefinition column)
         => column.AttributeType.Name switch
@@ -173,6 +214,12 @@ internal static class DataverseXrmMetadataMapper
             || filters == EntityFilters.Attributes
             || filters == (EntityFilters.Entity | EntityFilters.Attributes)
             || filters == (EntityFilters.Default | EntityFilters.Attributes);
+
+    private static bool IncludesRelationships(EntityFilters filters)
+        => filters == EntityFilters.All
+            || filters == EntityFilters.Relationships
+            || filters == (EntityFilters.Entity | EntityFilters.Relationships)
+            || filters == (EntityFilters.Default | EntityFilters.Relationships);
 
     private static Label CreateLabel(string value)
         => new(value, DefaultLanguageCode);

@@ -33,7 +33,8 @@ public sealed class SeedScenarioSnapshotMapper(
                         column.RequiredLevel.Name,
                         column.IsPrimaryId,
                         column.IsPrimaryName,
-                        column.LookupTargetTable))
+                        column.LookupTargetTable,
+                        column.LookupRelationshipName))
                     .ToArray(),
                 table.AlternateKeys
                     .OrderBy(key => key.LogicalName, StringComparer.OrdinalIgnoreCase)
@@ -179,7 +180,8 @@ public sealed class SeedScenarioSnapshotMapper(
                 requiredLevelResult.Value,
                 columnDocument.IsPrimaryId,
                 columnDocument.IsPrimaryName,
-                columnDocument.LookupTargetTable);
+                columnDocument.LookupTargetTable,
+                columnDocument.LookupRelationshipName);
 
             if (columnResult.IsError)
             {

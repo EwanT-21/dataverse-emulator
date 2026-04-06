@@ -81,4 +81,22 @@ internal abstract class DataverseXrmRequestHandlerBase(IHttpContextAccessor http
             _ when request.Parameters.TryGetValue("Query", out var query) => query as QueryBase,
             _ => null
         };
+
+    protected static Relationship? ResolveRelationship(OrganizationRequest request)
+        => request switch
+        {
+            AssociateRequest associateRequest => associateRequest.Relationship,
+            DisassociateRequest disassociateRequest => disassociateRequest.Relationship,
+            _ when request.Parameters.TryGetValue("Relationship", out var relationship) => relationship as Relationship,
+            _ => null
+        };
+
+    protected static EntityReferenceCollection? ResolveRelatedEntities(OrganizationRequest request)
+        => request switch
+        {
+            AssociateRequest associateRequest => associateRequest.RelatedEntities,
+            DisassociateRequest disassociateRequest => disassociateRequest.RelatedEntities,
+            _ when request.Parameters.TryGetValue("RelatedEntities", out var relatedEntities) => relatedEntities as EntityReferenceCollection,
+            _ => null
+        };
 }

@@ -49,9 +49,9 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 
 ### QueryByAttribute Expansion
 
-- `QueryByAttribute` should be treated as a supported local-dev query shape when it can translate cleanly into the shared query model.
-- The preferred implementation is translation through the same shared filtering, sorting, top, and paging semantics already used by `QueryExpression`.
-- `QueryByAttribute` support should cover both direct `RetrieveMultiple(QueryBase)` usage and execute-wrapped request paths.
+- `QueryByAttribute` is now part of the supported local-dev query surface.
+- The implementation translates through the same shared filtering, sorting, top, and paging semantics already used by `QueryExpression`.
+- `QueryByAttribute` support now covers both direct `RetrieveMultiple(QueryBase)` usage and execute-wrapped request paths.
 
 ### QueryExpression Expansion
 
@@ -61,15 +61,16 @@ This spec assumes the project remains Xrm/C# first and Aspire-friendly. It does 
 - Grouped `AND` / `OR` filters and a first common set of condition operators are now part of the implemented slice.
 - A first top-level `LinkEntity` slice is now part of the implemented Xrm surface for the seeded `account` / `contact` relationship and now executes through shared-core linked-query semantics rather than protocol-owned evaluation logic.
 - Inner-join `LinkCriteria` on the current top-level `LinkEntity` slice should remain supported through the shared linked-query model.
-- The next desired linked-query expansion is bounded `LeftOuter` join support for local apps that need root-row preservation without a linked match.
-- The next desired linked-query expansion also includes nested `LinkEntity` translation where it can still converge on shared linked-query semantics.
+- Bounded `LeftOuter` joins are now part of the implemented relational slice for local apps that need root-row preservation without a linked match.
+- Nested `LinkEntity` translation is now part of the implemented slice where it still converges on shared linked-query semantics.
 
 ### FetchXML Expansion
 
 - Add `RetrieveMultiple(FetchExpression)` support only where it can translate into the shared query model cleanly.
 - Keep the first FetchXML slice narrow and table-scoped.
 - Prefer explicit faults for joins, aggregates, aliases, and broader platform behavior the emulator does not yet implement.
-- The next desired FetchXML slice is bounded `link-entity` projection over the same shared linked-query semantics used for `QueryExpression`.
+- A bounded FetchXML `link-entity` projection slice is now part of the implemented surface and reuses the same shared linked-query semantics used for `QueryExpression`.
+- `link-entity` filters and `link-entity` ordering remain explicit future work until a real local app requires them.
 
 ### Metadata-Oriented SDK Reads
 
@@ -121,16 +122,16 @@ Supported and currently covered by green integration tests:
 - metadata-id selectors for `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveRelationship`
 - relationship-aware `RetrieveAllEntities` reads for the seeded `account` / `contact` path
 - direct request-dispatch execution for `RetrieveMultipleRequest` over `QueryExpression` and one-table `FetchExpression`
+- `QueryByAttribute` translation and execution through record operations and the public organization-service surface
 - direct runtime request execution for version, installed-language-pack, and organization-info reads
 - multi-target `Associate` / `Disassociate` behavior on the seeded lookup relationship
 - primary-id-addressed `UpsertRequest` flows where the primary id is supplied as an attribute rather than through `Entity.Id`
 - supported inner `LinkEntity` link-criteria evaluation through the shared linked-query path
+- bounded `LeftOuter` and nested `LinkEntity` support through shared linked-query semantics
+- bounded FetchXML `link-entity` projection through the shared linked-query path
 
 Desired next contracts currently expressed as red integration tests:
 
-- `QueryByAttribute` translation and execution through record operations and the public organization-service surface
-- bounded `LeftOuter` and nested `LinkEntity` support through shared linked-query semantics
-- bounded FetchXML `link-entity` projection through the shared linked-query path
 - `ExecuteTransactionRequest` atomic commit, rollback, and response shaping
 - `RetrieveMetadataChangesRequest` for bounded entity, attribute, and relationship metadata snapshots
 - `ExecuteMultipleRequest` per-item fault capture that stays inside the batch response envelope on supported batched request paths
@@ -141,9 +142,12 @@ Desired next contracts currently expressed as red integration tests:
 - `RetrieveMultiple(QueryExpression)` paging through `PageInfo` is implemented and verified through the real `CrmServiceClient` Aspire harness.
 - `RetrieveMultiple(QueryExpression)` now supports grouped filters and common operators including `NotEqual`, `Null`, `NotNull`, `Like`, `BeginsWith`, `EndsWith`, range comparisons, and `In`.
 - `RetrieveMultiple(QueryExpression)` now supports top-level inner `LinkEntity` joins with aliased linked-column projection for the seeded relational slice.
+- `RetrieveMultiple(QueryByAttribute)` now translates through the shared single-table query path, including ordering, top, and paging behavior.
+- `RetrieveMultiple(QueryExpression)` now supports bounded `LeftOuter` joins and nested `LinkEntity` translation through the shared linked-query path.
 - The current linked-query slice now translates in the Xrm adapter, orchestrates in the application layer, and executes its transport-agnostic semantics through shared domain services.
 - Single-table and linked-query execution now share domain-owned value comparison, sorting, and continuation paging semantics, reducing evaluator drift between Xrm-facing query shapes.
 - `RetrieveMultiple(FetchExpression)` now supports a bounded one-table slice for projection, nested filters, common operators, ordering, and paging through the shared query engine.
+- `RetrieveMultiple(FetchExpression)` now also supports bounded `link-entity` projection over the seeded relational slice through the shared linked-query path.
 - `ExecuteMultipleRequest` is now implemented for successful batching of the request slices the emulator already supports, and is verified through the real `CrmServiceClient` harness; per-item fault shaping is still being tightened through direct integration tests.
 - `UpsertRequest` is now implemented for primary-id addressed create-or-update flows and is verified through the real `CrmServiceClient` harness, while alternate-key upsert continues to fault clearly.
 - `RetrieveVersionRequest` is now implemented and verified through the real `CrmServiceClient` harness.
@@ -155,4 +159,4 @@ Desired next contracts currently expressed as red integration tests:
 - A first bounded lookup-relationship slice is now implemented through `Associate`, `Disassociate`, `AssociateRequest`, `DisassociateRequest`, and `RetrieveRelationshipRequest` for the seeded `contact_customer_accounts` relationship.
 - Multi-target lookup association behavior, direct request-dispatch coverage, runtime-request execution, primary-id-only upsert, and supported inner-join link criteria are now covered through direct integration tests in addition to the hosted harness.
 - Xrm request trace capture is now implemented so local runs can inspect which direct operations and `Execute` requests were served or rejected.
-- The next likely Xrm expansion points are `QueryByAttribute`, bounded outer/nested join semantics, bounded FetchXML joins, `ExecuteTransaction`, `RetrieveMetadataChanges`, and aligning `ExecuteMultiple` batch-fault behavior with SDK expectations, while continuing to deepen shared execution helpers only where they stay transport-agnostic.
+- The next likely Xrm expansion points are `ExecuteTransaction`, `RetrieveMetadataChanges`, aligning `ExecuteMultiple` batch-fault behavior with SDK expectations, and only broadening FetchXML `link-entity` filters or orders when a real local app needs them, while continuing to deepen shared execution helpers only where they stay transport-agnostic.

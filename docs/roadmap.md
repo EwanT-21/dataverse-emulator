@@ -43,6 +43,9 @@ In progress:
 - add demand-driven `Execute` coverage for available, deprovisioned, and language-pack version reads used by realistic local language metadata flows
 - add demand-driven `Execute` coverage for installed language and organization-info reads used by realistic app-hosted startup flows
 - add a first bounded `FetchExpression` slice through the shared query engine
+- add `QueryByAttribute` support by translating it through the shared query model
+- expand QueryExpression support to bounded `LeftOuter` and nested `LinkEntity` semantics where they can still reuse the shared linked-query model
+- expand FetchXML support to bounded `link-entity` semantics through the same shared linked-query path
 - converge duplicated single-table and linked-query comparison, sorting, and continuation paging rules into shared domain services
 - add a first bounded lookup-relationship slice with `Associate`, `Disassociate`, and `RetrieveRelationshipRequest` over the seeded metadata path
 - add Xrm request trace capture so real local apps can show which messages the emulator is actually serving or rejecting
@@ -50,12 +53,10 @@ In progress:
 
 Next likely steps:
 
-- add `QueryByAttribute` support by translating it through the shared query model
 - add `ExecuteTransactionRequest` with application-owned atomic orchestration and rollback semantics
 - add bounded `RetrieveMetadataChangesRequest` support for entity, attribute, and relationship metadata snapshots
 - align `ExecuteMultipleRequest` fault handling with SDK-style per-item batch responses on supported request paths
-- expand QueryExpression support to bounded `LeftOuter` and nested `LinkEntity` semantics where they can still reuse the shared linked-query model
-- expand FetchXML support to bounded `link-entity` semantics through the same shared linked-query path
+- broaden FetchXML `link-entity` filters or ordering only when a real local app needs more than projection and shared join semantics
 - broaden relationship behavior only when a real local app needs more than the current seeded lookup-association slice
 - continue consolidating shared execution building blocks where query shapes can reuse the same domain semantics practically
 - add more tables only when a target local-dev scenario requires them

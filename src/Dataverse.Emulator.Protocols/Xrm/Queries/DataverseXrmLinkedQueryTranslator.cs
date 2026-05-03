@@ -38,13 +38,16 @@ internal static class DataverseXrmLinkedQueryTranslator
         var rawLinkDefinitions = new List<RawLinkedQueryJoin>();
         foreach (var linkEntity in queryExpression.LinkEntities)
         {
-            var linkResult = BuildJoin(linkEntity, queryExpression.EntityName);
+            var linkResult = BuildJoins(
+                linkEntity,
+                queryExpression.EntityName,
+                queryExpression.EntityName,
+                queryExpression.EntityName,
+                rawLinkDefinitions);
             if (linkResult.IsError)
             {
                 return linkResult.Errors;
             }
-
-            rawLinkDefinitions.Add(linkResult.Value);
         }
 
         var scopeRegistryResult = BuildScopeRegistry(queryExpression.EntityName, rawLinkDefinitions);
@@ -86,13 +89,15 @@ internal static class DataverseXrmLinkedQueryTranslator
             }
 
             joins.Add(new LinkedRecordJoin(
-                rawLinkDefinition.TableLogicalName,
-                rawLinkDefinition.Alias,
-                rawLinkDefinition.FromAttributeName,
-                rawLinkDefinition.ToAttributeName,
-                rawLinkDefinition.SelectedColumns,
-                rawLinkDefinition.ReturnAllColumns,
-                joinFilterResult.Value));
+                TableLogicalName: rawLinkDefinition.TableLogicalName,
+                Alias: rawLinkDefinition.Alias,
+                FromAttributeName: rawLinkDefinition.FromAttributeName,
+                ToAttributeName: rawLinkDefinition.ToAttributeName,
+                SelectedColumns: rawLinkDefinition.SelectedColumns,
+                ReturnAllColumns: rawLinkDefinition.ReturnAllColumns,
+                Filter: joinFilterResult.Value,
+                ParentScopeName: rawLinkDefinition.ParentScopeName,
+                JoinType: rawLinkDefinition.JoinType));
         }
 
         return new LinkedRecordQuery(
@@ -106,25 +111,57 @@ internal static class DataverseXrmLinkedQueryTranslator
             pageResult.Value.CurrentPageNumber);
     }
 
-    private static ErrorOr<RawLinkedQueryJoin> BuildJoin(
+    private static ErrorOr<Success> BuildJoins(
         LinkEntity linkEntity,
-        string rootEntityName)
+        string rootEntityName,
+        string parentScopeName,
+        string parentTableLogicalName,
+        ICollection<RawLinkedQueryJoin> joins)
     {
-        if (linkEntity.LinkEntities.Count > 0)
+        var joinResult = BuildJoin(linkEntity, rootEntityName, parentScopeName, parentTableLogicalName);
+        if (joinResult.IsError)
         {
-            return DataverseXrmErrors.UnsupportedQueryFeature("Nested LinkEntity");
+            return joinResult.Errors;
         }
 
-        if (linkEntity.JoinOperator != JoinOperator.Inner)
+        joins.Add(joinResult.Value);
+
+        foreach (var childLinkEntity in linkEntity.LinkEntities)
         {
-            return DataverseXrmErrors.UnsupportedQueryFeature(
-                $"Join operator '{linkEntity.JoinOperator}'");
+            var childJoinResult = BuildJoins(
+                childLinkEntity,
+                rootEntityName,
+                joinResult.Value.Alias,
+                joinResult.Value.TableLogicalName,
+                joins);
+            if (childJoinResult.IsError)
+            {
+                return childJoinResult.Errors;
+            }
+        }
+
+        return Result.Success;
+    }
+
+    private static ErrorOr<RawLinkedQueryJoin> BuildJoin(
+        LinkEntity linkEntity,
+        string rootEntityName,
+        string parentScopeName,
+        string parentTableLogicalName)
+    {
+        var joinTypeResult = TranslateJoinType(linkEntity.JoinOperator);
+        if (joinTypeResult.IsError)
+        {
+            return joinTypeResult.Errors;
         }
 
         if (!string.IsNullOrWhiteSpace(linkEntity.LinkFromEntityName)
+            && !linkEntity.LinkFromEntityName.Equals(parentScopeName, StringComparison.OrdinalIgnoreCase)
+            && !linkEntity.LinkFromEntityName.Equals(parentTableLogicalName, StringComparison.OrdinalIgnoreCase)
             && !linkEntity.LinkFromEntityName.Equals(rootEntityName, StringComparison.OrdinalIgnoreCase))
         {
-            return DataverseXrmErrors.UnsupportedQueryFeature("Non-root LinkFromEntityName");
+            return DataverseXrmErrors.UnsupportedQueryFeature(
+                $"LinkFromEntityName '{linkEntity.LinkFromEntityName}'");
         }
 
         if (string.IsNullOrWhiteSpace(linkEntity.LinkFromAttributeName))
@@ -155,13 +192,15 @@ internal static class DataverseXrmLinkedQueryTranslator
             : linkEntity.EntityAlias;
 
         return new RawLinkedQueryJoin(
-            linkEntity.LinkToEntityName,
-            alias,
-            linkEntity.LinkFromAttributeName,
-            linkEntity.LinkToAttributeName,
-            selectedColumnsResult.Value,
-            linkEntity.Columns?.AllColumns == true,
-            linkEntity.LinkCriteria);
+            TableLogicalName: linkEntity.LinkToEntityName,
+            Alias: alias,
+            ParentScopeName: parentScopeName,
+            FromAttributeName: linkEntity.LinkFromAttributeName,
+            ToAttributeName: linkEntity.LinkToAttributeName,
+            JoinType: joinTypeResult.Value,
+            SelectedColumns: selectedColumnsResult.Value,
+            ReturnAllColumns: linkEntity.Columns?.AllColumns == true,
+            LinkCriteria: linkEntity.LinkCriteria);
     }
 
     private static ErrorOr<IReadOnlyDictionary<string, string>> BuildScopeRegistry(
@@ -365,6 +404,17 @@ internal static class DataverseXrmLinkedQueryTranslator
         };
     }
 
+    private static ErrorOr<LinkedRecordJoinType> TranslateJoinType(JoinOperator joinOperator)
+    {
+        return joinOperator switch
+        {
+            JoinOperator.Inner => LinkedRecordJoinType.Inner,
+            JoinOperator.LeftOuter => LinkedRecordJoinType.LeftOuter,
+            _ => DataverseXrmErrors.UnsupportedQueryFeature(
+                $"Join operator '{joinOperator}'")
+        };
+    }
+
     private static ErrorOr<IReadOnlyList<object?>> TranslateConditionValues(
         ConditionExpression condition,
         QueryConditionOperator conditionOperator)
@@ -433,11 +483,13 @@ internal static class DataverseXrmLinkedQueryTranslator
 internal sealed record RawLinkedQueryJoin(
     string TableLogicalName,
     string Alias,
+    string ParentScopeName,
     string FromAttributeName,
     string ToAttributeName,
+    LinkedRecordJoinType JoinType,
     IReadOnlyList<string> SelectedColumns,
     bool ReturnAllColumns,
-    FilterExpression LinkCriteria);
+    FilterExpression? LinkCriteria);
 
 internal sealed record LinkedQueryPage(
     PageRequest? PageRequest,

@@ -47,6 +47,17 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
     }
 
     [Fact]
+    public async Task CrmServiceClient_QueryByAttribute_RoundTrips()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("query-by-attribute");
+
+        Assert.Equal(1, result.GetProperty("count").GetInt32());
+        Assert.Equal(["Alpha Active"], result.ReadStringArray("names"));
+        Assert.Equal([true], result.ReadBooleanArray("isActiveFlags"));
+    }
+
+    [Fact]
     public async Task CrmServiceClient_Linked_QueryExpression_RoundTrips_Across_Tables()
     {
         await fixture.ResetAsync();
@@ -56,6 +67,18 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Equal(["Alice Alpha", "Aria Alpha"], result.ReadStringArray("names"));
         Assert.Equal(["Alpha Account", "Alpha Account"], result.ReadStringArray("accountNames"));
         Assert.Equal(["A-100", "A-100"], result.ReadStringArray("accountNumbers"));
+    }
+
+    [Fact]
+    public async Task CrmServiceClient_LeftOuter_Linked_QueryExpression_Preserves_Orphans()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("left-outer-linked-query");
+
+        Assert.Equal(2, result.GetProperty("count").GetInt32());
+        Assert.Equal(["Alice Alpha", "Orphaned Contact"], result.ReadStringArray("names"));
+        Assert.Equal("Alpha Account", result.ReadNullableStringArray("parentNames")[0]);
+        Assert.Null(result.ReadNullableStringArray("parentNames")[1]);
     }
 
     [Fact]
@@ -71,6 +94,17 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Equal(1, result.GetProperty("secondPageCount").GetInt32());
         Assert.Equal(["Charlie"], result.ReadStringArray("secondPageNames"));
         Assert.False(result.GetProperty("secondMoreRecords").GetBoolean());
+    }
+
+    [Fact]
+    public async Task CrmServiceClient_FetchXml_LinkEntity_RoundTrips()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("fetchxml-link-entity");
+
+        Assert.Equal(2, result.GetProperty("count").GetInt32());
+        Assert.Equal(["Alice Alpha", "Bianca Bravo"], result.ReadStringArray("names"));
+        Assert.Equal(["Alpha Account", "Bravo Account"], result.ReadStringArray("parentNames"));
     }
 
     [Fact]

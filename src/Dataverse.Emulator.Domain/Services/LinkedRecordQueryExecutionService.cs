@@ -74,31 +74,38 @@ public sealed class LinkedRecordQueryExecutionService
         IReadOnlyList<EntityRecord> linkedRows)
     {
         var joinedContexts = new List<LinkedEntityContext>();
+        var parentScopeName = ResolveParentScopeName(join, rootScopeName);
 
         foreach (var context in contexts)
         {
-            if (!context.RootRecord.Values.TryGetValue(join.FromAttributeName, out var leftValue)
-                || leftValue is null)
+            var matched = false;
+
+            if (TryGetScopedValue(context, rootScopeName, parentScopeName, join.FromAttributeName, out var leftValue)
+                && leftValue is not null)
             {
-                continue;
+                foreach (var linkedRow in linkedRows)
+                {
+                    if (!linkedRow.Values.TryGetValue(join.ToAttributeName, out var rightValue)
+                        || rightValue is null
+                        || !queryValueEvaluationService.AreEqual(leftValue, rightValue))
+                    {
+                        continue;
+                    }
+
+                    var expandedContext = context.WithLinkedRecord(join.Alias, linkedRow);
+                    if (join.Filter is not null && !Matches(expandedContext, rootScopeName, join.Filter))
+                    {
+                        continue;
+                    }
+
+                    joinedContexts.Add(expandedContext);
+                    matched = true;
+                }
             }
 
-            foreach (var linkedRow in linkedRows)
+            if (!matched && join.JoinType == LinkedRecordJoinType.LeftOuter)
             {
-                if (!linkedRow.Values.TryGetValue(join.ToAttributeName, out var rightValue)
-                    || rightValue is null
-                    || !queryValueEvaluationService.AreEqual(leftValue, rightValue))
-                {
-                    continue;
-                }
-
-                var expandedContext = context.WithLinkedRecord(join.Alias, linkedRow);
-                if (join.Filter is not null && !Matches(expandedContext, rootScopeName, join.Filter))
-                {
-                    continue;
-                }
-
-                joinedContexts.Add(expandedContext);
+                joinedContexts.Add(context);
             }
         }
 
@@ -220,6 +227,13 @@ public sealed class LinkedRecordQueryExecutionService
         value = null;
         return false;
     }
+
+    private static string ResolveParentScopeName(
+        LinkedRecordJoin join,
+        string rootScopeName)
+        => string.IsNullOrWhiteSpace(join.ParentScopeName)
+            ? rootScopeName
+            : join.ParentScopeName;
 
     private sealed class LinkedEntityContext(EntityRecord rootRecord)
     {

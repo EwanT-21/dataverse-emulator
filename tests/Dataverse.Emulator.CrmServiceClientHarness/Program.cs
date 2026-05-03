@@ -34,8 +34,11 @@ internal static class Program
                 "crud" => RunCrud(connectionString),
                 "paged-query" => RunPagedQuery(connectionString),
                 "advanced-query" => RunAdvancedQuery(connectionString),
+                "query-by-attribute" => RunQueryByAttribute(connectionString),
                 "linked-query" => RunLinkedQuery(connectionString),
+                "left-outer-linked-query" => RunLeftOuterLinkedQuery(connectionString),
                 "fetchxml" => RunFetchXmlQuery(connectionString),
+                "fetchxml-link-entity" => RunFetchXmlLinkEntity(connectionString),
                 "execute-multiple" => RunExecuteMultiple(connectionString),
                 "upsert" => RunUpsert(connectionString),
                 "version" => RunVersion(connectionString),
@@ -54,9 +57,9 @@ internal static class Program
                 "create" => RunCreate(connectionString, scenarioArgs),
                 "retrieve" => RunRetrieve(connectionString, scenarioArgs),
                 "unsupported-request" => RunUnsupportedRequest(connectionString),
+                "unsupported-query-expression" => RunUnsupportedQueryExpression(connectionString),
                 "unsupported-installed-language-pack-version" => RunUnsupportedInstalledLanguagePackVersion(connectionString),
-                "unsupported-link-query" => RunUnsupportedLinkQuery(connectionString),
-                "unsupported-fetchxml-link-entity" => RunUnsupportedFetchXmlLinkEntity(connectionString),
+                "unsupported-fetchxml-aggregate" => RunUnsupportedFetchXmlAggregate(connectionString),
                 "unsupported-upsert-alternate-key" => RunUnsupportedUpsertAlternateKey(connectionString),
                 _ => throw new InvalidOperationException("Unknown scenario '" + scenario + "'.")
             };
@@ -266,6 +269,35 @@ internal static class Program
         }
     }
 
+    private static IDictionary<string, object> RunQueryByAttribute(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            CreateAccount(client, "Alpha Active", "A-100", new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), true);
+            CreateAccount(client, "Alpha Inactive", "A-100", new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc), false);
+            CreateAccount(client, "Bravo Active", "B-200", new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc), true);
+
+            var query = new QueryByAttribute("account")
+            {
+                ColumnSet = new ColumnSet("name", "accountnumber", "isactive")
+            };
+            query.Attributes.Add("accountnumber");
+            query.Values.Add("A-100");
+            query.Attributes.Add("isactive");
+            query.Values.Add(true);
+            query.Orders.Add(new OrderExpression("name", OrderType.Ascending));
+
+            var results = client.RetrieveMultiple(query);
+
+            return new Dictionary<string, object>
+            {
+                ["count"] = results.Entities.Count,
+                ["names"] = results.Entities.Select(entity => entity.GetAttributeValue<string>("name")).ToArray(),
+                ["isActiveFlags"] = results.Entities.Select(entity => entity.GetAttributeValue<bool>("isactive")).ToArray()
+            };
+        }
+    }
+
     private static IDictionary<string, object> RunLinkedQuery(string connectionString)
     {
         using (var client = OpenClient(connectionString))
@@ -308,6 +340,42 @@ internal static class Program
                     .Select(entity => entity.GetAttributeValue<AliasedValue>("parentaccount.accountnumber"))
                     .Where(value => value != null)
                     .Select(value => (string)value.Value)
+                    .ToArray()
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunLeftOuterLinkedQuery(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var alphaAccountId = CreateAccount(client, "Alpha Account", "A-100", new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            CreateContact(client, "Alice Alpha", "alice@example.com", alphaAccountId, new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+            CreateContact(client, "Orphaned Contact", "orphan@example.com", null, new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc));
+
+            var query = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet("fullname")
+            };
+            query.Orders.Add(new OrderExpression("fullname", OrderType.Ascending));
+
+            var parentAccountLink = new LinkEntity("contact", "account", "parentcustomerid", "accountid", JoinOperator.LeftOuter)
+            {
+                EntityAlias = "parentaccount",
+                Columns = new ColumnSet("name")
+            };
+            query.LinkEntities.Add(parentAccountLink);
+
+            var results = client.RetrieveMultiple(query);
+
+            return new Dictionary<string, object>
+            {
+                ["count"] = results.Entities.Count,
+                ["names"] = results.Entities.Select(entity => entity.GetAttributeValue<string>("fullname")).ToArray(),
+                ["parentNames"] = results.Entities
+                    .Select(entity => entity.Attributes.Contains("parentaccount.name")
+                        ? (string)entity.GetAttributeValue<AliasedValue>("parentaccount.name").Value
+                        : null)
                     .ToArray()
             };
         }
@@ -358,6 +426,38 @@ internal static class Program
                 ["secondPageCount"] = secondPage.Entities.Count,
                 ["secondPageNames"] = secondPage.Entities.Select(entity => entity.GetAttributeValue<string>("name")).ToArray(),
                 ["secondMoreRecords"] = secondPage.MoreRecords
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunFetchXmlLinkEntity(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var alphaAccountId = CreateAccount(client, "Alpha Account", "A-100", new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var bravoAccountId = CreateAccount(client, "Bravo Account", "B-200", new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc));
+
+            CreateContact(client, "Alice Alpha", "alice@example.com", alphaAccountId, new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc));
+            CreateContact(client, "Bianca Bravo", "bianca@example.com", bravoAccountId, new DateTime(2026, 1, 4, 0, 0, 0, DateTimeKind.Utc));
+
+            var results = client.RetrieveMultiple(new FetchExpression(
+                "<fetch>" +
+                "<entity name='contact'>" +
+                "<attribute name='fullname' />" +
+                "<order attribute='fullname' />" +
+                "<link-entity name='account' from='accountid' to='parentcustomerid' alias='parentaccount'>" +
+                "<attribute name='name' />" +
+                "</link-entity>" +
+                "</entity>" +
+                "</fetch>"));
+
+            return new Dictionary<string, object>
+            {
+                ["count"] = results.Entities.Count,
+                ["names"] = results.Entities.Select(entity => entity.GetAttributeValue<string>("fullname")).ToArray(),
+                ["parentNames"] = results.Entities
+                    .Select(entity => (string)entity.GetAttributeValue<AliasedValue>("parentaccount.name").Value)
+                    .ToArray()
             };
         }
     }
@@ -779,17 +879,17 @@ internal static class Program
         }
     }
 
-    private static IDictionary<string, object> RunUnsupportedLinkQuery(string connectionString)
+    private static IDictionary<string, object> RunUnsupportedQueryExpression(string connectionString)
     {
         using (var client = OpenClient(connectionString))
         {
             try
             {
-                var query = new QueryExpression("contact")
+                var query = new QueryExpression("account")
                 {
-                    ColumnSet = new ColumnSet("fullname")
+                    ColumnSet = new ColumnSet("name"),
+                    Distinct = true
                 };
-                query.LinkEntities.Add(new LinkEntity("contact", "account", "parentcustomerid", "accountid", JoinOperator.LeftOuter));
 
                 client.RetrieveMultiple(query);
 
@@ -810,17 +910,16 @@ internal static class Program
         }
     }
 
-    private static IDictionary<string, object> RunUnsupportedFetchXmlLinkEntity(string connectionString)
+    private static IDictionary<string, object> RunUnsupportedFetchXmlAggregate(string connectionString)
     {
         using (var client = OpenClient(connectionString))
         {
             try
             {
                 client.RetrieveMultiple(new FetchExpression(
-                    "<fetch>" +
+                    "<fetch aggregate='true'>" +
                     "<entity name='account'>" +
-                    "<attribute name='name' />" +
-                    "<link-entity name='account' from='accountid' to='accountid' alias='child' />" +
+                    "<attribute name='name' alias='accountname' groupby='true' />" +
                     "</entity>" +
                     "</fetch>"));
 
@@ -948,10 +1047,16 @@ internal static class Program
         CrmServiceClient client,
         string name,
         string accountNumber,
-        DateTime createdOn)
+        DateTime createdOn,
+        bool? isActive = null)
     {
         var target = CreateAccountEntity(name, accountNumber);
         target["createdon"] = createdOn;
+        if (isActive.HasValue)
+        {
+            target["isactive"] = isActive.Value;
+        }
+
         return client.Create(target);
     }
 

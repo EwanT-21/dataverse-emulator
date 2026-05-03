@@ -13,6 +13,7 @@ public sealed class LinkedRecordQueryValidationService
         LinkedRecordQuery query)
     {
         var errors = new List<Error>();
+        var scopeRegistry = BuildScopeRegistry(rootTable, linkedTablesByAlias);
 
         foreach (var selectedColumn in query.RootSelectedColumns)
         {
@@ -24,9 +25,18 @@ public sealed class LinkedRecordQueryValidationService
 
         foreach (var join in query.Joins)
         {
-            if (!rootTable.HasColumn(join.FromAttributeName))
+            var parentScopeName = ResolveParentScopeName(join, rootTable.LogicalName);
+            if (!scopeRegistry.TryGetValue(parentScopeName, out var parentTable))
             {
-                errors.Add(DomainErrors.UnknownColumn(rootTable.LogicalName, join.FromAttributeName));
+                errors.Add(DomainErrors.Validation(
+                    "Query.Scope.Unknown",
+                    $"Linked query scope '{parentScopeName}' does not exist."));
+                continue;
+            }
+
+            if (!parentTable.HasColumn(join.FromAttributeName))
+            {
+                errors.Add(DomainErrors.UnknownColumn(parentTable.LogicalName, join.FromAttributeName));
             }
 
             if (!linkedTablesByAlias.TryGetValue(join.Alias, out var linkedTable))
@@ -51,7 +61,6 @@ public sealed class LinkedRecordQueryValidationService
             }
         }
 
-        var scopeRegistry = BuildScopeRegistry(rootTable, linkedTablesByAlias);
         ValidateFilter(query.Filter, scopeRegistry, errors);
 
         foreach (var join in query.Joins)
@@ -136,4 +145,11 @@ public sealed class LinkedRecordQueryValidationService
             ValidateFilter(childFilter, scopeRegistry, errors);
         }
     }
+
+    private static string ResolveParentScopeName(
+        LinkedRecordJoin join,
+        string rootScopeName)
+        => string.IsNullOrWhiteSpace(join.ParentScopeName)
+            ? rootScopeName
+            : join.ParentScopeName;
 }

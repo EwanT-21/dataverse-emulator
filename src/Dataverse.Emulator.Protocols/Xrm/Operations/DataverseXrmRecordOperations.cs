@@ -172,6 +172,7 @@ public sealed class DataverseXrmRecordOperations(
         return query switch
         {
             QueryExpression queryExpression => await RetrieveMultipleQueryExpressionAsync(queryExpression, cancellationToken),
+            QueryByAttribute queryByAttribute => await RetrieveMultipleQueryByAttributeAsync(queryByAttribute, cancellationToken),
             FetchExpression fetchExpression => await RetrieveMultipleFetchExpressionAsync(fetchExpression, cancellationToken),
             _ => DataverseXrmErrors.UnsupportedQueryType(query.GetType().Name)
         };
@@ -189,34 +190,7 @@ public sealed class DataverseXrmRecordOperations(
                 return linkedQueryResult.Errors;
             }
 
-            var rootTableResult = await mediator.Send(
-                new GetTableDefinitionQuery(linkedQueryResult.Value.RootTableLogicalName),
-                cancellationToken);
-            if (rootTableResult.IsError)
-            {
-                return rootTableResult.Errors;
-            }
-
-            var rowsResult = await mediator.Send(
-                new ListLinkedRowsQuery(linkedQueryResult.Value),
-                cancellationToken);
-            if (rowsResult.IsError)
-            {
-                return rowsResult.Errors;
-            }
-
-            var linkedTablesResult = await ResolveLinkedTablesByAliasAsync(linkedQueryResult.Value, cancellationToken);
-            if (linkedTablesResult.IsError)
-            {
-                return linkedTablesResult.Errors;
-            }
-
-            return DataverseXrmEntityMapper.ToEntityCollection(
-                rootTableResult.Value,
-                linkedTablesResult.Value,
-                linkedQueryResult.Value,
-                rowsResult.Value,
-                linkedQueryResult.Value.CurrentPageNumber);
+            return await ExecuteLinkedQueryAsync(linkedQueryResult.Value, cancellationToken);
         }
 
         var queryResult = DataverseXrmQueryExpressionTranslator.Translate(queryExpression);
@@ -240,6 +214,31 @@ public sealed class DataverseXrmRecordOperations(
         return await ExecuteRecordQueryAsync(tableResult.Value, queryResult.Value, currentPageNumber, cancellationToken);
     }
 
+    private async Task<ErrorOr<EntityCollection>> RetrieveMultipleQueryByAttributeAsync(
+        QueryByAttribute queryByAttribute,
+        CancellationToken cancellationToken)
+    {
+        var queryResult = DataverseXrmQueryByAttributeTranslator.Translate(queryByAttribute);
+        if (queryResult.IsError)
+        {
+            return queryResult.Errors;
+        }
+
+        var tableResult = await mediator.Send(
+            new GetTableDefinitionQuery(queryResult.Value.TableLogicalName),
+            cancellationToken);
+        if (tableResult.IsError)
+        {
+            return tableResult.Errors;
+        }
+
+        var currentPageNumber = queryByAttribute.PageInfo?.PageNumber > 1
+            ? queryByAttribute.PageInfo.PageNumber
+            : 1;
+
+        return await ExecuteRecordQueryAsync(tableResult.Value, queryResult.Value, currentPageNumber, cancellationToken);
+    }
+
     private async Task<ErrorOr<EntityCollection>> RetrieveMultipleFetchExpressionAsync(
         FetchExpression fetchExpression,
         CancellationToken cancellationToken)
@@ -258,6 +257,23 @@ public sealed class DataverseXrmRecordOperations(
             return tableResult.Errors;
         }
 
+        var hasLinkEntityResult = DataverseXrmFetchExpressionTranslator.ContainsLinkEntity(fetchExpression);
+        if (hasLinkEntityResult.IsError)
+        {
+            return hasLinkEntityResult.Errors;
+        }
+
+        if (hasLinkEntityResult.Value)
+        {
+            var linkedTranslationResult = DataverseXrmFetchExpressionTranslator.TranslateLinked(fetchExpression, tableResult.Value);
+            if (linkedTranslationResult.IsError)
+            {
+                return linkedTranslationResult.Errors;
+            }
+
+            return await ExecuteLinkedQueryAsync(linkedTranslationResult.Value.Query, cancellationToken);
+        }
+
         var translationResult = DataverseXrmFetchExpressionTranslator.Translate(fetchExpression, tableResult.Value);
         if (translationResult.IsError)
         {
@@ -269,6 +285,40 @@ public sealed class DataverseXrmRecordOperations(
             translationResult.Value.Query,
             translationResult.Value.CurrentPageNumber,
             cancellationToken);
+    }
+
+    private async Task<ErrorOr<EntityCollection>> ExecuteLinkedQueryAsync(
+        LinkedRecordQuery query,
+        CancellationToken cancellationToken)
+    {
+        var rootTableResult = await mediator.Send(
+            new GetTableDefinitionQuery(query.RootTableLogicalName),
+            cancellationToken);
+        if (rootTableResult.IsError)
+        {
+            return rootTableResult.Errors;
+        }
+
+        var rowsResult = await mediator.Send(
+            new ListLinkedRowsQuery(query),
+            cancellationToken);
+        if (rowsResult.IsError)
+        {
+            return rowsResult.Errors;
+        }
+
+        var linkedTablesResult = await ResolveLinkedTablesByAliasAsync(query, cancellationToken);
+        if (linkedTablesResult.IsError)
+        {
+            return linkedTablesResult.Errors;
+        }
+
+        return DataverseXrmEntityMapper.ToEntityCollection(
+            rootTableResult.Value,
+            linkedTablesResult.Value,
+            query,
+            rowsResult.Value,
+            query.CurrentPageNumber);
     }
 
     private async Task<ErrorOr<EntityCollection>> ExecuteRecordQueryAsync(

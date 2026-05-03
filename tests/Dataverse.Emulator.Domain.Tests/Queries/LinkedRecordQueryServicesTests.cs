@@ -153,6 +153,85 @@ public sealed class LinkedRecordQueryServicesTests
         Assert.Equal("Contoso", result.Items[0].LinkedRecords["parent"].Values["name"]);
     }
 
+    [Fact]
+    public void Execute_LeftOuter_Joins_Preserve_Root_Rows_Without_A_Match()
+    {
+        var accountTable = CreateAccountTable();
+        var contactTable = CreateContactTable();
+
+        var accountId = Guid.NewGuid();
+        var matchingAccount = CreateRecord(
+            "account",
+            accountId,
+            new Dictionary<string, object?>
+            {
+                ["accountid"] = accountId,
+                ["name"] = "Contoso"
+            });
+
+        var linkedContact = CreateRecord(
+            "contact",
+            Guid.NewGuid(),
+            new Dictionary<string, object?>
+            {
+                ["contactid"] = Guid.NewGuid(),
+                ["fullname"] = "Ada Lovelace",
+                ["parentcustomerid"] = accountId
+            });
+        var orphanedContact = CreateRecord(
+            "contact",
+            Guid.NewGuid(),
+            new Dictionary<string, object?>
+            {
+                ["contactid"] = Guid.NewGuid(),
+                ["fullname"] = "Grace Hopper"
+            });
+
+        var query = new LinkedRecordQuery(
+            RootTableLogicalName: "contact",
+            RootSelectedColumns: ["fullname"],
+            Joins:
+            [
+                new LinkedRecordJoin(
+                    TableLogicalName: "account",
+                    Alias: "parent",
+                    FromAttributeName: "parentcustomerid",
+                    ToAttributeName: "accountid",
+                    SelectedColumns: ["name"],
+                    ReturnAllColumns: false,
+                    Filter: null,
+                    JoinType: LinkedRecordJoinType.LeftOuter)
+            ],
+            Filter: null,
+            Sorts:
+            [
+                new LinkedRecordSort(
+                    ScopeName: "contact",
+                    ColumnLogicalName: "fullname",
+                    Direction: SortDirection.Ascending)
+            ],
+            Top: null,
+            Page: null,
+            CurrentPageNumber: 1);
+
+        var executor = new LinkedRecordQueryExecutionService();
+
+        var result = executor.Execute(
+            query,
+            contactTable,
+            new Dictionary<string, IReadOnlyList<EntityRecord>>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["contact"] = [linkedContact, orphanedContact],
+                ["account"] = [matchingAccount]
+            });
+
+        Assert.Equal(2, result.Items.Count);
+        Assert.Equal("Ada Lovelace", result.Items[0].RootRecord.Values["fullname"]);
+        Assert.Equal("Contoso", result.Items[0].LinkedRecords["parent"].Values["name"]);
+        Assert.Equal("Grace Hopper", result.Items[1].RootRecord.Values["fullname"]);
+        Assert.Empty(result.Items[1].LinkedRecords);
+    }
+
     private static TableDefinition CreateAccountTable()
     {
         var accountId = ColumnDefinition.Create(

@@ -9,20 +9,20 @@ public sealed class CrmServiceClientUnsupportedAspireTests(DataverseEmulatorFixt
     public async Task Unsupported_QueryExpression_Features_Surface_As_SdkFaults()
     {
         await fixture.ResetAsync();
-        var result = await fixture.RunCrmHarnessAsync("unsupported-link-query");
+        var result = await fixture.RunCrmHarnessAsync("unsupported-query-expression");
 
         Assert.True(result.GetProperty("faulted").GetBoolean());
-        Assert.Contains("Join operator", result.GetProperty("message").GetString(), StringComparison.Ordinal);
+        Assert.Contains("Distinct", result.GetProperty("message").GetString(), StringComparison.Ordinal);
     }
 
     [Fact]
     public async Task Unsupported_FetchXml_Features_Surface_As_SdkFaults()
     {
         await fixture.ResetAsync();
-        var result = await fixture.RunCrmHarnessAsync("unsupported-fetchxml-link-entity");
+        var result = await fixture.RunCrmHarnessAsync("unsupported-fetchxml-aggregate");
 
         Assert.True(result.GetProperty("faulted").GetBoolean());
-        Assert.Contains("link-entity", result.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("aggregate", result.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

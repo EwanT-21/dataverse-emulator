@@ -42,6 +42,7 @@ The repository now implements a real first compatibility slice:
   - `UpsertRequest` for primary-id addressed upsert
   - `RetrieveVersionRequest`
   - `RetrieveMultiple(QueryExpression)`
+  - `RetrieveMultiple(QueryByAttribute)`
   - `RetrieveMultiple(FetchExpression)`
 - Supported QueryExpression breadth:
   - rooted queries over `account` and `contact`
@@ -57,10 +58,11 @@ The repository now implements a real first compatibility slice:
   - `OrderExpression`
   - `TopCount`
   - `PageInfo` paging
-  - top-level `LinkEntity` inner joins across the seeded tables
+  - inner and `LeftOuter` `LinkEntity` joins across the seeded tables
+  - nested `LinkEntity` translation and execution through the shared linked-query path
   - aliased linked-column projection in `RetrieveMultiple`
 - Supported FetchXML breadth:
-  - one-table queries over the seeded tables
+  - one-table queries over the seeded tables plus bounded `link-entity` projection across the seeded relational slice
   - `<attribute>` projection and `<all-attributes />`
   - nested `<filter type='and|or'>`
   - `eq`, `ne`, `null`, `not-null`, `like`, `begins-with`, `ends-with`
@@ -108,16 +110,16 @@ The emulator is intentionally narrow right now:
   - `default-seed`
   - `empty`
 - QueryExpression support limited to:
-  - top-level `LinkEntity` inner joins only
-  - no nested `LinkEntity`
-  - no left outer joins
+  - the current seeded `account` / `contact` relationship slice
+  - nested `LinkEntity` semantics only where they still converge on the shared linked-query model
   - no aggregates or `Distinct`
   - no total-count paging
 - FetchXML support limited to:
-  - one-table queries only
-  - no `link-entity`
+  - root-entity filtering, ordering, and paging
+  - bounded `link-entity` projection over the seeded relational slice
+  - no `link-entity` filters or `link-entity` orders
   - no aggregates or `distinct`
-  - no aliases
+  - no attribute aliases
   - no total-count paging
 - Metadata reads limited to the current seeded table slice
 - Relationship support limited to direct lookup association and metadata for the seeded relationship slice
@@ -127,7 +129,10 @@ Not implemented yet:
 
 - broader multi-table coverage beyond the current seeded relational slice
 - alternate-key upsert
-- FetchXML joins
+- `ExecuteTransactionRequest`
+- bounded `RetrieveMetadataChangesRequest`
+- `ExecuteMultipleRequest` fault shaping that matches SDK per-item response expectations
+- FetchXML `link-entity` filters and `link-entity` ordering
 - broader `Execute` message coverage beyond the current demand-driven slice
 - broader relationship modeling and traversal beyond the current bounded lookup-association slice
 - auth emulation beyond permissive local bootstrap

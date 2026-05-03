@@ -22,6 +22,17 @@ Tests live under `tests/`, split into domain unit tests, integration tests, Aspi
 - `dotnet run --project src/Dataverse.Emulator.Host`: run only the emulator web host.
 - `dotnet format Dataverse.Emulator.slnx`: apply .NET formatting and code style fixes.
 
+## Agent Workflow
+
+- Root `AGENTS.md` is the provider-neutral routing contract for this repository. `CLAUDE.md` adds Claude-specific architecture context only.
+- Before planning or editing any task that is ambiguous or touches multiple ownership areas, read `docs/engineering/AGENT_GUIDE.md`.
+- If work spans more than one ownership area (`Domain`, `Application`, `Protocols`, `Persistence.InMemory`, `Host`, `AppHost`, or `tests`), split it by scope instead of working from repo root unless the change is genuinely trivial.
+- Run each subagent from the narrowest directory that fully contains its work so it loads only the relevant local `AGENTS.md`.
+- Roles are cognitive mode; directories are ownership scope. Pair a small stable role set with the existing coarse directory boundaries instead of adding deeper nested `AGENTS.md` files.
+- The parent agent owns decomposition, cross-layer decisions, final integration, and final verification. Each subagent owns one layer or one test slice and should avoid editing outside that scope unless reassigned.
+- Prefer one focused subagent per ownership boundary rather than one subagent per file. Do not fragment simple single-layer fixes.
+- When implementation and tests naturally live in different areas, treat them as separate scopes. A protocol change plus integration tests usually means one scoped implementation agent and one scoped test agent.
+
 ## Coding Style & Naming Conventions
 
 Use C# with nullable reference types and implicit usings enabled for `net10.0` projects. Keep indentation at four spaces. Prefer sealed classes where extension is not intended, as used throughout the domain and protocol layers. Name request handlers as `<Operation>XrmRequestHandler`, validators as `<CommandOrQuery>Validator`, and tests as `<Subject>Tests`. Keep transport-specific code in `Protocols`; domain logic should stay transport-agnostic.

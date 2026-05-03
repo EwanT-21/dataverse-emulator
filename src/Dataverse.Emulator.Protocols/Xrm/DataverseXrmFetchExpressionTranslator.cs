@@ -52,9 +52,29 @@ internal static class DataverseXrmFetchExpressionTranslator
             : entityName;
     }
 
+    public static ErrorOr<IReadOnlyList<string>> ExtractLinkedEntityLogicalNames(FetchExpression fetchExpression)
+    {
+        var fetchDocumentResult = LoadFetchDocument(fetchExpression);
+        if (fetchDocumentResult.IsError)
+        {
+            return fetchDocumentResult.Errors;
+        }
+
+        var entityResult = ResolveEntityElement(fetchDocumentResult.Value);
+        if (entityResult.IsError)
+        {
+            return entityResult.Errors;
+        }
+
+        var names = new List<string>();
+        CollectLinkEntityNames(entityResult.Value, names);
+        return names.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+    }
+
     public static ErrorOr<DataverseTranslatedLinkedFetchQuery> TranslateLinked(
         FetchExpression fetchExpression,
-        TableDefinition table)
+        TableDefinition table,
+        IReadOnlyDictionary<string, TableDefinition> linkedTables)
     {
         var fetchDocumentResult = LoadFetchDocument(fetchExpression);
         if (fetchDocumentResult.IsError)
@@ -135,33 +155,38 @@ internal static class DataverseXrmFetchExpressionTranslator
                 linkEntityElement,
                 entityNameResult.Value,
                 entityNameResult.Value,
-                rawJoins);
+                rawJoins,
+                linkedTables);
             if (joinResult.IsError)
             {
                 return joinResult.Errors;
             }
         }
 
-        var joins = rawJoins
-            .Select(join => new LinkedRecordJoin(
+        var linkedSorts = new List<LinkedRecordSort>();
+        var joinsList = new List<LinkedRecordJoin>(rawJoins.Count);
+        foreach (var join in rawJoins)
+        {
+            joinsList.Add(new LinkedRecordJoin(
                 TableLogicalName: join.TableLogicalName,
                 Alias: join.Alias,
                 FromAttributeName: join.FromAttributeName,
                 ToAttributeName: join.ToAttributeName,
                 SelectedColumns: join.SelectedColumns,
                 ReturnAllColumns: join.ReturnAllColumns,
-                Filter: null,
+                Filter: ToLinkedFilter(join.Filter, join.Alias),
                 ParentScopeName: join.ParentScopeName,
-                JoinType: join.JoinType))
-            .ToArray();
+                JoinType: join.JoinType));
+            linkedSorts.AddRange(ToLinkedSorts(join.Orders, join.Alias));
+        }
 
         return new DataverseTranslatedLinkedFetchQuery(
             new LinkedRecordQuery(
                 entityNameResult.Value,
                 selectedColumnsResult.Value,
-                joins,
+                joinsList.ToArray(),
                 ToLinkedFilter(filterResult.Value, entityNameResult.Value),
-                ToLinkedSorts(ordersResult.Value, entityNameResult.Value),
+                ToLinkedSorts(ordersResult.Value, entityNameResult.Value).Concat(linkedSorts).ToArray(),
                 topResult.Value,
                 pageResult.Value.PageRequest,
                 pageResult.Value.CurrentPageNumber),
@@ -761,9 +786,10 @@ internal static class DataverseXrmFetchExpressionTranslator
         XElement linkEntityElement,
         string parentScopeName,
         string parentTableLogicalName,
-        ICollection<RawLinkedFetchJoin> joins)
+        ICollection<RawLinkedFetchJoin> joins,
+        IReadOnlyDictionary<string, TableDefinition> linkedTables)
     {
-        var joinResult = BuildLinkedJoin(linkEntityElement, parentScopeName, parentTableLogicalName);
+        var joinResult = BuildLinkedJoin(linkEntityElement, parentScopeName, parentTableLogicalName, linkedTables);
         if (joinResult.IsError)
         {
             return joinResult.Errors;
@@ -778,7 +804,8 @@ internal static class DataverseXrmFetchExpressionTranslator
                 childLinkEntityElement,
                 joinResult.Value.Alias,
                 joinResult.Value.TableLogicalName,
-                joins);
+                joins,
+                linkedTables);
             if (childJoinResult.IsError)
             {
                 return childJoinResult.Errors;
@@ -791,18 +818,9 @@ internal static class DataverseXrmFetchExpressionTranslator
     private static ErrorOr<RawLinkedFetchJoin> BuildLinkedJoin(
         XElement linkEntityElement,
         string parentScopeName,
-        string parentTableLogicalName)
+        string parentTableLogicalName,
+        IReadOnlyDictionary<string, TableDefinition> linkedTables)
     {
-        if (linkEntityElement.Elements().Any(element => element.Name.LocalName.Equals("filter", StringComparison.OrdinalIgnoreCase)))
-        {
-            return DataverseXrmErrors.UnsupportedFetchXmlFeature("link-entity filter");
-        }
-
-        if (linkEntityElement.Elements().Any(element => element.Name.LocalName.Equals("order", StringComparison.OrdinalIgnoreCase)))
-        {
-            return DataverseXrmErrors.UnsupportedFetchXmlFeature("link-entity order");
-        }
-
         var tableLogicalName = linkEntityElement.Attribute("name")?.Value;
         if (string.IsNullOrWhiteSpace(tableLogicalName))
         {
@@ -849,6 +867,23 @@ internal static class DataverseXrmFetchExpressionTranslator
             return DataverseXrmErrors.UnsupportedFetchXmlFeature("link-entity entityname");
         }
 
+        if (!linkedTables.TryGetValue(tableLogicalName, out var linkedTable))
+        {
+            return DataverseXrmErrors.InvalidFetchXml($"No table definition was provided for link-entity '{tableLogicalName}'.");
+        }
+
+        var filterResult = TranslateFilters(linkEntityElement, linkedTable);
+        if (filterResult.IsError)
+        {
+            return filterResult.Errors;
+        }
+
+        var ordersResult = TranslateOrders(linkEntityElement);
+        if (ordersResult.IsError)
+        {
+            return ordersResult.Errors;
+        }
+
         return new RawLinkedFetchJoin(
             TableLogicalName: tableLogicalName,
             Alias: alias,
@@ -858,7 +893,9 @@ internal static class DataverseXrmFetchExpressionTranslator
             ToAttributeName: toAttributeName,
             JoinType: joinTypeResult.Value,
             SelectedColumns: selectedColumnsResult.Value,
-            ReturnAllColumns: linkEntityElement.Elements().Any(element => element.Name.LocalName.Equals("all-attributes", StringComparison.OrdinalIgnoreCase)));
+            ReturnAllColumns: linkEntityElement.Elements().Any(element => element.Name.LocalName.Equals("all-attributes", StringComparison.OrdinalIgnoreCase)),
+            Filter: filterResult.Value,
+            Orders: ordersResult.Value);
     }
 
     private static ErrorOr<LinkedRecordJoinType> TranslateFetchJoinType(string? linkType)
@@ -905,6 +942,21 @@ internal static class DataverseXrmFetchExpressionTranslator
         => sorts
             .Select(sort => new LinkedRecordSort(rootScopeName, sort.ColumnLogicalName, sort.Direction))
             .ToArray();
+
+    private static void CollectLinkEntityNames(XElement element, ICollection<string> names)
+    {
+        foreach (var linkEntityElement in element.Elements()
+                     .Where(e => e.Name.LocalName.Equals("link-entity", StringComparison.OrdinalIgnoreCase)))
+        {
+            var name = linkEntityElement.Attribute("name")?.Value;
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                names.Add(name);
+            }
+
+            CollectLinkEntityNames(linkEntityElement, names);
+        }
+    }
 }
 
 internal sealed record DataverseTranslatedFetchQuery(
@@ -928,4 +980,6 @@ internal sealed record RawLinkedFetchJoin(
     string ToAttributeName,
     LinkedRecordJoinType JoinType,
     IReadOnlyList<string> SelectedColumns,
-    bool ReturnAllColumns);
+    bool ReturnAllColumns,
+    QueryFilter? Filter,
+    IReadOnlyList<QuerySort> Orders);

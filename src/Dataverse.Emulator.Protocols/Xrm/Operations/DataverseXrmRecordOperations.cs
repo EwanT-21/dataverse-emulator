@@ -265,7 +265,25 @@ public sealed class DataverseXrmRecordOperations(
 
         if (hasLinkEntityResult.Value)
         {
-            var linkedTranslationResult = DataverseXrmFetchExpressionTranslator.TranslateLinked(fetchExpression, tableResult.Value);
+            var linkedEntityNamesResult = DataverseXrmFetchExpressionTranslator.ExtractLinkedEntityLogicalNames(fetchExpression);
+            if (linkedEntityNamesResult.IsError)
+            {
+                return linkedEntityNamesResult.Errors;
+            }
+
+            var linkedTables = new Dictionary<string, TableDefinition>(StringComparer.OrdinalIgnoreCase);
+            foreach (var linkedEntityName in linkedEntityNamesResult.Value)
+            {
+                var linkedTableResult = await mediator.Send(new GetTableDefinitionQuery(linkedEntityName), cancellationToken);
+                if (linkedTableResult.IsError)
+                {
+                    return linkedTableResult.Errors;
+                }
+
+                linkedTables[linkedEntityName] = linkedTableResult.Value;
+            }
+
+            var linkedTranslationResult = DataverseXrmFetchExpressionTranslator.TranslateLinked(fetchExpression, tableResult.Value, linkedTables);
             if (linkedTranslationResult.IsError)
             {
                 return linkedTranslationResult.Errors;

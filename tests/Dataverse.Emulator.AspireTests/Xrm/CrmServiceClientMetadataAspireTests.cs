@@ -22,6 +22,19 @@ public sealed class CrmServiceClientMetadataAspireTests(DataverseEmulatorFixture
     }
 
     [Fact]
+    public async Task CrmServiceClient_Can_Read_Bounded_Metadata_Changes()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("metadata-changes");
+
+        Assert.Equal(1, result.GetProperty("entityCount").GetInt32());
+        Assert.Equal(["account"], result.ReadStringArray("entityLogicalNames"));
+        Assert.Equal(["name"], result.ReadStringArray("attributeNames"));
+        Assert.Equal(["contact_customer_accounts"], result.ReadStringArray("relationshipNames"));
+        Assert.True(result.GetProperty("serverVersionStampPresent").GetBoolean());
+    }
+
+    [Fact]
     public async Task CrmServiceClient_Can_Associate_And_Disassociate_Seeded_Lookup_Relationship()
     {
         await fixture.ResetAsync();

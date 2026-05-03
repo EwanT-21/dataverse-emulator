@@ -124,6 +124,13 @@ Supported query breadth:
 - clear captured Xrm request traces:
   - `DELETE /_emulator/v1/traces/xrm`
 
+### Optional Compatibility Telemetry
+
+- If `DATAVERSE_EMULATOR_TELEMETRY_ENDPOINT` is configured, the host can emit sanitized unsupported-capability telemetry.
+- Events are intentionally narrow: protocol, source, emulator error code, capability kind, capability key, timestamp, emulator version, and runtime version.
+- Request payloads, record data, entity IDs, connection strings, raw trace messages, and raw custom request names are not sent.
+- Set `DATAVERSE_EMULATOR_TELEMETRY_ENABLED=false` to disable delivery explicitly.
+
 ## Intentional Limits
 
 The emulator is intentionally narrow in the current phase:
@@ -133,7 +140,7 @@ The emulator is intentionally narrow in the current phase:
 - `QueryExpression` does not implement aggregates, `Distinct`, or total-count paging
 - `FetchExpression` does not implement aggregates, `distinct`, attribute aliases, or `link-entity` filters and ordering
 - alternate-key upsert is explicitly unsupported
-- broader `RetrieveMetadataChanges` selector and nested criteria semantics are explicitly unsupported
+- broader `RetrieveMetadataChanges` selectors, metadata properties, and condition operators beyond the current bounded startup-oriented slice are explicitly unsupported
 - unsupported features are expected to fault clearly rather than degrade silently
 
 ## Architecture At A Glance
@@ -213,6 +220,13 @@ Snapshot-backed startup:
 ```csharp
 var dataverse = builder.AddDataverseEmulator()
     .WithSnapshotFile(@"C:\snapshots\baseline.json");
+```
+
+Telemetry configuration:
+
+```csharp
+var dataverse = builder.AddDataverseEmulator()
+    .WithCompatibilityTelemetryEndpoint("https://telemetry.example.test/v1/events");
 ```
 
 Legacy executable resource wiring:

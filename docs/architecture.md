@@ -247,6 +247,7 @@ Owns local orchestration:
 - generated connection-string resource shaping for consuming Aspire apps
 - public helpers for binding that connection string into a consumer's chosen environment variable
 - public resource-shaping methods for startup baseline and organization-version configuration
+- optional outbound compatibility-telemetry shaping for sanitized unsupported-capability events
 - future companion resources or supporting services
 
 ## Current Implemented Slice

@@ -16,7 +16,7 @@ Web host: composition root, health/admin endpoints, protocol registration, start
 
 - Composition root only — register services, then delegate. No emulator semantics live here.
 - Hosted services run startup work: `DefaultSeedHostedService` applies the configured baseline before requests are served.
-- Configuration via `DataverseEmulatorHostEnvironmentVariables` (seed scenario, snapshot path, version, trace limits).
+- Configuration via `DataverseEmulatorHostEnvironmentVariables` (seed scenario, snapshot path, version, trace limits, compatibility telemetry).
 - Admin endpoints compose application-owned services (seeding, snapshotting, trace store) — they do not implement the behavior.
 
 ## Drift signals

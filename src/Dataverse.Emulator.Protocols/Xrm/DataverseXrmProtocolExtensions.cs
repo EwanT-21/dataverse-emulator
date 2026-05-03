@@ -1,5 +1,6 @@
 using CoreWCF;
 using CoreWCF.Configuration;
+using Dataverse.Emulator.Protocols.Common.Telemetry;
 using Dataverse.Emulator.Protocols.Xrm.Execution;
 using Dataverse.Emulator.Protocols.Xrm.Operations;
 using Dataverse.Emulator.Protocols.Xrm.Requests.Bootstrap;
@@ -31,9 +32,11 @@ public static class DataverseXrmProtocolExtensions
             DataverseXrmCompatibilitySettings.DefaultOrganizationTypeName,
             DataverseXrmCompatibilitySettings.DefaultSolutionUniqueNames.ToArray()));
         services.TryAddSingleton(new DataverseXrmTraceOptions(DataverseXrmTraceOptions.DefaultTraceLimit));
+        services.TryAddSingleton<IDataverseCompatibilityTelemetry, NoOpDataverseCompatibilityTelemetry>();
         services.AddHttpContextAccessor();
         services.AddServiceModelServices();
         services.AddSingleton<DataverseXrmCompatibilityProfileService>();
+        services.AddSingleton<DataverseXrmCompatibilityTelemetryClassifier>();
         services.AddSingleton<DataverseXrmRequestTraceStore>();
         services.AddScoped<DataverseXrmRecordOperations>();
         services.AddScoped<DataverseXrmRelationshipOperations>();

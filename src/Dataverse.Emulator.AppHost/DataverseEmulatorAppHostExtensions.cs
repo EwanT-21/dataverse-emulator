@@ -10,6 +10,8 @@ public static class DataverseEmulatorAppHostExtensions
     private const string SnapshotPathEnvironmentVariableName = "DATAVERSE_EMULATOR_SNAPSHOT_PATH";
     private const string OrganizationVersionEnvironmentVariableName = "DATAVERSE_EMULATOR_ORGANIZATION_VERSION";
     private const string XrmTraceLimitEnvironmentVariableName = "DATAVERSE_EMULATOR_XRM_TRACE_LIMIT";
+    private const string TelemetryEnabledEnvironmentVariableName = "DATAVERSE_EMULATOR_TELEMETRY_ENABLED";
+    private const string TelemetryEndpointEnvironmentVariableName = "DATAVERSE_EMULATOR_TELEMETRY_ENDPOINT";
 
     public static DataverseEmulatorAppHostResource AddDataverseEmulator(
         this IDistributedApplicationBuilder builder,
@@ -94,6 +96,33 @@ public static class DataverseEmulatorAppHostExtensions
         resource.Service.WithEnvironment(
             XrmTraceLimitEnvironmentVariableName,
             traceLimit.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+        return resource;
+    }
+
+    public static DataverseEmulatorAppHostResource WithCompatibilityTelemetryEndpoint(
+        this DataverseEmulatorAppHostResource resource,
+        string endpoint)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(endpoint);
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out _))
+        {
+            throw new ArgumentException("Compatibility telemetry endpoint must be an absolute URI.", nameof(endpoint));
+        }
+
+        resource.Service.WithEnvironment(
+            TelemetryEndpointEnvironmentVariableName,
+            endpoint);
+
+        return resource;
+    }
+
+    public static DataverseEmulatorAppHostResource WithoutCompatibilityTelemetry(
+        this DataverseEmulatorAppHostResource resource)
+    {
+        resource.Service.WithEnvironment(
+            TelemetryEnabledEnvironmentVariableName,
+            bool.FalseString.ToLowerInvariant());
 
         return resource;
     }

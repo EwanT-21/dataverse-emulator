@@ -9,6 +9,7 @@ using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Metadata.Query;
 using Microsoft.Xrm.Sdk.Query;
 using System.Collections;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -28,16 +29,6 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
         if (request.Query is null)
         {
             return DataverseXrmErrors.ParameterRequired("Query");
-        }
-
-        if (!IsEmptyFilter(request.Query.AttributeQuery?.Criteria))
-        {
-            return DataverseXrmErrors.UnsupportedOperation("RetrieveMetadataChanges AttributeQuery.Criteria");
-        }
-
-        if (!IsEmptyFilter(request.Query.RelationshipQuery?.Criteria))
-        {
-            return DataverseXrmErrors.UnsupportedOperation("RetrieveMetadataChanges RelationshipQuery.Criteria");
         }
 
         var tables = await mediator.Send(new ListTableDefinitionsQuery(), cancellationToken);
@@ -66,10 +57,31 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
         var entityMetadata = new EntityMetadataCollection();
         foreach (var table in filteredTables)
         {
-            entityMetadata.Add(DataverseXrmMetadataMapper.ToEntityMetadata(
+            var metadata = DataverseXrmMetadataMapper.ToEntityMetadata(
                 table,
                 filters,
-                relationshipsResult.Value));
+                relationshipsResult.Value);
+
+            var attributeFilterResult = ApplyAttributeQuery(
+                table,
+                metadata,
+                request.Query.AttributeQuery?.Criteria);
+            if (attributeFilterResult.IsError)
+            {
+                return attributeFilterResult.Errors;
+            }
+
+            var relationshipFilterResult = ApplyRelationshipQuery(
+                table,
+                metadata,
+                relationshipsResult.Value,
+                request.Query.RelationshipQuery?.Criteria);
+            if (relationshipFilterResult.IsError)
+            {
+                return relationshipFilterResult.Errors;
+            }
+
+            entityMetadata.Add(metadata);
         }
 
         return new RetrieveMetadataChangesResult(
@@ -302,9 +314,101 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
             || ((filter.Conditions is null || filter.Conditions.Count == 0)
                 && (filter.Filters is null || filter.Filters.Count == 0));
 
+    private static ErrorOr<Success> ApplyAttributeQuery(
+        TableDefinition table,
+        EntityMetadata metadata,
+        MetadataFilterExpression? criteria)
+    {
+        if (metadata.Attributes is null || metadata.Attributes.Length == 0 || IsEmptyFilter(criteria))
+        {
+            return Result.Success;
+        }
+
+        var filteredAttributes = new List<AttributeMetadata>();
+        foreach (var column in table.Columns)
+        {
+            var matchesResult = MatchesMetadataQuery(
+                (table, column),
+                criteria,
+                ResolveColumnMetadataPropertyValue);
+            if (matchesResult.IsError)
+            {
+                return matchesResult.Errors;
+            }
+
+            if (matchesResult.Value)
+            {
+                filteredAttributes.Add(
+                    metadata.Attributes.Single(attribute =>
+                        string.Equals(attribute.LogicalName, column.LogicalName, StringComparison.OrdinalIgnoreCase)));
+            }
+        }
+
+        SetMetadataProperty(metadata, nameof(EntityMetadata.Attributes), filteredAttributes.ToArray());
+        return Result.Success;
+    }
+
+    private static ErrorOr<Success> ApplyRelationshipQuery(
+        TableDefinition table,
+        EntityMetadata metadata,
+        IReadOnlyCollection<LookupRelationshipDefinition> relationships,
+        MetadataFilterExpression? criteria)
+    {
+        if (IsEmptyFilter(criteria))
+        {
+            return Result.Success;
+        }
+
+        var matchingRelationships = new List<LookupRelationshipDefinition>();
+        foreach (var relationship in relationships.Where(candidate =>
+                     candidate.ReferencedTableLogicalName.Equals(table.LogicalName, StringComparison.OrdinalIgnoreCase)
+                     || candidate.ReferencingTableLogicalName.Equals(table.LogicalName, StringComparison.OrdinalIgnoreCase)))
+        {
+            var matchesResult = MatchesMetadataQuery(
+                relationship,
+                criteria,
+                ResolveRelationshipMetadataPropertyValue);
+            if (matchesResult.IsError)
+            {
+                return matchesResult.Errors;
+            }
+
+            if (matchesResult.Value)
+            {
+                matchingRelationships.Add(relationship);
+            }
+        }
+
+        SetMetadataProperty(
+            metadata,
+            nameof(EntityMetadata.OneToManyRelationships),
+            matchingRelationships
+                .Where(relationship => relationship.ReferencedTableLogicalName.Equals(table.LogicalName, StringComparison.OrdinalIgnoreCase))
+                .Select(DataverseXrmMetadataMapper.ToRelationshipMetadata)
+                .ToArray());
+        SetMetadataProperty(
+            metadata,
+            nameof(EntityMetadata.ManyToOneRelationships),
+            matchingRelationships
+                .Where(relationship => relationship.ReferencingTableLogicalName.Equals(table.LogicalName, StringComparison.OrdinalIgnoreCase))
+                .Select(DataverseXrmMetadataMapper.ToRelationshipMetadata)
+                .ToArray());
+
+        return Result.Success;
+    }
+
     private static ErrorOr<bool> MatchesEntityQueryAsync(
         TableDefinition table,
         MetadataFilterExpression? criteria)
+        => MatchesMetadataQuery(
+            table,
+            criteria,
+            ResolveTableMetadataPropertyValue);
+
+    private static ErrorOr<bool> MatchesMetadataQuery<TCandidate>(
+        TCandidate candidate,
+        MetadataFilterExpression? criteria,
+        Func<TCandidate, string?, ErrorOr<object?>> propertyResolver)
     {
         if (criteria is null)
         {
@@ -317,7 +421,7 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
         {
             foreach (var condition in criteria.Conditions.Where(condition => condition is not null))
             {
-                var conditionResult = MatchesEntityCondition(table, condition!);
+                var conditionResult = MatchesMetadataCondition(candidate, condition!, propertyResolver);
                 if (conditionResult.IsError)
                 {
                     return conditionResult.Errors;
@@ -331,7 +435,7 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
         {
             foreach (var nestedFilter in criteria.Filters.Where(filter => filter is not null))
             {
-                var filterResult = MatchesEntityQueryAsync(table, nestedFilter!);
+                var filterResult = MatchesMetadataQuery(candidate, nestedFilter!, propertyResolver);
                 if (filterResult.IsError)
                 {
                     return filterResult.Errors;
@@ -351,16 +455,17 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
             : results.All(match => match);
     }
 
-    private static ErrorOr<bool> MatchesEntityCondition(
-        TableDefinition table,
-        MetadataConditionExpression condition)
+    private static ErrorOr<bool> MatchesMetadataCondition<TCandidate>(
+        TCandidate candidate,
+        MetadataConditionExpression condition,
+        Func<TCandidate, string?, ErrorOr<object?>> propertyResolver)
     {
         if (condition is null)
         {
             return true;
         }
 
-        var propertyValueResult = ResolveTableMetadataPropertyValue(table, condition.PropertyName);
+        var propertyValueResult = propertyResolver(candidate, condition.PropertyName);
         if (propertyValueResult.IsError)
         {
             return propertyValueResult.Errors;
@@ -397,6 +502,55 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
             "MetadataId" => DataverseXrmMetadataMapper.CreateTableMetadataId(table.LogicalName),
             _ => DataverseXrmErrors.UnsupportedOperation(
                 $"RetrieveMetadataChanges metadata property '{propertyName}'")
+        };
+    }
+
+    private static ErrorOr<object?> ResolveColumnMetadataPropertyValue(
+        (TableDefinition Table, ColumnDefinition Column) candidate,
+        string? propertyName)
+    {
+        if (string.IsNullOrWhiteSpace(propertyName))
+        {
+            return DataverseXrmErrors.ParameterRequired("MetadataConditionExpression.PropertyName");
+        }
+
+        var table = candidate.Table;
+        var column = candidate.Column;
+
+        return propertyName switch
+        {
+            "LogicalName" => column.LogicalName,
+            "SchemaName" => ToSchemaName(column.LogicalName),
+            "MetadataId" => DataverseXrmMetadataMapper.CreateColumnMetadataId(table.LogicalName, column.LogicalName),
+            "EntityLogicalName" => table.LogicalName,
+            "AttributeType" => column.AttributeType.Name,
+            "RequiredLevel" => column.RequiredLevel.Name,
+            "IsPrimaryId" => column.IsPrimaryId,
+            "IsPrimaryName" => column.IsPrimaryName,
+            _ => DataverseXrmErrors.UnsupportedOperation(
+                $"RetrieveMetadataChanges attribute metadata property '{propertyName}'")
+        };
+    }
+
+    private static ErrorOr<object?> ResolveRelationshipMetadataPropertyValue(
+        LookupRelationshipDefinition relationship,
+        string? propertyName)
+    {
+        if (string.IsNullOrWhiteSpace(propertyName))
+        {
+            return DataverseXrmErrors.ParameterRequired("MetadataConditionExpression.PropertyName");
+        }
+
+        return propertyName switch
+        {
+            "SchemaName" => relationship.SchemaName,
+            "MetadataId" => DataverseXrmMetadataMapper.CreateRelationshipMetadataId(relationship.SchemaName),
+            "ReferencedEntity" => relationship.ReferencedTableLogicalName,
+            "ReferencedAttribute" => relationship.ReferencedAttributeLogicalName,
+            "ReferencingEntity" => relationship.ReferencingTableLogicalName,
+            "ReferencingAttribute" => relationship.ReferencingAttributeLogicalName,
+            _ => DataverseXrmErrors.UnsupportedOperation(
+                $"RetrieveMetadataChanges relationship metadata property '{propertyName}'")
         };
     }
 
@@ -449,8 +603,42 @@ public sealed class DataverseXrmMetadataOperations(IMediator mediator)
             };
         }
 
+        if (actual is bool actualBoolean)
+        {
+            return expected switch
+            {
+                bool expectedBoolean => actualBoolean == expectedBoolean,
+                string expectedBooleanString when bool.TryParse(expectedBooleanString, out var parsedBoolean) => actualBoolean == parsedBoolean,
+                _ => false
+            };
+        }
+
+        if (actual is int actualInt32)
+        {
+            return expected switch
+            {
+                int expectedInt32 => actualInt32 == expectedInt32,
+                string expectedInt32String when int.TryParse(expectedInt32String, out var parsedInt32) => actualInt32 == parsedInt32,
+                _ => false
+            };
+        }
+
         return actual.Equals(expected);
     }
+
+    private static void SetMetadataProperty(object target, string propertyName, object? value)
+    {
+        var property = target.GetType().GetProperty(
+            propertyName,
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        property?.SetValue(target, value);
+    }
+
+    private static string ToSchemaName(string value)
+        => string.Concat(
+            value.Split(['_', ' '], StringSplitOptions.RemoveEmptyEntries)
+                .Select(segment => char.ToUpperInvariant(segment[0]) + segment[1..]));
 
     private static string CreateServerVersionStamp(
         IReadOnlyCollection<TableDefinition> tables,

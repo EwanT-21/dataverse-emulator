@@ -1,10 +1,14 @@
 using System.Diagnostics;
 using CoreWCF;
+using Dataverse.Emulator.Protocols.Common.Telemetry;
 using Microsoft.Xrm.Sdk;
 
 namespace Dataverse.Emulator.Protocols.Xrm.Tracing;
 
-public sealed class DataverseXrmRequestTraceStore(DataverseXrmTraceOptions traceOptions)
+public sealed class DataverseXrmRequestTraceStore(
+    DataverseXrmTraceOptions traceOptions,
+    DataverseXrmCompatibilityTelemetryClassifier telemetryClassifier,
+    IDataverseCompatibilityTelemetry telemetry)
 {
     private readonly object gate = new();
     private readonly LinkedList<DataverseXrmRequestTraceEntry> entries = [];
@@ -31,6 +35,7 @@ public sealed class DataverseXrmRequestTraceStore(DataverseXrmTraceOptions trace
                 fault.Detail.Message,
                 startedAtUtc,
                 stopwatch.ElapsedMilliseconds);
+            TryRecordCompatibilityTelemetry(source, name, fault.Detail);
             throw;
         }
         catch (Exception ex)
@@ -65,6 +70,25 @@ public sealed class DataverseXrmRequestTraceStore(DataverseXrmTraceOptions trace
         lock (gate)
         {
             entries.Clear();
+        }
+    }
+
+    private void TryRecordCompatibilityTelemetry(
+        string source,
+        string name,
+        OrganizationServiceFault fault)
+    {
+        try
+        {
+            var compatibilityEvent = telemetryClassifier.Classify(source, name, fault);
+            if (compatibilityEvent is not null)
+            {
+                telemetry.Record(compatibilityEvent);
+            }
+        }
+        catch
+        {
+            // Telemetry classification and delivery must never affect emulator behavior.
         }
     }
 

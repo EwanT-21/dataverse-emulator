@@ -8,6 +8,7 @@ using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Metadata.Query;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Tooling.Connector;
 
@@ -53,6 +54,7 @@ internal static class Program
                 "installed-language-packs" => RunInstalledLanguagePacks(connectionString),
                 "organization-info" => RunOrganizationInfo(connectionString),
                 "metadata" => RunMetadata(connectionString),
+                "metadata-changes" => RunMetadataChanges(connectionString),
                 "associate" => RunAssociate(connectionString),
                 "relationship-metadata" => RunRelationshipMetadata(connectionString),
                 "create" => RunCreate(connectionString, scenarioArgs),
@@ -846,6 +848,63 @@ internal static class Program
                     ? attributeMetadata.RequiredLevel.Value.ToString()
                     : string.Empty,
                 ["allEntitiesCount"] = allEntitiesResponse.EntityMetadata.Length
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunMetadataChanges(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var request = new RetrieveMetadataChangesRequest
+            {
+                Query = new EntityQueryExpression
+                {
+                    Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                    {
+                        Conditions =
+                        {
+                            new MetadataConditionExpression("LogicalName", MetadataConditionOperator.Equals, "account")
+                        }
+                    },
+                    Properties = new MetadataPropertiesExpression("LogicalName"),
+                    AttributeQuery = new AttributeQueryExpression
+                    {
+                        Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                        {
+                            Conditions =
+                            {
+                                new MetadataConditionExpression("LogicalName", MetadataConditionOperator.Equals, "name")
+                            }
+                        },
+                        Properties = new MetadataPropertiesExpression("LogicalName", "AttributeType")
+                    },
+                    RelationshipQuery = new RelationshipQueryExpression
+                    {
+                        Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                        {
+                            Conditions =
+                            {
+                                new MetadataConditionExpression("SchemaName", MetadataConditionOperator.Equals, "contact_customer_accounts")
+                            }
+                        },
+                        Properties = new MetadataPropertiesExpression("SchemaName", "ReferencedEntity", "ReferencingEntity")
+                    }
+                },
+                DeletedMetadataFilters = DeletedMetadataFilters.Default
+            };
+
+            var response = (RetrieveMetadataChangesResponse)client.Execute(request);
+            var account = response.EntityMetadata.Cast<EntityMetadata>()
+                .Single(entity => string.Equals(entity.LogicalName, "account", StringComparison.OrdinalIgnoreCase));
+
+            return new Dictionary<string, object>
+            {
+                ["entityCount"] = response.EntityMetadata.Count,
+                ["entityLogicalNames"] = response.EntityMetadata.Cast<EntityMetadata>().Select(entity => entity.LogicalName).ToArray(),
+                ["attributeNames"] = account.Attributes.Select(attribute => attribute.LogicalName).ToArray(),
+                ["relationshipNames"] = account.OneToManyRelationships.Select(relationship => relationship.SchemaName).ToArray(),
+                ["serverVersionStampPresent"] = !string.IsNullOrWhiteSpace(response.ServerVersionStamp)
             };
         }
     }

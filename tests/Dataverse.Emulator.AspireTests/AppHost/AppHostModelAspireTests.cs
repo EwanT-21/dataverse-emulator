@@ -45,4 +45,24 @@ public sealed class AppHostModelAspireTests
         var traceLimit = environment.Single(entry => entry.Key == "DATAVERSE_EMULATOR_XRM_TRACE_LIMIT").Value;
         Assert.Equal("25", traceLimit);
     }
+
+    [Fact]
+    public async Task AppHost_Helper_Can_Set_Compatibility_Telemetry_Environment_Variables()
+    {
+        var builder = DistributedApplication.CreateBuilder();
+        var emulator = builder.AddDataverseEmulator("dataverse-telemetry-model")
+            .WithCompatibilityTelemetryEndpoint("https://telemetry.example.test/v1/events")
+            .WithoutCompatibilityTelemetry();
+
+#pragma warning disable CS0618
+        var environment = await emulator.Service.Resource.GetEnvironmentVariableValuesAsync(DistributedApplicationOperation.Publish);
+#pragma warning restore CS0618
+
+        Assert.Equal(
+            "https://telemetry.example.test/v1/events",
+            environment.Single(entry => entry.Key == "DATAVERSE_EMULATOR_TELEMETRY_ENDPOINT").Value);
+        Assert.Equal(
+            "false",
+            environment.Single(entry => entry.Key == "DATAVERSE_EMULATOR_TELEMETRY_ENABLED").Value);
+    }
 }

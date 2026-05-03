@@ -11,6 +11,8 @@ Aspire orchestration. Default developer entry point (ADR-006). Public API surfac
 | `WithSnapshotFile(path)` | Boot from a snapshot document |
 | `WithOrganizationVersion(version)` | Set the reported organization version |
 | `WithXrmTraceLimit(count)` | Configure Xrm trace ring-buffer size |
+| `WithCompatibilityTelemetryEndpoint(url)` | Configure an outbound endpoint for sanitized unsupported-capability telemetry |
+| `WithoutCompatibilityTelemetry()` | Disable compatibility telemetry explicitly |
 | `WithDataverseConnectionString(envVar)` | Bind the generated `dataverse` connection string into a consumer's environment variable |
 
 ## Rules

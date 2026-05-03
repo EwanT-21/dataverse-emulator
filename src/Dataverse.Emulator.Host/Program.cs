@@ -2,6 +2,7 @@ using Dataverse.Emulator.Application;
 using Dataverse.Emulator.Application.Behaviors;
 using Dataverse.Emulator.Application.Seeding;
 using Dataverse.Emulator.Host;
+using Dataverse.Emulator.Host.Telemetry;
 using Dataverse.Emulator.Persistence.InMemory;
 using Dataverse.Emulator.Protocols.WebApi;
 using Dataverse.Emulator.Protocols.Xrm;
@@ -31,6 +32,9 @@ builder.Services.AddSingleton(_ => new DataverseXrmCompatibilitySettings(
     SolutionUniqueNames: DataverseXrmCompatibilitySettings.DefaultSolutionUniqueNames.ToArray()));
 builder.Services.AddSingleton(_ => new DataverseXrmTraceOptions(
     ResolveXrmTraceLimit(builder.Configuration[DataverseEmulatorHostEnvironmentVariables.XrmTraceLimitEnvironmentVariableName])));
+builder.Services.AddDataverseCompatibilityTelemetry(new DataverseCompatibilityTelemetryOptions(
+    ResolveTelemetryEnabled(builder.Configuration[DataverseEmulatorHostEnvironmentVariables.TelemetryEnabledEnvironmentVariableName]),
+    ResolveTelemetryEndpoint(builder.Configuration[DataverseEmulatorHostEnvironmentVariables.TelemetryEndpointEnvironmentVariableName])));
 builder.Services.AddHostedService<DefaultSeedHostedService>();
 builder.Services.AddMediator(options =>
 {
@@ -125,7 +129,8 @@ app.MapGet(
             "Current table slice: seeded account and contact metadata, shared single-table and linked-query semantics, and matching Web API CRUD on /api/data/v9.2/accounts and /api/data/v9.2/contacts.",
             "Current local workflow support: reset the emulator to a configured or named baseline through /_emulator/v1/reset.",
             "Current local workflow support: export and import snapshot documents through /_emulator/v1/snapshot.",
-            "Current local workflow support: inspect and clear captured Xrm request traces through /_emulator/v1/traces/xrm."
+            "Current local workflow support: inspect and clear captured Xrm request traces through /_emulator/v1/traces/xrm.",
+            "Optional compatibility telemetry can emit sanitized unsupported-capability events when a telemetry endpoint is configured."
         }));
 
 app.MapGet(
@@ -184,6 +189,32 @@ static int ResolveXrmTraceLimit(string? configuredTraceLimit)
     => int.TryParse(configuredTraceLimit, out var traceLimit) && traceLimit > 0
         ? traceLimit
         : DataverseXrmTraceOptions.DefaultTraceLimit;
+
+static bool ResolveTelemetryEnabled(string? configuredTelemetryEnabled)
+{
+    if (string.IsNullOrWhiteSpace(configuredTelemetryEnabled))
+    {
+        return true;
+    }
+
+    return bool.TryParse(configuredTelemetryEnabled, out var telemetryEnabled)
+        ? telemetryEnabled
+        : throw new InvalidOperationException(
+            $"Environment variable '{DataverseEmulatorHostEnvironmentVariables.TelemetryEnabledEnvironmentVariableName}' must be 'true' or 'false'.");
+}
+
+static Uri? ResolveTelemetryEndpoint(string? configuredTelemetryEndpoint)
+{
+    if (string.IsNullOrWhiteSpace(configuredTelemetryEndpoint))
+    {
+        return null;
+    }
+
+    return Uri.TryCreate(configuredTelemetryEndpoint.Trim(), UriKind.Absolute, out var endpoint)
+        ? endpoint
+        : throw new InvalidOperationException(
+            $"Environment variable '{DataverseEmulatorHostEnvironmentVariables.TelemetryEndpointEnvironmentVariableName}' must be an absolute URI.");
+}
 
 public sealed record EmulatorDescriptor(
     string Name,

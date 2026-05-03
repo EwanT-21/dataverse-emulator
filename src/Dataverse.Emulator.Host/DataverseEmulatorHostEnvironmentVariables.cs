@@ -6,4 +6,6 @@ public static class DataverseEmulatorHostEnvironmentVariables
     public const string SnapshotPathEnvironmentVariableName = "DATAVERSE_EMULATOR_SNAPSHOT_PATH";
     public const string OrganizationVersionEnvironmentVariableName = "DATAVERSE_EMULATOR_ORGANIZATION_VERSION";
     public const string XrmTraceLimitEnvironmentVariableName = "DATAVERSE_EMULATOR_XRM_TRACE_LIMIT";
+    public const string TelemetryEnabledEnvironmentVariableName = "DATAVERSE_EMULATOR_TELEMETRY_ENABLED";
+    public const string TelemetryEndpointEnvironmentVariableName = "DATAVERSE_EMULATOR_TELEMETRY_ENDPOINT";
 }

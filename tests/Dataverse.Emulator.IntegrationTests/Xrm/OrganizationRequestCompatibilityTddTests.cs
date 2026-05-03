@@ -246,7 +246,7 @@ public sealed class OrganizationRequestCompatibilityTddTests
     }
 
     [Fact]
-    public async Task RetrieveMetadataChanges_With_Unsupported_Attribute_Query_Criteria_Faults_Clearly()
+    public async Task RetrieveMetadataChanges_Can_Filter_Attributes_With_Bounded_Attribute_Query_Criteria()
     {
         await using var context = await XrmProtocolTestContext.CreateAsync(
             ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
@@ -255,6 +255,13 @@ public sealed class OrganizationRequestCompatibilityTddTests
         {
             Query = new EntityQueryExpression
             {
+                Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                {
+                    Conditions =
+                    {
+                        new MetadataConditionExpression("LogicalName", MetadataConditionOperator.Equals, "account")
+                    }
+                },
                 Properties = new MetadataPropertiesExpression("LogicalName"),
                 AttributeQuery = new AttributeQueryExpression
                 {
@@ -271,14 +278,14 @@ public sealed class OrganizationRequestCompatibilityTddTests
             DeletedMetadataFilters = DeletedMetadataFilters.Default
         };
 
-        var fault = Assert.Throws<FaultException<OrganizationServiceFault>>(
-            () => context.OrganizationService.Execute(request));
+        var response = (RetrieveMetadataChangesResponse)context.OrganizationService.Execute(request);
+        var account = response.EntityMetadata.Single(entity => entity.LogicalName == "account");
 
-        Assert.Contains("AttributeQuery.Criteria", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(["name"], account.Attributes.Select(attribute => attribute.LogicalName).ToArray());
     }
 
     [Fact]
-    public async Task RetrieveMetadataChanges_With_Unsupported_Relationship_Query_Criteria_Faults_Clearly()
+    public async Task RetrieveMetadataChanges_Can_Filter_Relationships_With_Bounded_Relationship_Query_Criteria()
     {
         await using var context = await XrmProtocolTestContext.CreateAsync(
             ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
@@ -287,6 +294,13 @@ public sealed class OrganizationRequestCompatibilityTddTests
         {
             Query = new EntityQueryExpression
             {
+                Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                {
+                    Conditions =
+                    {
+                        new MetadataConditionExpression("LogicalName", MetadataConditionOperator.In, new[] { "account", "contact" })
+                    }
+                },
                 Properties = new MetadataPropertiesExpression("LogicalName"),
                 RelationshipQuery = new RelationshipQueryExpression
                 {
@@ -303,9 +317,75 @@ public sealed class OrganizationRequestCompatibilityTddTests
             DeletedMetadataFilters = DeletedMetadataFilters.Default
         };
 
+        var response = (RetrieveMetadataChangesResponse)context.OrganizationService.Execute(request);
+        var account = response.EntityMetadata.Single(entity => entity.LogicalName == "account");
+        var contact = response.EntityMetadata.Single(entity => entity.LogicalName == "contact");
+
+        Assert.Equal(["contact_customer_accounts"], account.OneToManyRelationships.Select(relationship => relationship.SchemaName).ToArray());
+        Assert.Equal(["contact_customer_accounts"], contact.ManyToOneRelationships.Select(relationship => relationship.SchemaName).ToArray());
+    }
+
+    [Fact]
+    public async Task RetrieveMetadataChanges_With_Unsupported_Attribute_Query_Property_Faults_Clearly()
+    {
+        await using var context = await XrmProtocolTestContext.CreateAsync(
+            ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
+
+        var request = new RetrieveMetadataChangesRequest
+        {
+            Query = new EntityQueryExpression
+            {
+                Properties = new MetadataPropertiesExpression("LogicalName"),
+                AttributeQuery = new AttributeQueryExpression
+                {
+                    Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                    {
+                        Conditions =
+                        {
+                            new MetadataConditionExpression("DisplayName", MetadataConditionOperator.Equals, "Name")
+                        }
+                    },
+                    Properties = new MetadataPropertiesExpression("LogicalName")
+                }
+            },
+            DeletedMetadataFilters = DeletedMetadataFilters.Default
+        };
+
         var fault = Assert.Throws<FaultException<OrganizationServiceFault>>(
             () => context.OrganizationService.Execute(request));
 
-        Assert.Contains("RelationshipQuery.Criteria", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("attribute metadata property 'DisplayName'", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task RetrieveMetadataChanges_With_Unsupported_Relationship_Query_Property_Faults_Clearly()
+    {
+        await using var context = await XrmProtocolTestContext.CreateAsync(
+            ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
+
+        var request = new RetrieveMetadataChangesRequest
+        {
+            Query = new EntityQueryExpression
+            {
+                Properties = new MetadataPropertiesExpression("LogicalName"),
+                RelationshipQuery = new RelationshipQueryExpression
+                {
+                    Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                    {
+                        Conditions =
+                        {
+                            new MetadataConditionExpression("CascadeConfiguration", MetadataConditionOperator.Equals, true)
+                        }
+                    },
+                    Properties = new MetadataPropertiesExpression("SchemaName")
+                }
+            },
+            DeletedMetadataFilters = DeletedMetadataFilters.Default
+        };
+
+        var fault = Assert.Throws<FaultException<OrganizationServiceFault>>(
+            () => context.OrganizationService.Execute(request));
+
+        Assert.Contains("relationship metadata property 'CascadeConfiguration'", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
     }
 }

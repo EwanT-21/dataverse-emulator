@@ -122,7 +122,7 @@ Supported and currently covered by green integration tests:
 - metadata-id selectors for `RetrieveEntity`, `RetrieveAttribute`, and `RetrieveRelationship`
 - relationship-aware `RetrieveAllEntities` reads for the seeded `account` / `contact` path
 - bounded `RetrieveMetadataChangesRequest` entity, attribute, and relationship metadata snapshots
-- explicit faults for unsupported `RetrieveMetadataChanges` metadata selectors and nested attribute/relationship criteria
+- explicit faults for unsupported `RetrieveMetadataChanges` metadata selectors, metadata properties, and condition operators outside the current bounded criteria slice
 - direct request-dispatch execution for `RetrieveMultipleRequest` over `QueryExpression` and one-table `FetchExpression`
 - `QueryByAttribute` translation and execution through record operations and the public organization-service surface
 - direct runtime request execution for version, installed-language-pack, and organization-info reads
@@ -161,7 +161,7 @@ Current high-value gaps that remain intentionally unsupported or demand-driven:
 - `RetrieveInstalledLanguagePackVersionRequest` and `RetrieveProvisionedLanguagePackVersionRequest` are now implemented and verified through the real `CrmServiceClient` harness.
 - `RetrieveInstalledLanguagePacksRequest` and `RetrieveOrganizationInfoRequest` are now implemented and verified through the real `CrmServiceClient` harness.
 - Metadata-oriented Xrm reads for the seeded table slice are now implemented through `RetrieveEntity`, `RetrieveAttribute`, `RetrieveRelationship`, and `RetrieveAllEntities`, including metadata-id selector coverage for the bounded seeded slice.
-- `RetrieveMetadataChangesRequest` is now implemented for bounded entity, attribute, and relationship metadata snapshots, while broader nested query criteria remain explicitly unsupported until a real app needs them.
+- `RetrieveMetadataChangesRequest` is now implemented for bounded entity, attribute, and relationship metadata snapshots, including a narrow criteria slice over supported entity, attribute, and relationship metadata properties, while broader selectors and condition operators remain explicitly unsupported until a real app needs them.
 - A first bounded lookup-relationship slice is now implemented through `Associate`, `Disassociate`, `AssociateRequest`, `DisassociateRequest`, and `RetrieveRelationshipRequest` for the seeded `contact_customer_accounts` relationship.
 - Multi-target lookup association behavior, direct request-dispatch coverage, runtime-request execution, primary-id-only upsert, and supported inner-join link criteria are now covered through direct integration tests in addition to the hosted harness.
 - Xrm request trace capture is now implemented so local runs can inspect which direct operations and `Execute` requests were served or rejected.

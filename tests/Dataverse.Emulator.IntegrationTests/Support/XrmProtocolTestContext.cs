@@ -33,7 +33,9 @@ internal sealed class XrmProtocolTestContext : IAsyncDisposable
     public DataverseXrmRecordOperations RecordOperations
         => scope.ServiceProvider.GetRequiredService<DataverseXrmRecordOperations>();
 
-    public static async Task<XrmProtocolTestContext> CreateAsync(SeedScenario scenario)
+    public static async Task<XrmProtocolTestContext> CreateAsync(
+        SeedScenario scenario,
+        Action<IServiceCollection>? configureServices = null)
     {
         var services = new ServiceCollection();
         services.AddDataverseEmulatorApplication();
@@ -44,6 +46,7 @@ internal sealed class XrmProtocolTestContext : IAsyncDisposable
             options.Assemblies = [typeof(Dataverse.Emulator.Application.AssemblyMarker)];
             options.PipelineBehaviors = [typeof(ValidationBehavior<,>)];
         });
+        configureServices?.Invoke(services);
 
         var rootProvider = services.BuildServiceProvider();
 

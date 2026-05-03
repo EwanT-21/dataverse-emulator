@@ -19,6 +19,30 @@ The current product posture is:
 
 In practice, that means the architecture is being optimized for a local C# developer workflow before it is optimized for broad Dataverse ecosystem parity.
 
+## Compatibility Strategy
+
+The emulator does not treat breadth as progress by itself.
+
+Compatibility should expand by verified local workflow demand:
+
+1. identify a real application path, client path, or maintainable local workflow
+2. add the narrowest metadata, query, or message behavior that path needs
+3. prove the behavior through direct compatibility tests and hosted verification where appropriate
+4. keep unsupported breadth explicit until a real demand signal appears
+
+This rule keeps the project from drifting into shallow parity work while still allowing the compatibility surface to grow steadily.
+
+## Verification Strategy
+
+Compatibility changes are expected to prove themselves at more than one level:
+
+- domain tests for pure shared semantics
+- direct integration tests for translation, orchestration, and fault shaping
+- Aspire-hosted tests for end-to-end process wiring
+- real-client verification through the `net48` `CrmServiceClient` harness when hosted wire compatibility is the point of the change
+
+This layered verification approach matters because hosted compatibility alone is too coarse for fast iteration, while in-proc tests alone are too weak as an external-contract proof.
+
 ## Dependency Direction
 
 The solution is organized so protocol and persistence details depend on the shared core, not the other way around.
@@ -51,6 +75,16 @@ The current boundary is not only about projects. It is also enforced through the
 - Validators are optional per request under ADR-012, but when a request needs boundary validation it should be expressed through the centralized pipeline rather than ad hoc protocol checks.
 
 These rules matter because they keep the emulator's meaning stable even as compatibility surfaces expand.
+
+## Documentation Model
+
+The project uses three complementary documentation layers:
+
+- ADRs for durable architectural decisions that should survive multiple roadmap phases
+- specs for bounded compatibility or workflow slices under active delivery
+- repository guidance files such as `AGENTS.md` and `docs/engineering/AGENT_GUIDE.md` for day-to-day contributor and agent workflow rules
+
+That split keeps long-lived architecture, short-lived delivery slices, and operational contributor guidance from collapsing into one document.
 
 ## Project Responsibilities
 
@@ -227,37 +261,53 @@ The current proven slice is intentionally narrow:
 - hosted organization service bootstrap at `/org/XRMServices/2011/Organization.svc`
 - single-table and linked-query execution now share domain-owned value comparison, sorting, and continuation paging services
 - transport-agnostic linked-query semantics now live in the shared core rather than the Xrm protocol layer
-- C# operations:
+- direct Xrm/C# operations:
   - `Create`
   - `Retrieve`
   - `Update`
   - `Delete`
   - `Associate`
   - `Disassociate`
-  - `UpsertRequest` on the primary-id path
-  - `RetrieveVersionRequest`
   - `RetrieveMultiple(QueryExpression)`
+  - `RetrieveMultiple(QueryByAttribute)`
   - `RetrieveMultiple(FetchExpression)`
-  - `RetrieveMultiple(QueryExpression)` paging via `PageInfo`
+- bounded query breadth:
   - grouped `AND` / `OR` filters
   - common comparison, null, pattern, and `In` operators
+  - `OrderExpression`
+  - `TopCount`
+  - `PageInfo` paging
   - top-level inner joins through `LinkEntity`
+  - bounded `LeftOuter` joins
+  - nested `LinkEntity` translation where it still converges on the shared linked-query model
   - aliased linked-column projection
-  - bounded FetchXML support for attributes, filters, ordering, and paging
+  - bounded FetchXML support for attributes, filters, ordering, paging, and `link-entity` projection
 - Xrm metadata reads:
   - `RetrieveEntity`
   - `RetrieveAttribute`
   - `RetrieveAllEntities`
   - `RetrieveRelationship`
+  - `RetrieveMetadataChanges`
 - generic `Execute` message coverage:
+  - `UpsertRequest` on the primary-id path
+  - `ExecuteMultipleRequest` for batching currently supported request slices
+  - `ExecuteTransactionRequest` for atomic batching over the currently supported child-request surface
   - `RetrieveVersionRequest`
-  - `UpsertRequest` for primary-id addressed create-or-update flows
-  - `ExecuteMultipleRequest` for batching currently supported slices
+  - `WhoAmIRequest`
+  - `RetrieveCurrentOrganizationRequest`
+  - `RetrieveAvailableLanguagesRequest`
+  - `RetrieveDeprovisionedLanguagesRequest`
+  - `RetrieveProvisionedLanguagesRequest`
+  - `RetrieveInstalledLanguagePackVersionRequest`
+  - `RetrieveProvisionedLanguagePackVersionRequest`
+  - `RetrieveInstalledLanguagePacksRequest`
+  - `RetrieveOrganizationInfoRequest`
   - `AssociateRequest` and `DisassociateRequest` for the seeded lookup relationship
   - `RetrieveRelationshipRequest` for seeded relationship metadata
 - secondary Web API CRUD on `/api/data/v9.2/accounts` and `/api/data/v9.2/contacts`
 - local reset endpoint on `/_emulator/v1/reset` for restoring the configured or named baseline state
 - local snapshot export and import endpoints on `/_emulator/v1/snapshot` for moving in-memory emulator state through a source-controllable document shape
+- local Xrm trace inspection and clear endpoints on `/_emulator/v1/traces/xrm`
 - public AppHost helper packaging that emits a reusable emulator project resource plus a generated `dataverse` connection string resource, consumer-facing connection-string binding helpers, and fluent shaping methods for startup baseline and organization version
 - shared error model mapped to either SDK faults or HTTP errors
 

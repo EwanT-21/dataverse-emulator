@@ -44,6 +44,9 @@ In progress:
 - add demand-driven `Execute` coverage for installed language and organization-info reads used by realistic app-hosted startup flows
 - add a first bounded `FetchExpression` slice through the shared query engine
 - add `QueryByAttribute` support by translating it through the shared query model
+- add `ExecuteTransactionRequest` with application-owned atomic orchestration and rollback semantics
+- add bounded `RetrieveMetadataChangesRequest` support for entity, attribute, and relationship metadata snapshots
+- align `ExecuteMultipleRequest` fault handling with SDK-style per-item batch responses on supported request paths
 - expand QueryExpression support to bounded `LeftOuter` and nested `LinkEntity` semantics where they can still reuse the shared linked-query model
 - expand FetchXML support to bounded `link-entity` semantics through the same shared linked-query path
 - converge duplicated single-table and linked-query comparison, sorting, and continuation paging rules into shared domain services
@@ -53,9 +56,8 @@ In progress:
 
 Next likely steps:
 
-- add `ExecuteTransactionRequest` with application-owned atomic orchestration and rollback semantics
-- add bounded `RetrieveMetadataChangesRequest` support for entity, attribute, and relationship metadata snapshots
-- align `ExecuteMultipleRequest` fault handling with SDK-style per-item batch responses on supported request paths
+- broaden `RetrieveMetadataChangesRequest` selectors or nested criteria only when a real startup or schema-introspection flow requires them
+- add more `OrganizationRequest` coverage only when a traced local app or harness run shows real demand
 - broaden FetchXML `link-entity` filters or ordering only when a real local app needs more than projection and shared join semantics
 - broaden relationship behavior only when a real local app needs more than the current seeded lookup-association slice
 - continue consolidating shared execution building blocks where query shapes can reuse the same domain semantics practically

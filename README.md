@@ -1,182 +1,172 @@
 # Dataverse Emulator
 
-Local-first emulation of Microsoft Dataverse for C# and Xrm-oriented development workflows.
+Dataverse Emulator is a local-first emulator for Microsoft Dataverse focused on .NET applications that already use Xrm/SDK connection-string bootstrap patterns.
 
-The primary goal is to let an existing .NET application keep its current connection-string bootstrap pattern, point at a locally hosted emulator, and run against a shared in-memory Dataverse-like core. Aspire is the default way to host that local environment.
+The project hosts a compatible organization service endpoint and a secondary Web API surface over a shared in-memory core for metadata, records, query semantics, and local workflow tooling.
 
-Think "local emulator for Dataverse-backed .NET apps" more than "full local clone of every Dataverse consumer."
+The project is intentionally demand-driven. It aims to unblock real local development workflows, not to approximate every Dataverse feature or every connector ecosystem.
 
-## Product Positioning
+## Goals
 
-The project is currently aimed at:
+- Preserve existing bootstrap patterns for Dataverse-backed .NET applications.
+- Provide deterministic local state, fast startup, and repeatable tests.
+- Keep emulator semantics transport-agnostic so Xrm and Web API share the same core.
+- Expand compatibility only when a real local workflow needs it.
 
-- C# developers who want to run Dataverse-backed apps locally
-- Aspire-hosted local environments
-- Xrm/SDK compatibility first
+## Non-Goals
 
-The project is not currently centered on:
+- Blanket Dataverse parity across the full platform surface.
+- Broad Power BI, Power Automate, or connector-oriented compatibility.
+- Silent approximation of unsupported platform behavior.
+- Durable production-style persistence in the current phase.
 
-- Power BI connector compatibility
-- Power Automate or flow automation compatibility
-- broad external-tool parity across the Dataverse ecosystem
+## Current Compatibility
 
-Those scenarios may matter later, but they are not driving the current roadmap.
+### Seeded Scope
 
-## Current Status
+- Seeded tables:
+  - `account`
+  - `contact`
+- Seeded lookup relationship:
+  - `contact.parentcustomerid -> account.accountid`
+  - schema name: `contact_customer_accounts`
+- Named local baselines:
+  - `default-seed`
+  - `empty`
+- Persistence:
+  - in-memory only
 
-The repository now implements a real first compatibility slice:
+### Supported Xrm/C# Surface
 
-- Shared in-memory core for metadata, records, and query orchestration.
-- Single-table and linked-query execution now share domain-owned value comparison, sorting, and continuation paging semantics.
-- Seeded `account` and `contact` metadata with entity sets `accounts` and `contacts`.
-- Local reset workflow that restores the default seeded state.
-- Local reset workflow that restores a configured or named baseline state.
-- Hosted Xrm/C# compatibility for the real legacy `CrmServiceClient`.
-- Supported C# operations:
-  - `Create(Entity)`
-  - `Retrieve(string, Guid, ColumnSet)`
-  - `Update(Entity)`
-  - `Delete(string, Guid)`
-  - `Associate(string, Guid, Relationship, EntityReferenceCollection)`
-  - `Disassociate(string, Guid, Relationship, EntityReferenceCollection)`
-  - `UpsertRequest` for primary-id addressed upsert
+Direct organization service operations:
+
+- `Create(Entity)`
+- `Retrieve(string, Guid, ColumnSet)`
+- `Update(Entity)`
+- `Delete(string, Guid)`
+- `Associate(string, Guid, Relationship, EntityReferenceCollection)`
+- `Disassociate(string, Guid, Relationship, EntityReferenceCollection)`
+- `RetrieveMultiple(QueryExpression)`
+- `RetrieveMultiple(QueryByAttribute)`
+- `RetrieveMultiple(FetchExpression)`
+
+Supported `Execute` message slices:
+
+- batching and command-style requests:
+  - `ExecuteMultipleRequest`
+  - `ExecuteTransactionRequest`
+  - `UpsertRequest` on the primary-id path
+- runtime and organization reads:
+  - `WhoAmIRequest`
+  - `RetrieveCurrentOrganizationRequest`
   - `RetrieveVersionRequest`
-  - `RetrieveMultiple(QueryExpression)`
-  - `RetrieveMultiple(QueryByAttribute)`
-  - `RetrieveMultiple(FetchExpression)`
-- Supported QueryExpression breadth:
-  - rooted queries over `account` and `contact`
+  - `RetrieveAvailableLanguagesRequest`
+  - `RetrieveDeprovisionedLanguagesRequest`
+  - `RetrieveProvisionedLanguagesRequest`
+  - `RetrieveInstalledLanguagePackVersionRequest`
+  - `RetrieveProvisionedLanguagePackVersionRequest`
+  - `RetrieveInstalledLanguagePacksRequest`
+  - `RetrieveOrganizationInfoRequest`
+- metadata reads:
+  - `RetrieveEntityRequest`
+  - `RetrieveAttributeRequest`
+  - `RetrieveAllEntitiesRequest`
+  - `RetrieveRelationshipRequest`
+  - `RetrieveMetadataChangesRequest`
+- relationship requests:
+  - `AssociateRequest`
+  - `DisassociateRequest`
+
+Supported query breadth:
+
+- `QueryExpression`
   - grouped `AND` / `OR` filters
   - `Equal`
   - `NotEqual`
   - `Null` / `NotNull`
   - `Like`
   - `BeginsWith` / `EndsWith`
-  - `GreaterThan` / `GreaterEqual`
-  - `LessThan` / `LessEqual`
+  - `GreaterThan` / `GreaterThanOrEqual`
+  - `LessThan` / `LessThanOrEqual`
   - `In`
   - `OrderExpression`
   - `TopCount`
   - `PageInfo` paging
-  - inner and `LeftOuter` `LinkEntity` joins across the seeded tables
-  - nested `LinkEntity` translation and execution through the shared linked-query path
-  - aliased linked-column projection in `RetrieveMultiple`
-- Supported FetchXML breadth:
-  - one-table queries over the seeded tables plus bounded `link-entity` projection across the seeded relational slice
-  - `<attribute>` projection and `<all-attributes />`
-  - nested `<filter type='and|or'>`
-  - `eq`, `ne`, `null`, `not-null`, `like`, `begins-with`, `ends-with`
-  - `gt`, `ge`, `lt`, `le`, `in`
-  - `<order>`
-  - `count`, `page`, and `paging-cookie`
-- Supported Xrm metadata reads:
-  - `RetrieveEntity`
-  - `RetrieveAttribute`
-  - `RetrieveAllEntities`
-  - `RetrieveRelationship`
-- Supported generic `Execute` coverage:
-  - `RetrieveVersionRequest` for client version reads
-  - `RetrieveAvailableLanguagesRequest` for bounded language-catalog reads
-  - `RetrieveDeprovisionedLanguagesRequest` for bounded language-catalog reads
-  - `RetrieveProvisionedLanguagesRequest` for local language metadata reads
-  - `RetrieveInstalledLanguagePackVersionRequest` for installed language-pack version reads
-  - `RetrieveProvisionedLanguagePackVersionRequest` for provisioned language-pack version reads
-  - `RetrieveInstalledLanguagePacksRequest` for installed language metadata reads
-  - `RetrieveOrganizationInfoRequest` for bounded local organization info reads
-  - `UpsertRequest` for create-or-update flows addressed by primary id
-  - `ExecuteMultipleRequest` for batching currently supported request slices
-  - `AssociateRequest` and `DisassociateRequest` for the seeded lookup relationship
-  - `RetrieveRelationshipRequest` for seeded relationship metadata
-- Secondary Dataverse Web API support on `/api/data/v9.2/accounts` and `/api/data/v9.2/contacts`.
-- Shared error model mapped into:
-  - SDK-style faults for Xrm/C#
-  - Dataverse-style HTTP errors for Web API
-- AppHost packaging for a reusable Aspire emulator resource plus a generated `dataverse` connection string resource.
-- AppHost resource shaping methods for seed scenario selection, snapshot-backed startup, organization version configuration, and Xrm trace retention.
-- AppHost consumer helper for mapping the generated emulator connection string into a project or executable resource's chosen environment variable.
-- Snapshot export and import workflows on `/_emulator/v1/snapshot`.
-- Xrm request trace inspection and clear workflows on `/_emulator/v1/traces/xrm`.
-- Aspire-driven end-to-end tests, including a reusable `net48` harness that uses the real `CrmServiceClient`.
+  - inner and bounded `LeftOuter` `LinkEntity` joins across the seeded tables
+  - nested `LinkEntity` translation where it still converges on the shared linked-query model
+  - aliased linked-column projection
+- `QueryByAttribute`
+  - translation through the shared single-table query path
+  - ordering, top, and paging
+- `FetchExpression`
+  - one-table queries over the seeded tables
+  - bounded `link-entity` projection across the seeded relational slice
+  - nested filters, ordering, and paging through the shared query engine
 
-## Current Scope
+### Secondary Web API Surface
 
-The emulator is intentionally narrow right now:
+- `/api/data/v9.2/accounts`
+- `/api/data/v9.2/contacts`
+- shared error semantics aligned with the Xrm surface through the same application/core flow
 
-- Two seeded tables: `account` and `contact`
-- One seeded lookup relationship: `contact.parentcustomerid -> account.accountid`
-  - schema name: `contact_customer_accounts`
-- In-memory storage only
-- Named seed baselines:
-  - `default-seed`
-  - `empty`
-- QueryExpression support limited to:
-  - the current seeded `account` / `contact` relationship slice
-  - nested `LinkEntity` semantics only where they still converge on the shared linked-query model
-  - no aggregates or `Distinct`
-  - no total-count paging
-- FetchXML support limited to:
-  - root-entity filtering, ordering, and paging
-  - bounded `link-entity` projection over the seeded relational slice
-  - no `link-entity` filters or `link-entity` orders
-  - no aggregates or `distinct`
-  - no attribute aliases
-  - no total-count paging
-- Metadata reads limited to the current seeded table slice
-- Relationship support limited to direct lookup association and metadata for the seeded relationship slice
-- Web API support limited to matching CRUD plus metadata for the current seeded tables
+### Local Workflow Support
 
-Not implemented yet:
+- reset to the configured startup baseline:
+  - `POST /_emulator/v1/reset`
+- reset to a named baseline:
+  - `POST /_emulator/v1/reset?scenario=empty`
+- export the current in-memory state:
+  - `GET /_emulator/v1/snapshot`
+- import a snapshot and replace the current in-memory state:
+  - `POST /_emulator/v1/snapshot`
+- inspect captured Xrm request traces:
+  - `GET /_emulator/v1/traces/xrm`
+- clear captured Xrm request traces:
+  - `DELETE /_emulator/v1/traces/xrm`
 
-- broader multi-table coverage beyond the current seeded relational slice
-- alternate-key upsert
-- `ExecuteTransactionRequest`
-- bounded `RetrieveMetadataChangesRequest`
-- `ExecuteMultipleRequest` fault shaping that matches SDK per-item response expectations
-- FetchXML `link-entity` filters and `link-entity` ordering
-- broader `Execute` message coverage beyond the current demand-driven slice
-- broader relationship modeling and traversal beyond the current bounded lookup-association slice
-- auth emulation beyond permissive local bootstrap
-- multiple named seed scenarios
-- durable persistence providers
+## Intentional Limits
 
-## Compatibility Tiers
+The emulator is intentionally narrow in the current phase:
 
-- Primary: hosted Xrm/C# compatibility for existing .NET applications using the current connection-string pattern.
-- Secondary: Web API compatibility where it supports the same local workflows, tests, and debugging experience.
-- Deferred: broader connector compatibility such as Power BI, Power Automate, or other external-tool scenarios.
+- the seeded `account` / `contact` model is the primary compatibility slice
+- metadata breadth is bounded to the current seeded model and the currently supported startup-oriented requests
+- `QueryExpression` does not implement aggregates, `Distinct`, or total-count paging
+- `FetchExpression` does not implement aggregates, `distinct`, attribute aliases, or `link-entity` filters and ordering
+- alternate-key upsert is explicitly unsupported
+- broader `RetrieveMetadataChanges` selector and nested criteria semantics are explicitly unsupported
+- unsupported features are expected to fault clearly rather than degrade silently
 
-## Design Priorities
+## Architecture At A Glance
 
-- Preserve existing app bootstrap patterns wherever possible.
-- Optimize first for the local C# developer workflow.
-- Prove real client compatibility before broadening feature scope.
-- Keep the emulator core transport-agnostic.
-- Optimize for fast local startup, deterministic state, and repeatable tests.
-- Use Aspire as the default local orchestration path.
-- Keep Web API as a supporting compatibility surface unless a real local workflow requires more.
-
-## Solution Layout
-
-- `src/Dataverse.Emulator.AppHost`
-  - Default local entry point for Aspire orchestration.
-- `src/Dataverse.Emulator.Host`
-  - Emulator web process, health endpoints, protocol registration, and seeded startup.
 - `src/Dataverse.Emulator.Domain`
-  - Core language for tables, columns, rows, and query concepts.
+  - transport-agnostic metadata, records, query language, and query semantics
 - `src/Dataverse.Emulator.Application`
-  - Mediator handlers, validation behavior, seeding, and orchestration.
+  - Mediator handlers, orchestration, validation, seeding, and cross-aggregate workflows
 - `src/Dataverse.Emulator.Protocols`
-  - Hosted Xrm/SOAP adapter, Web API adapter, protocol translation, error mapping, and Xrm request-handler slices.
+  - Xrm/SOAP and Web API adapters, translation, request handlers, and error mapping
 - `src/Dataverse.Emulator.Persistence.InMemory`
-  - Default local metadata and record storage provider.
+  - the default storage provider and query access over the in-memory dataset
+- `src/Dataverse.Emulator.Host`
+  - the emulator process, admin endpoints, protocol registration, and startup composition
+- `src/Dataverse.Emulator.AppHost`
+  - Aspire packaging, connection-string shaping, and reusable local orchestration helpers
+
+The detailed architecture narrative lives in [docs/architecture.md](docs/architecture.md). Durable design decisions live under [docs/adrs](docs/adrs). Demand-driven compatibility slices are tracked under [docs/specs](docs/specs).
+
+## Verification Strategy
+
+The project uses layered verification rather than one large end-to-end test bucket:
+
 - `tests/Dataverse.Emulator.Domain.Tests`
-  - Domain invariants and validation tests.
+  - pure domain invariants and execution semantics
 - `tests/Dataverse.Emulator.IntegrationTests`
-  - Open-box integration tests and protocol translation tests.
+  - translation, orchestration, fault shaping, and bounded compatibility contracts
 - `tests/Dataverse.Emulator.AspireTests`
-  - Aspire-hosted end-to-end tests across Web API and Xrm/C#.
+  - hosted end-to-end verification across the emulator process and Aspire wiring
 - `tests/Dataverse.Emulator.CrmServiceClientHarness`
-  - `net48` harness that uses the real `CrmServiceClient` package in end-to-end tests.
+  - `net48` harness that exercises the real legacy `CrmServiceClient`
+
+This split keeps compatibility changes verifiable at the narrowest useful level while still preserving a real hosted-client proof path.
 
 ## Local Run
 
@@ -192,30 +182,30 @@ Direct host only:
 dotnet run --project src/Dataverse.Emulator.Host
 ```
 
+Run the full test suite:
+
+```bash
+dotnet test Dataverse.Emulator.slnx
+```
+
 Local emulator connection string for the current slice:
 
 ```text
 AuthType=AD;Url=http://localhost:{port}/org;Domain=EMULATOR;Username=local;Password=local
 ```
 
-AppHost packaging for the current slice:
+Basic Aspire usage:
 
 ```csharp
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddDataverseEmulator();
-
-var app = builder.Build();
-app.Run();
-```
-
-AppHost shaping for local environments:
-
-```csharp
 var dataverse = builder.AddDataverseEmulator()
     .WithSeedScenario("empty")
     .WithOrganizationVersion("9.2.0.0")
     .WithXrmTraceLimit(100);
+
+var app = builder.Build();
+app.Run();
 ```
 
 Snapshot-backed startup:
@@ -234,69 +224,26 @@ builder.AddExecutable("legacy-xrm-app", @"C:\apps\LegacyXrmApp.exe", @"C:\apps")
     .WithDataverseConnectionString(dataverse, "CrmConnectionString");
 ```
 
-- This is the intended Aspire bridge for legacy `.NET Framework` Xrm apps: they participate as executable resources and receive the emulator connection string through the setting name they already expect.
+## Documentation Map
 
-- The packaged emulator currently exposes:
-  - project resource name: `dataverse-emulator`
-  - connection string resource name: `dataverse`
-- `AddDataverseEmulator()`, `DataverseEmulatorAppHostResource`, `WithDataverseConnectionString(...)`, `WithSeedScenario(...)`, `WithSnapshotFile(...)`, and `WithOrganizationVersion(...)` are public so the packaging seam can later move into a dedicated Aspire Community Toolkit-style extension library cleanly.
-- `AddDataverseEmulator()`, `DataverseEmulatorAppHostResource`, `WithDataverseConnectionString(...)`, `WithSeedScenario(...)`, `WithSnapshotFile(...)`, `WithOrganizationVersion(...)`, and `WithXrmTraceLimit(...)` are public so the packaging seam can later move into a dedicated Aspire Community Toolkit-style extension library cleanly.
+- [docs/architecture.md](docs/architecture.md)
+  - boundaries, dependency direction, and execution flow
+- [docs/roadmap.md](docs/roadmap.md)
+  - staged product and compatibility roadmap
+- [docs/specs](docs/specs)
+  - bounded delivery slices and acceptance signals
+- [docs/adrs](docs/adrs)
+  - durable architectural decisions
+- [AGENTS.md](AGENTS.md)
+  - repository-wide contributor workflow and provider-neutral agent instructions
+- [docs/engineering/AGENT_GUIDE.md](docs/engineering/AGENT_GUIDE.md)
+  - routing, scoping, and delegation guidance for human-supervised agent workflows
 
-## Local Workflow Support
+Key ADRs for the current project shape:
 
-- Reset the emulator back to its default seeded state with:
- 
-```bash
-POST /_emulator/v1/reset
-```
-
-- Reset the emulator to a named baseline state with:
-
-```bash
-POST /_emulator/v1/reset?scenario=empty
-```
-
-- Without a query parameter, reset restores the configured startup baseline.
-- Export the current in-memory emulator state with:
-
-```bash
-GET /_emulator/v1/snapshot
-```
-
-- Import a previously exported snapshot and replace the current in-memory state with:
-
-```bash
-POST /_emulator/v1/snapshot
-```
-
-- Inspect captured Xrm request traces with:
-
-```bash
-GET /_emulator/v1/traces/xrm
-```
-
-- Clear captured Xrm request traces with:
-
-```bash
-DELETE /_emulator/v1/traces/xrm
-```
-
-## Tests
-
-```bash
-dotnet test Dataverse.Emulator.slnx
-```
-
-## Docs
-
-- Architecture: `docs/architecture.md`
-- Roadmap: `docs/roadmap.md`
-- ADRs: `docs/adrs`
-- Specs: `docs/specs`
-
-Key ADRs for the current shape:
-
-- `ADR-006` for Aspire-first local orchestration.
-- `ADR-011` for hosted `CrmServiceClient` compatibility as the first external contract.
-- `ADR-012` for optional validators in the Mediator pipeline.
-- `ADR-013` for keeping transport-agnostic query semantics in the domain.
+- `ADR-006` for Aspire-first local orchestration
+- `ADR-011` for hosted `CrmServiceClient` compatibility as the first external contract
+- `ADR-013` for transport-agnostic query semantics in the domain
+- `ADR-014` for demand-driven compatibility over speculative platform parity
+- `ADR-015` for pairing real-client hosted tests with direct compatibility tests
+- `ADR-016` for provider-neutral agent guidance with thin provider-specific overlays

@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using System.ServiceModel;
+using CoreWCF;
 using Microsoft.Xrm.Sdk;
 
 namespace Dataverse.Emulator.Protocols.Xrm.Tracing;

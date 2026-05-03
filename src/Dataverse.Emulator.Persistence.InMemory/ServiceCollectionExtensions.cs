@@ -21,6 +21,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IReadRepository<EntityRecord>>(sp => sp.GetRequiredService<InMemoryRecordRepository>());
         services.AddSingleton<IRepository<EntityRecord>>(sp => sp.GetRequiredService<InMemoryRecordRepository>());
         services.AddSingleton<IRecordQueryService>(sp => sp.GetRequiredService<InMemoryRecordRepository>());
+        services.AddSingleton<IEmulatorStateSnapshotService, InMemoryEmulatorStateSnapshotService>();
 
         return services;
     }

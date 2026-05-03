@@ -40,6 +40,7 @@ internal static class Program
                 "fetchxml" => RunFetchXmlQuery(connectionString),
                 "fetchxml-link-entity" => RunFetchXmlLinkEntity(connectionString),
                 "execute-multiple" => RunExecuteMultiple(connectionString),
+                "execute-transaction" => RunExecuteTransaction(connectionString),
                 "upsert" => RunUpsert(connectionString),
                 "version" => RunVersion(connectionString),
                 "available-languages" => RunAvailableLanguages(connectionString),
@@ -557,6 +558,54 @@ internal static class Program
                 ["updateTargetId"] = updateResponse.Target.Id.ToString(),
                 ["retrievedName"] = retrieved.GetAttributeValue<string>("name"),
                 ["retrievedAccountNumber"] = retrieved.GetAttributeValue<string>("accountnumber")
+            };
+        }
+    }
+
+    private static IDictionary<string, object> RunExecuteTransaction(string connectionString)
+    {
+        using (var client = OpenClient(connectionString))
+        {
+            var transaction = new ExecuteTransactionRequest
+            {
+                ReturnResponses = true,
+                Requests = new OrganizationRequestCollection()
+            };
+
+            transaction.Requests.Add(new CreateRequest
+            {
+                Target = CreateAccountEntity("Transactional Alpha", "TA-100")
+            });
+            transaction.Requests.Add(new CreateRequest
+            {
+                Target = CreateAccountEntity("Transactional Bravo", "TB-200")
+            });
+
+            var response = (ExecuteTransactionResponse)client.Execute(transaction);
+
+            var verifyQuery = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet("name"),
+                Criteria =
+                {
+                    Conditions =
+                    {
+                        new ConditionExpression("name", ConditionOperator.In, "Transactional Alpha", "Transactional Bravo")
+                    }
+                },
+                Orders =
+                {
+                    new OrderExpression("name", OrderType.Ascending)
+                }
+            };
+
+            var created = client.RetrieveMultiple(verifyQuery);
+
+            return new Dictionary<string, object>
+            {
+                ["responseCount"] = response.Responses.Count,
+                ["createdCount"] = created.Entities.Count,
+                ["createdNames"] = created.Entities.Select(entity => entity.GetAttributeValue<string>("name")).ToArray()
             };
         }
     }

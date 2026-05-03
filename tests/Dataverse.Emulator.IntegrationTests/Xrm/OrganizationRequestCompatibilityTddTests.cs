@@ -87,12 +87,71 @@ public sealed class OrganizationRequestCompatibilityTddTests
             () => context.OrganizationService.Execute(request));
 
         Assert.Contains("name", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(1, fault.Detail.ErrorDetails["DataverseEmulator.ExecuteTransaction.FaultedRequestIndex"]);
 
         var verifyQuery = new QueryExpression("account")
         {
             ColumnSet = new ColumnSet("name")
         };
         verifyQuery.Criteria.AddCondition("name", ConditionOperator.Equal, "Should Roll Back");
+
+        var created = context.OrganizationService.RetrieveMultiple(verifyQuery);
+
+        Assert.Empty(created.Entities);
+    }
+
+    [Fact]
+    public async Task ExecuteTransaction_With_Nested_Batch_Request_Faults_And_Rolls_Back_Earlier_Changes()
+    {
+        await using var context = await XrmProtocolTestContext.CreateAsync(
+            ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
+
+        var request = new ExecuteTransactionRequest
+        {
+            ReturnResponses = true,
+            Requests =
+            [
+                new CreateRequest
+                {
+                    Target = new Entity("account")
+                    {
+                        ["name"] = "Should Not Persist",
+                        ["accountnumber"] = "NB-100"
+                    }
+                },
+                new ExecuteMultipleRequest
+                {
+                    Settings = new ExecuteMultipleSettings
+                    {
+                        ContinueOnError = false,
+                        ReturnResponses = true
+                    },
+                    Requests =
+                    [
+                        new CreateRequest
+                        {
+                            Target = new Entity("account")
+                            {
+                                ["name"] = "Nested",
+                                ["accountnumber"] = "NB-200"
+                            }
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var fault = Assert.Throws<FaultException<OrganizationServiceFault>>(
+            () => context.OrganizationService.Execute(request));
+
+        Assert.Contains("ExecuteMultiple", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(1, fault.Detail.ErrorDetails["DataverseEmulator.ExecuteTransaction.FaultedRequestIndex"]);
+
+        var verifyQuery = new QueryExpression("account")
+        {
+            ColumnSet = new ColumnSet("name")
+        };
+        verifyQuery.Criteria.AddCondition("name", ConditionOperator.Equal, "Should Not Persist");
 
         var created = context.OrganizationService.RetrieveMultiple(verifyQuery);
 
@@ -159,5 +218,94 @@ public sealed class OrganizationRequestCompatibilityTddTests
         Assert.Contains(
             account.OneToManyRelationships,
             relationship => relationship.SchemaName == "contact_customer_accounts");
+    }
+
+    [Fact]
+    public async Task RetrieveMetadataChanges_With_Unsupported_Metadata_Selectors_Faults_Clearly()
+    {
+        await using var context = await XrmProtocolTestContext.CreateAsync(
+            ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
+
+        var criteria = new MetadataFilterExpression(LogicalOperator.And);
+        criteria.Conditions.Add(new MetadataConditionExpression("IsIntersect", MetadataConditionOperator.Equals, false));
+
+        var request = new RetrieveMetadataChangesRequest
+        {
+            Query = new EntityQueryExpression
+            {
+                Criteria = criteria,
+                Properties = new MetadataPropertiesExpression("LogicalName")
+            },
+            DeletedMetadataFilters = DeletedMetadataFilters.Default
+        };
+
+        var fault = Assert.Throws<FaultException<OrganizationServiceFault>>(
+            () => context.OrganizationService.Execute(request));
+
+        Assert.Contains("metadata property 'IsIntersect'", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task RetrieveMetadataChanges_With_Unsupported_Attribute_Query_Criteria_Faults_Clearly()
+    {
+        await using var context = await XrmProtocolTestContext.CreateAsync(
+            ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
+
+        var request = new RetrieveMetadataChangesRequest
+        {
+            Query = new EntityQueryExpression
+            {
+                Properties = new MetadataPropertiesExpression("LogicalName"),
+                AttributeQuery = new AttributeQueryExpression
+                {
+                    Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                    {
+                        Conditions =
+                        {
+                            new MetadataConditionExpression("LogicalName", MetadataConditionOperator.Equals, "name")
+                        }
+                    },
+                    Properties = new MetadataPropertiesExpression("LogicalName")
+                }
+            },
+            DeletedMetadataFilters = DeletedMetadataFilters.Default
+        };
+
+        var fault = Assert.Throws<FaultException<OrganizationServiceFault>>(
+            () => context.OrganizationService.Execute(request));
+
+        Assert.Contains("AttributeQuery.Criteria", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task RetrieveMetadataChanges_With_Unsupported_Relationship_Query_Criteria_Faults_Clearly()
+    {
+        await using var context = await XrmProtocolTestContext.CreateAsync(
+            ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
+
+        var request = new RetrieveMetadataChangesRequest
+        {
+            Query = new EntityQueryExpression
+            {
+                Properties = new MetadataPropertiesExpression("LogicalName"),
+                RelationshipQuery = new RelationshipQueryExpression
+                {
+                    Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                    {
+                        Conditions =
+                        {
+                            new MetadataConditionExpression("SchemaName", MetadataConditionOperator.Equals, "contact_customer_accounts")
+                        }
+                    },
+                    Properties = new MetadataPropertiesExpression("SchemaName")
+                }
+            },
+            DeletedMetadataFilters = DeletedMetadataFilters.Default
+        };
+
+        var fault = Assert.Throws<FaultException<OrganizationServiceFault>>(
+            () => context.OrganizationService.Execute(request));
+
+        Assert.Contains("RelationshipQuery.Criteria", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
     }
 }

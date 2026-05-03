@@ -57,9 +57,11 @@ public static class DataverseXrmProtocolExtensions
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveInstalledLanguagePacksXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveOrganizationInfoXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, ExecuteMultipleXrmRequestHandler>();
+        services.AddScoped<IXrmOrganizationRequestHandler, ExecuteTransactionXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, AssociateXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, DisassociateXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveEntityMetadataXrmRequestHandler>();
+        services.AddScoped<IXrmOrganizationRequestHandler, RetrieveMetadataChangesXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveAttributeXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveAllEntitiesXrmRequestHandler>();
         services.AddScoped<IXrmOrganizationRequestHandler, RetrieveRelationshipXrmRequestHandler>();

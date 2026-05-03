@@ -121,6 +121,17 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
     }
 
     [Fact]
+    public async Task CrmServiceClient_ExecuteTransaction_Commits_Supported_Request_Slices_Atomically()
+    {
+        await fixture.ResetAsync();
+        var result = await fixture.RunCrmHarnessAsync("execute-transaction");
+
+        Assert.Equal(2, result.GetProperty("responseCount").GetInt32());
+        Assert.Equal(2, result.GetProperty("createdCount").GetInt32());
+        Assert.Equal(["Transactional Alpha", "Transactional Bravo"], result.ReadStringArray("createdNames"));
+    }
+
+    [Fact]
     public async Task CrmServiceClient_UpsertRequest_Composes_Create_And_Update_Flow()
     {
         await fixture.ResetAsync();

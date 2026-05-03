@@ -1,4 +1,4 @@
-using System.ServiceModel;
+using CoreWCF;
 using Dataverse.Emulator.Protocols.Common;
 using Dataverse.Emulator.Protocols.Xrm.Execution;
 using Microsoft.Extensions.DependencyInjection;

@@ -2,6 +2,7 @@ using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Metadata.Query;
 using Microsoft.Xrm.Sdk.Organization;
 using Microsoft.Xrm.Sdk.Query;
 using System.Reflection;
@@ -23,7 +24,9 @@ internal static class DataverseXrmKnownTypes
             typeof(OrganizationRequest),
             typeof(OrganizationRequestCollection),
             typeof(OrganizationResponse),
+            typeof(OrganizationResponseCollection),
             typeof(OrganizationServiceFault),
+            typeof(ExecuteTransactionFault),
             typeof(ExecuteMultipleSettings),
             typeof(ExecuteMultipleResponseItem),
             typeof(ExecuteMultipleResponseItemCollection),
@@ -62,6 +65,7 @@ internal static class DataverseXrmKnownTypes
             typeof(EntityMetadata),
             typeof(OneToManyRelationshipMetadata),
             typeof(RelationshipMetadataBase),
+            typeof(EntityMetadataCollection),
             typeof(StringAttributeMetadata),
             typeof(BooleanAttributeMetadata),
             typeof(DateTimeAttributeMetadata),
@@ -73,7 +77,14 @@ internal static class DataverseXrmKnownTypes
             typeof(CascadeConfiguration),
             typeof(OptionMetadata),
             typeof(BooleanOptionSetMetadata),
-            typeof(AttributeRequiredLevelManagedProperty)
+            typeof(AttributeRequiredLevelManagedProperty),
+            typeof(MetadataFilterExpression),
+            typeof(MetadataConditionExpression),
+            typeof(MetadataPropertiesExpression),
+            typeof(EntityQueryExpression),
+            typeof(AttributeQueryExpression),
+            typeof(RelationshipQueryExpression),
+            typeof(LabelQueryExpression)
         };
 
         var assemblies = new[]

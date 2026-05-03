@@ -211,6 +211,20 @@ public abstract class InMemoryRepository<T> : IRepository<T>
 
     protected IReadOnlyCollection<T> Snapshot() => entities.Values.ToArray();
 
+    internal IReadOnlyCollection<T> CaptureEntities()
+        => Snapshot();
+
+    internal void ReplaceAll(IEnumerable<T> entities)
+    {
+        ArgumentNullException.ThrowIfNull(entities);
+
+        this.entities.Clear();
+        foreach (var entity in entities)
+        {
+            this.entities[GetStorageKey(entity)] = entity;
+        }
+    }
+
     protected abstract string GetStorageKey(T entity);
 
     protected abstract bool MatchesId<TId>(T entity, TId id);

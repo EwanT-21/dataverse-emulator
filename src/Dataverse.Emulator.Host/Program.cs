@@ -263,7 +263,3 @@ public sealed record EmulatorAdminErrorDescriptor(
 public sealed record EmulatorAdminErrorItem(
     string Code,
     string Description);
-
-public partial class Program
-{
-}

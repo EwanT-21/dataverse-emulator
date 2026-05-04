@@ -22,15 +22,19 @@ The project is intentionally demand-driven. It aims to unblock real local develo
 
 ## Quickstart
 
-Requirements: .NET 10 SDK.
+Run the emulator from the published container image (Docker required, no .NET SDK needed on the host):
 
-Run the emulator standalone with the default seed (`account` + `contact` + `contact_customer_accounts` lookup):
+```bash
+docker run --rm -p 8080:8080 ghcr.io/ewant-21/dataverse-emulator-host:latest
+```
+
+Or run from source with the default seed (`account` + `contact` + `contact_customer_accounts` lookup, .NET 10 SDK required):
 
 ```bash
 dotnet run --project src/Dataverse.Emulator.AppHost
 ```
 
-The Aspire dashboard prints the bound port. The Xrm/SOAP endpoint is at `http://localhost:{port}/org` and the Web API at `http://localhost:{port}/api/data/v9.2/`.
+In container mode the Xrm/SOAP endpoint is at `http://localhost:8080/org` and the Web API at `http://localhost:8080/api/data/v9.2/`. Under Aspire the dashboard prints the bound port.
 
 Wire the emulator into your own Aspire AppHost:
 

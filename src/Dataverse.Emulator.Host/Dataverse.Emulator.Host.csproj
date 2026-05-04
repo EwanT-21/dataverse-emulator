@@ -14,4 +14,8 @@
     <AssemblyName>Dataverse.Emulator.Host</AssemblyName>
     <RootNamespace>Dataverse.Emulator.Host</RootNamespace>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <ContainerRepository>dataverse-emulator-host</ContainerRepository>
+  </PropertyGroup>
 </Project>

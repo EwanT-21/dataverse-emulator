@@ -20,6 +20,43 @@ The project is intentionally demand-driven. It aims to unblock real local develo
 - Silent approximation of unsupported platform behavior.
 - Durable production-style persistence in the current phase.
 
+## Quickstart
+
+Requirements: .NET 10 SDK.
+
+Run the emulator standalone with the default seed (`account` + `contact` + `contact_customer_accounts` lookup):
+
+```bash
+dotnet run --project src/Dataverse.Emulator.AppHost
+```
+
+The Aspire dashboard prints the bound port. The Xrm/SOAP endpoint is at `http://localhost:{port}/org` and the Web API at `http://localhost:{port}/api/data/v9.2/`.
+
+Wire the emulator into your own Aspire AppHost:
+
+```csharp
+var builder = DistributedApplication.CreateBuilder(args);
+
+var dataverse = builder.AddDataverseEmulator();
+
+builder.AddProject<Projects.MyApp>("my-app")
+    .WithDataverseConnectionString(dataverse, "CrmConnectionString");
+
+builder.Build().Run();
+```
+
+Consume the generated connection string from a `CrmServiceClient` app exactly as you would today:
+
+```csharp
+var connectionString = Environment.GetEnvironmentVariable("CrmConnectionString");
+using var client = new CrmServiceClient(connectionString);
+
+var account = new Entity("account") { ["name"] = "Local Test" };
+var id = client.Create(account);
+```
+
+The emulator preserves the existing `CrmServiceClient` bootstrap path, so no app code changes are needed beyond pointing at the local connection string.
+
 ## Current Compatibility
 
 ### Seeded Scope
@@ -144,6 +181,22 @@ The emulator is intentionally narrow in the current phase:
 - broader `RetrieveMetadataChanges` selectors, metadata properties, and condition operators beyond the current bounded startup-oriented slice are explicitly unsupported
 - unsupported features are expected to fault clearly rather than degrade silently
 
+## Asking For Compatibility
+
+The emulator only adds compatibility for messages a real local workflow needs. The intended loop is:
+
+1. Run your app against the emulator. Unsupported requests fault clearly with an emulator-specific error code rather than degrading silently.
+2. Inspect what the app actually attempted:
+
+   ```bash
+   curl http://localhost:{port}/_emulator/v1/traces/xrm
+   ```
+
+   Each trace entry names the SDK message the emulator received and whether it was handled, refused, or unrecognized.
+3. Open an issue with the trace excerpt and a short description of the local workflow that needed the message. Concrete traces are weighted over speculative parity asks.
+
+This is the same loop the maintainers use to choose what lands next, and it is the fastest way to influence the roadmap.
+
 ## Architecture At A Glance
 
 - `src/Dataverse.Emulator.Domain`
@@ -216,12 +269,35 @@ var app = builder.Build();
 app.Run();
 ```
 
-Snapshot-backed startup:
+Custom seed state via snapshot:
+
+The two built-in scenarios are `default-seed` (the seeded `account` + `contact` model) and `empty`. To start from any other shape, build it once and replay it from a snapshot file.
+
+```bash
+# 1. start the emulator with the default scenario
+dotnet run --project src/Dataverse.Emulator.AppHost
+
+# 2. mutate the in-memory state from your app, scripts, or Web API directly
+
+# 3. export the resulting state to a JSON snapshot file
+curl http://localhost:{port}/_emulator/v1/snapshot > seed.json
+```
+
+Commit `seed.json` next to the AppHost project, mark it as copied to output, and replay it on every startup:
+
+```xml
+<!-- in your AppHost .csproj -->
+<ItemGroup>
+  <None Update="seed.json" CopyToOutputDirectory="PreserveNewest" />
+</ItemGroup>
+```
 
 ```csharp
 var dataverse = builder.AddDataverseEmulator()
-    .WithSnapshotFile(@"C:\snapshots\baseline.json");
+    .WithSnapshotFile(Path.Combine(AppContext.BaseDirectory, "seed.json"));
 ```
+
+The same file format is accepted by `POST /_emulator/v1/snapshot` for runtime resets. This keeps custom seed shapes outside the project's code surface while still giving consuming repos a deterministic baseline.
 
 Telemetry configuration:
 

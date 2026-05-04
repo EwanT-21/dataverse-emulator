@@ -210,16 +210,10 @@ internal static class DataverseXrmMetadataMapper
     }
 
     private static bool IncludesAttributes(EntityFilters filters)
-        => filters == EntityFilters.All
-            || filters == EntityFilters.Attributes
-            || filters == (EntityFilters.Entity | EntityFilters.Attributes)
-            || filters == (EntityFilters.Default | EntityFilters.Attributes);
+        => (filters & EntityFilters.Attributes) == EntityFilters.Attributes;
 
     private static bool IncludesRelationships(EntityFilters filters)
-        => filters == EntityFilters.All
-            || filters == EntityFilters.Relationships
-            || filters == (EntityFilters.Entity | EntityFilters.Relationships)
-            || filters == (EntityFilters.Default | EntityFilters.Relationships);
+        => (filters & EntityFilters.Relationships) == EntityFilters.Relationships;
 
     private static Label CreateLabel(string value)
         => new(value, DefaultLanguageCode);

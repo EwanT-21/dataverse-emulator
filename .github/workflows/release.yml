@@ -55,5 +55,5 @@ jobs:
           -t:PublishContainer
           -p:ContainerRegistry=ghcr.io
           -p:ContainerRepository=${{ steps.namespace.outputs.namespace }}/dataverse-emulator-host
-          -p:ContainerImageTags="${{ env.IMAGE_TAG }};latest"
-          -p:ContainerRuntimeIdentifiers="linux-x64;linux-arm64"
+          '-p:ContainerImageTags="${{ env.IMAGE_TAG }};latest"'
+          '-p:ContainerRuntimeIdentifiers="linux-x64;linux-arm64"'

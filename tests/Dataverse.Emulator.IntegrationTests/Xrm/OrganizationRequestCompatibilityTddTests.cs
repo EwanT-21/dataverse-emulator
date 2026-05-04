@@ -246,6 +246,44 @@ public sealed class OrganizationRequestCompatibilityTddTests
     }
 
     [Fact]
+    public async Task RetrieveMetadataChanges_Can_Filter_Entities_With_Broader_Metadata_Properties_And_Nested_Criteria()
+    {
+        await using var context = await XrmProtocolTestContext.CreateAsync(
+            ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
+
+        var request = new RetrieveMetadataChangesRequest
+        {
+            Query = new EntityQueryExpression
+            {
+                Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                {
+                    Conditions =
+                    {
+                        new MetadataConditionExpression("ObjectTypeCode", MetadataConditionOperator.GreaterThan, 1)
+                    },
+                    Filters =
+                    {
+                        new MetadataFilterExpression(LogicalOperator.Or)
+                        {
+                            Conditions =
+                            {
+                                new MetadataConditionExpression("DisplayName", MetadataConditionOperator.Equals, "Account"),
+                                new MetadataConditionExpression("SchemaName", MetadataConditionOperator.Equals, "Contact")
+                            }
+                        }
+                    }
+                },
+                Properties = new MetadataPropertiesExpression("LogicalName", "SchemaName", "DisplayName", "ObjectTypeCode")
+            },
+            DeletedMetadataFilters = DeletedMetadataFilters.Default
+        };
+
+        var response = (RetrieveMetadataChangesResponse)context.OrganizationService.Execute(request);
+
+        Assert.Equal(["contact"], response.EntityMetadata.Select(entity => entity.LogicalName).ToArray());
+    }
+
+    [Fact]
     public async Task RetrieveMetadataChanges_Can_Filter_Attributes_With_Bounded_Attribute_Query_Criteria()
     {
         await using var context = await XrmProtocolTestContext.CreateAsync(
@@ -282,6 +320,48 @@ public sealed class OrganizationRequestCompatibilityTddTests
         var account = response.EntityMetadata.Single(entity => entity.LogicalName == "account");
 
         Assert.Equal(["name"], account.Attributes.Select(attribute => attribute.LogicalName).ToArray());
+    }
+
+    [Fact]
+    public async Task RetrieveMetadataChanges_Can_Filter_Attributes_By_DisplayName()
+    {
+        await using var context = await XrmProtocolTestContext.CreateAsync(
+            ProtocolTestMetadataFactory.CreateDefaultXrmScenario());
+
+        var request = new RetrieveMetadataChangesRequest
+        {
+            Query = new EntityQueryExpression
+            {
+                Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                {
+                    Conditions =
+                    {
+                        new MetadataConditionExpression("LogicalName", MetadataConditionOperator.Equals, "account")
+                    }
+                },
+                Properties = new MetadataPropertiesExpression("LogicalName"),
+                AttributeQuery = new AttributeQueryExpression
+                {
+                    Criteria = new MetadataFilterExpression(LogicalOperator.And)
+                    {
+                        Conditions =
+                        {
+                            new MetadataConditionExpression(
+                                "DisplayName",
+                                MetadataConditionOperator.In,
+                                new[] { "Name", "Accountnumber" })
+                        }
+                    },
+                    Properties = new MetadataPropertiesExpression("LogicalName", "DisplayName")
+                }
+            },
+            DeletedMetadataFilters = DeletedMetadataFilters.Default
+        };
+
+        var response = (RetrieveMetadataChangesResponse)context.OrganizationService.Execute(request);
+        var account = response.EntityMetadata.Single(entity => entity.LogicalName == "account");
+
+        Assert.Equal(["name", "accountnumber"], account.Attributes.Select(attribute => attribute.LogicalName).ToArray());
     }
 
     [Fact]
@@ -342,7 +422,7 @@ public sealed class OrganizationRequestCompatibilityTddTests
                     {
                         Conditions =
                         {
-                            new MetadataConditionExpression("DisplayName", MetadataConditionOperator.Equals, "Name")
+                            new MetadataConditionExpression("AttributeTypeName", MetadataConditionOperator.Equals, "String")
                         }
                     },
                     Properties = new MetadataPropertiesExpression("LogicalName")
@@ -354,7 +434,7 @@ public sealed class OrganizationRequestCompatibilityTddTests
         var fault = Assert.Throws<FaultException<OrganizationServiceFault>>(
             () => context.OrganizationService.Execute(request));
 
-        Assert.Contains("attribute metadata property 'DisplayName'", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("attribute metadata property 'AttributeTypeName'", fault.Detail.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

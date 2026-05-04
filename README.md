@@ -100,7 +100,8 @@ Supported query breadth:
   - ordering, top, and paging
 - `FetchExpression`
   - one-table queries over the seeded tables
-  - bounded `link-entity` projection across the seeded relational slice
+  - bounded `link-entity` projection, filtering, and ordering across the seeded relational slice
+  - root `entityname` filters and ordering over linked aliases where they still converge on the shared linked-query model
   - nested filters, ordering, and paging through the shared query engine
 
 ### Secondary Web API Surface
@@ -138,7 +139,7 @@ The emulator is intentionally narrow in the current phase:
 - the seeded `account` / `contact` model is the primary compatibility slice
 - metadata breadth is bounded to the current seeded model and the currently supported startup-oriented requests
 - `QueryExpression` does not implement aggregates, `Distinct`, or total-count paging
-- `FetchExpression` does not implement aggregates, `distinct`, attribute aliases, or `link-entity` filters and ordering
+- `FetchExpression` does not implement aggregates, `distinct`, attribute aliases, `valueof` conditions, or broader `link-entity` shapes beyond the current bounded shared linked-query slice
 - alternate-key upsert is explicitly unsupported
 - broader `RetrieveMetadataChanges` selectors, metadata properties, and condition operators beyond the current bounded startup-oriented slice are explicitly unsupported
 - unsupported features are expected to fault clearly rather than degrade silently

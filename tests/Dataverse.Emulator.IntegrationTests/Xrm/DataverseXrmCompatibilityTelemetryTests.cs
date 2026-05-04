@@ -69,7 +69,7 @@ public sealed class DataverseXrmCompatibilityTelemetryTests
                     {
                         Conditions =
                         {
-                            new MetadataConditionExpression("DisplayName", MetadataConditionOperator.Equals, "Name")
+                            new MetadataConditionExpression("AttributeTypeName", MetadataConditionOperator.Equals, "String")
                         }
                     },
                     Properties = new MetadataPropertiesExpression("LogicalName")
@@ -84,10 +84,10 @@ public sealed class DataverseXrmCompatibilityTelemetryTests
                 context.OrganizationService.Execute(request);
             });
 
-        Assert.Contains("DisplayName", fault.Detail.Message, StringComparison.Ordinal);
+        Assert.Contains("AttributeTypeName", fault.Detail.Message, StringComparison.Ordinal);
         var compatibilityEvent = Assert.Single(collector.Events);
         Assert.Equal("metadata-attribute-property", compatibilityEvent.CapabilityKind);
-        Assert.Equal("DisplayName", compatibilityEvent.CapabilityKey);
+        Assert.Equal("AttributeTypeName", compatibilityEvent.CapabilityKey);
     }
 
     [Theory]

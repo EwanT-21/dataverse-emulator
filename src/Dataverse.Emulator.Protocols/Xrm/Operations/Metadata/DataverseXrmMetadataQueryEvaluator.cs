@@ -179,6 +179,12 @@ internal static class DataverseXrmMetadataQueryEvaluator
             MetadataConditionOperator.NotEquals => candidates.All(value => !DataverseXrmMetadataConditionValues.ValuesEqual(propertyValueResult.Value, value)),
             MetadataConditionOperator.In => candidates.Any(value => DataverseXrmMetadataConditionValues.ValuesEqual(propertyValueResult.Value, value)),
             MetadataConditionOperator.NotIn => candidates.All(value => !DataverseXrmMetadataConditionValues.ValuesEqual(propertyValueResult.Value, value)),
+            MetadataConditionOperator.GreaterThan => candidates.Any(value =>
+                DataverseXrmMetadataConditionValues.TryCompare(propertyValueResult.Value, value, out var comparison)
+                && comparison > 0),
+            MetadataConditionOperator.LessThan => candidates.Any(value =>
+                DataverseXrmMetadataConditionValues.TryCompare(propertyValueResult.Value, value, out var comparison)
+                && comparison < 0),
             _ => DataverseXrmErrors.UnsupportedOperation(
                 $"RetrieveMetadataChanges metadata condition operator '{condition.ConditionOperator}'")
         };

@@ -135,18 +135,6 @@ internal static class DataverseXrmFetchExpressionTranslator
             return pageResult.Errors;
         }
 
-        var ordersResult = TranslateOrders(entityElement);
-        if (ordersResult.IsError)
-        {
-            return ordersResult.Errors;
-        }
-
-        var filterResult = TranslateFilters(entityElement, table);
-        if (filterResult.IsError)
-        {
-            return filterResult.Errors;
-        }
-
         var rawJoins = new List<RawLinkedFetchJoin>();
         foreach (var linkEntityElement in entityElement.Elements()
                      .Where(element => element.Name.LocalName.Equals("link-entity", StringComparison.OrdinalIgnoreCase)))
@@ -161,6 +149,34 @@ internal static class DataverseXrmFetchExpressionTranslator
             {
                 return joinResult.Errors;
             }
+        }
+
+        var scopeRegistryResult = BuildLinkedScopeRegistry(
+            entityNameResult.Value,
+            table,
+            rawJoins,
+            linkedTables);
+        if (scopeRegistryResult.IsError)
+        {
+            return scopeRegistryResult.Errors;
+        }
+
+        var filterResult = TranslateLinkedFilters(
+            entityElement,
+            entityNameResult.Value,
+            scopeRegistryResult.Value);
+        if (filterResult.IsError)
+        {
+            return filterResult.Errors;
+        }
+
+        var ordersResult = TranslateLinkedOrders(
+            entityElement,
+            entityNameResult.Value,
+            scopeRegistryResult.Value);
+        if (ordersResult.IsError)
+        {
+            return ordersResult.Errors;
         }
 
         var linkedSorts = new List<LinkedRecordSort>();
@@ -185,8 +201,8 @@ internal static class DataverseXrmFetchExpressionTranslator
                 entityNameResult.Value,
                 selectedColumnsResult.Value,
                 joinsList.ToArray(),
-                ToLinkedFilter(filterResult.Value, entityNameResult.Value),
-                ToLinkedSorts(ordersResult.Value, entityNameResult.Value).Concat(linkedSorts).ToArray(),
+                filterResult.Value,
+                ordersResult.Value.Concat(linkedSorts).ToArray(),
                 topResult.Value,
                 pageResult.Value.PageRequest,
                 pageResult.Value.CurrentPageNumber),
@@ -405,6 +421,52 @@ internal static class DataverseXrmFetchExpressionTranslator
         return orders;
     }
 
+    private static ErrorOr<IReadOnlyList<LinkedRecordSort>> TranslateLinkedOrders(
+        XElement entityElement,
+        string defaultScopeName,
+        IReadOnlyDictionary<string, FetchLinkedScope> scopeRegistry)
+    {
+        var orders = new List<LinkedRecordSort>();
+
+        foreach (var orderElement in entityElement.Elements().Where(element => element.Name.LocalName.Equals("order", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (orderElement.Attribute("alias") is not null)
+            {
+                return DataverseXrmErrors.UnsupportedFetchXmlFeature("order alias");
+            }
+
+            var scopeResult = ResolveLinkedScope(
+                orderElement.Attribute("entityname")?.Value,
+                defaultScopeName,
+                scopeRegistry);
+            if (scopeResult.IsError)
+            {
+                return scopeResult.Errors;
+            }
+
+            var attributeName = orderElement.Attribute("attribute")?.Value;
+            if (string.IsNullOrWhiteSpace(attributeName))
+            {
+                return DataverseXrmErrors.InvalidFetchXml("FetchXML <order> elements require a non-empty 'attribute' attribute.");
+            }
+
+            var descendingResult = TryParseOptionalBoolean(orderElement.Attribute("descending")?.Value);
+            if (descendingResult.IsError)
+            {
+                return descendingResult.Errors;
+            }
+
+            orders.Add(new LinkedRecordSort(
+                scopeResult.Value.RuntimeScopeName,
+                attributeName,
+                descendingResult.Value
+                    ? SortDirection.Descending
+                    : SortDirection.Ascending));
+        }
+
+        return orders;
+    }
+
     private static ErrorOr<QueryFilter?> TranslateFilters(
         XElement entityElement,
         TableDefinition table)
@@ -447,6 +509,48 @@ internal static class DataverseXrmFetchExpressionTranslator
         return rootFilterResult.IsError
             ? rootFilterResult.Errors
             : (QueryFilter?)rootFilterResult.Value;
+    }
+
+    private static ErrorOr<LinkedRecordFilter?> TranslateLinkedFilters(
+        XElement entityElement,
+        string defaultScopeName,
+        IReadOnlyDictionary<string, FetchLinkedScope> scopeRegistry)
+    {
+        var filterElements = entityElement.Elements()
+            .Where(element => element.Name.LocalName.Equals("filter", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        if (filterElements.Length == 0)
+        {
+            return (LinkedRecordFilter?)null;
+        }
+
+        if (filterElements.Length == 1)
+        {
+            return TranslateLinkedFilter(filterElements[0], defaultScopeName, scopeRegistry);
+        }
+
+        var childFilters = new List<LinkedRecordFilter>();
+        foreach (var filterElement in filterElements)
+        {
+            var childFilterResult = TranslateLinkedFilter(filterElement, defaultScopeName, scopeRegistry);
+            if (childFilterResult.IsError)
+            {
+                return childFilterResult.Errors;
+            }
+
+            if (childFilterResult.Value is not null)
+            {
+                childFilters.Add(childFilterResult.Value);
+            }
+        }
+
+        if (childFilters.Count == 0)
+        {
+            return (LinkedRecordFilter?)null;
+        }
+
+        return new LinkedRecordFilter(QueryFilterOperator.And, Array.Empty<LinkedRecordCondition>(), childFilters);
     }
 
     private static ErrorOr<QueryFilter?> TranslateFilter(
@@ -512,6 +616,67 @@ internal static class DataverseXrmFetchExpressionTranslator
             : (QueryFilter?)filterResult.Value;
     }
 
+    private static ErrorOr<LinkedRecordFilter?> TranslateLinkedFilter(
+        XElement filterElement,
+        string defaultScopeName,
+        IReadOnlyDictionary<string, FetchLinkedScope> scopeRegistry)
+    {
+        var filterType = filterElement.Attribute("type")?.Value;
+        var filterOperator = string.Equals(filterType, "or", StringComparison.OrdinalIgnoreCase)
+            ? QueryFilterOperator.Or
+            : QueryFilterOperator.And;
+
+        if (!string.IsNullOrWhiteSpace(filterType)
+            && !string.Equals(filterType, "and", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(filterType, "or", StringComparison.OrdinalIgnoreCase))
+        {
+            return DataverseXrmErrors.InvalidFetchXml($"FetchXML filter type '{filterType}' is not supported.");
+        }
+
+        var conditions = new List<LinkedRecordCondition>();
+        var childFilters = new List<LinkedRecordFilter>();
+
+        foreach (var childElement in filterElement.Elements())
+        {
+            if (childElement.Name.LocalName.Equals("condition", StringComparison.OrdinalIgnoreCase))
+            {
+                var conditionResult = TranslateLinkedCondition(childElement, defaultScopeName, scopeRegistry);
+                if (conditionResult.IsError)
+                {
+                    return conditionResult.Errors;
+                }
+
+                conditions.Add(conditionResult.Value);
+                continue;
+            }
+
+            if (childElement.Name.LocalName.Equals("filter", StringComparison.OrdinalIgnoreCase))
+            {
+                var childFilterResult = TranslateLinkedFilter(childElement, defaultScopeName, scopeRegistry);
+                if (childFilterResult.IsError)
+                {
+                    return childFilterResult.Errors;
+                }
+
+                if (childFilterResult.Value is not null)
+                {
+                    childFilters.Add(childFilterResult.Value);
+                }
+
+                continue;
+            }
+
+            return DataverseXrmErrors.UnsupportedFetchXmlFeature($"filter child '{childElement.Name.LocalName}'");
+        }
+
+        if (conditions.Count == 0 && childFilters.Count == 0)
+        {
+            return (LinkedRecordFilter?)null;
+        }
+
+        return new LinkedRecordFilter(filterOperator, conditions, childFilters);
+    }
+
     private static ErrorOr<QueryCondition> TranslateCondition(
         XElement conditionElement,
         TableDefinition table)
@@ -551,6 +716,56 @@ internal static class DataverseXrmFetchExpressionTranslator
         }
 
         return QueryCondition.Create(attributeName, operatorResult.Value, valuesResult.Value);
+    }
+
+    private static ErrorOr<LinkedRecordCondition> TranslateLinkedCondition(
+        XElement conditionElement,
+        string defaultScopeName,
+        IReadOnlyDictionary<string, FetchLinkedScope> scopeRegistry)
+    {
+        if (conditionElement.Attribute("valueof") is not null)
+        {
+            return DataverseXrmErrors.UnsupportedFetchXmlFeature("valueof conditions");
+        }
+
+        var scopeResult = ResolveLinkedScope(
+            conditionElement.Attribute("entityname")?.Value,
+            defaultScopeName,
+            scopeRegistry);
+        if (scopeResult.IsError)
+        {
+            return scopeResult.Errors;
+        }
+
+        var attributeName = conditionElement.Attribute("attribute")?.Value;
+        if (string.IsNullOrWhiteSpace(attributeName))
+        {
+            return DataverseXrmErrors.InvalidFetchXml("FetchXML <condition> elements require a non-empty 'attribute' attribute.");
+        }
+
+        var column = scopeResult.Value.Table.FindColumn(attributeName);
+        if (column is null)
+        {
+            return DomainErrors.UnknownColumn(scopeResult.Value.Table.LogicalName, attributeName);
+        }
+
+        var operatorResult = TranslateConditionOperator(conditionElement.Attribute("operator")?.Value);
+        if (operatorResult.IsError)
+        {
+            return operatorResult.Errors;
+        }
+
+        var valuesResult = TranslateConditionValues(conditionElement, column, operatorResult.Value);
+        if (valuesResult.IsError)
+        {
+            return valuesResult.Errors;
+        }
+
+        return new LinkedRecordCondition(
+            scopeResult.Value.RuntimeScopeName,
+            attributeName,
+            operatorResult.Value,
+            valuesResult.Value);
     }
 
     private static ErrorOr<QueryConditionOperator> TranslateConditionOperator(string? @operator)
@@ -782,6 +997,79 @@ internal static class DataverseXrmFetchExpressionTranslator
             _ => bool.TryParse(value, out var boolean) && boolean
         };
 
+    private static ErrorOr<IReadOnlyDictionary<string, FetchLinkedScope>> BuildLinkedScopeRegistry(
+        string rootEntityName,
+        TableDefinition rootTable,
+        IReadOnlyList<RawLinkedFetchJoin> joins,
+        IReadOnlyDictionary<string, TableDefinition> linkedTables)
+    {
+        var scopeRegistry = new Dictionary<string, FetchLinkedScope>(StringComparer.OrdinalIgnoreCase)
+        {
+            [rootEntityName] = new(rootEntityName, rootTable)
+        };
+
+        foreach (var duplicateAlias in joins
+                     .GroupBy(join => join.Alias, StringComparer.OrdinalIgnoreCase)
+                     .Where(group => group.Count() > 1)
+                     .Select(group => group.Key))
+        {
+            return DomainErrors.Validation(
+                "Query.Scope.Duplicate",
+                $"Linked query scope '{duplicateAlias}' is defined more than once.");
+        }
+
+        foreach (var join in joins)
+        {
+            if (!linkedTables.TryGetValue(join.TableLogicalName, out var linkedTable))
+            {
+                return DataverseXrmErrors.InvalidFetchXml(
+                    $"No table definition was provided for link-entity '{join.TableLogicalName}'.");
+            }
+
+            if (scopeRegistry.ContainsKey(join.Alias))
+            {
+                return DomainErrors.Validation(
+                    "Query.Scope.Conflict",
+                    $"Linked query scope '{join.Alias}' conflicts with an existing scope.");
+            }
+
+            scopeRegistry[join.Alias] = new FetchLinkedScope(join.Alias, linkedTable);
+        }
+
+        foreach (var logicalNameGroup in joins.GroupBy(join => join.TableLogicalName, StringComparer.OrdinalIgnoreCase))
+        {
+            if (logicalNameGroup.Count() != 1)
+            {
+                continue;
+            }
+
+            var join = logicalNameGroup.Single();
+            if (!scopeRegistry.ContainsKey(join.TableLogicalName)
+                && linkedTables.TryGetValue(join.TableLogicalName, out var linkedTable))
+            {
+                scopeRegistry[join.TableLogicalName] = new FetchLinkedScope(join.Alias, linkedTable);
+            }
+        }
+
+        return scopeRegistry;
+    }
+
+    private static ErrorOr<FetchLinkedScope> ResolveLinkedScope(
+        string? scopeName,
+        string defaultScopeName,
+        IReadOnlyDictionary<string, FetchLinkedScope> scopeRegistry)
+    {
+        var resolvedName = string.IsNullOrWhiteSpace(scopeName)
+            ? defaultScopeName
+            : scopeName;
+
+        return scopeRegistry.TryGetValue(resolvedName, out var scope)
+            ? scope
+            : DomainErrors.Validation(
+                "Query.Scope.Unknown",
+                $"Linked query scope '{resolvedName}' does not exist.");
+    }
+
     private static ErrorOr<Success> BuildLinkedJoins(
         XElement linkEntityElement,
         string parentScopeName,
@@ -983,3 +1271,7 @@ internal sealed record RawLinkedFetchJoin(
     bool ReturnAllColumns,
     QueryFilter? Filter,
     IReadOnlyList<QuerySort> Orders);
+
+internal sealed record FetchLinkedScope(
+    string RuntimeScopeName,
+    TableDefinition Table);

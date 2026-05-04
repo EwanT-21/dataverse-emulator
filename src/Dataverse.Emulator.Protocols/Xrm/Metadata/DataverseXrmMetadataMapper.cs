@@ -250,7 +250,7 @@ internal static class DataverseXrmMetadataMapper
             new OptionMetadata(CreateLabel("Yes"), 1),
             new OptionMetadata(CreateLabel("No"), 0));
 
-    private static int ResolveObjectTypeCode(TableDefinition table)
+    internal static int ResolveObjectTypeCode(TableDefinition table)
         => table.LogicalName.Equals("account", StringComparison.OrdinalIgnoreCase)
             ? 1
             : Math.Abs(BitConverter.ToInt32(SHA256.HashData(Encoding.UTF8.GetBytes(table.LogicalName)), 0));
@@ -270,12 +270,12 @@ internal static class DataverseXrmMetadataMapper
         property?.SetValue(target, value);
     }
 
-    private static string ToSchemaName(string value)
+    internal static string ToSchemaName(string value)
         => string.Concat(
             value.Split(['_', ' '], StringSplitOptions.RemoveEmptyEntries)
                 .Select(segment => char.ToUpperInvariant(segment[0]) + segment[1..]));
 
-    private static string ToDisplayName(string value)
+    internal static string ToDisplayName(string value)
     {
         var normalized = value.Replace('_', ' ');
         var builder = new StringBuilder(normalized.Length * 2);

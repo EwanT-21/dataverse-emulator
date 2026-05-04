@@ -19,11 +19,18 @@ internal static class DataverseXrmMetadataPropertyResolvers
         return propertyName switch
         {
             "LogicalName" => table.LogicalName,
+            "SchemaName" => DataverseXrmMetadataMapper.ToSchemaName(table.LogicalName),
+            "CollectionSchemaName" => DataverseXrmMetadataMapper.ToSchemaName(table.EntitySetName),
+            "DisplayName" => DataverseXrmMetadataMapper.ToDisplayName(table.LogicalName),
+            "DisplayCollectionName" => DataverseXrmMetadataMapper.ToDisplayName(table.EntitySetName),
+            "Description" => $"Local emulator metadata for table '{table.LogicalName}'.",
             "PrimaryIdAttribute" => table.PrimaryIdAttribute,
             "PrimaryNameAttribute" => table.PrimaryNameAttribute,
             "LogicalCollectionName" => table.EntitySetName,
             "EntitySetName" => table.EntitySetName,
             "MetadataId" => DataverseXrmMetadataMapper.CreateTableMetadataId(table.LogicalName),
+            "ObjectTypeCode" => DataverseXrmMetadataMapper.ResolveObjectTypeCode(table),
+            "OwnershipType" => "UserOwned",
             _ => DataverseXrmErrors.UnsupportedOperation(
                 $"RetrieveMetadataChanges metadata property '{propertyName}'")
         };
@@ -44,13 +51,28 @@ internal static class DataverseXrmMetadataPropertyResolvers
         return propertyName switch
         {
             "LogicalName" => column.LogicalName,
-            "SchemaName" => ToSchemaName(column.LogicalName),
+            "SchemaName" => DataverseXrmMetadataMapper.ToSchemaName(column.LogicalName),
+            "DisplayName" => DataverseXrmMetadataMapper.ToDisplayName(column.LogicalName),
+            "Description" => $"Local emulator metadata for column '{column.LogicalName}'.",
             "MetadataId" => DataverseXrmMetadataMapper.CreateColumnMetadataId(table.LogicalName, column.LogicalName),
             "EntityLogicalName" => table.LogicalName,
             "AttributeType" => column.AttributeType.Name,
             "RequiredLevel" => column.RequiredLevel.Name,
             "IsPrimaryId" => column.IsPrimaryId,
             "IsPrimaryName" => column.IsPrimaryName,
+            "IsCustomAttribute" => false,
+            "IsManaged" => false,
+            "IsLogical" => false,
+            "IsRetrievable" => true,
+            "IsValidForRead" => true,
+            "IsValidForCreate" => !column.IsPrimaryId,
+            "IsValidForUpdate" => !column.IsPrimaryId,
+            "IsValidForForm" => true,
+            "IsValidForGrid" => true,
+            "IsFilterable" => true,
+            "IsSearchable" => column.AttributeType == AttributeType.String,
+            "IsSecured" => false,
+            "IsRequiredForForm" => column.RequiredLevel != RequiredLevel.None,
             _ => DataverseXrmErrors.UnsupportedOperation(
                 $"RetrieveMetadataChanges attribute metadata property '{propertyName}'")
         };
@@ -73,13 +95,11 @@ internal static class DataverseXrmMetadataPropertyResolvers
             "ReferencedAttribute" => relationship.ReferencedAttributeLogicalName,
             "ReferencingEntity" => relationship.ReferencingTableLogicalName,
             "ReferencingAttribute" => relationship.ReferencingAttributeLogicalName,
+            "IsCustomRelationship" => false,
+            "IsManaged" => false,
+            "IsHierarchical" => false,
             _ => DataverseXrmErrors.UnsupportedOperation(
                 $"RetrieveMetadataChanges relationship metadata property '{propertyName}'")
         };
     }
-
-    private static string ToSchemaName(string value)
-        => string.Concat(
-            value.Split(['_', ' '], StringSplitOptions.RemoveEmptyEntries)
-                .Select(segment => char.ToUpperInvariant(segment[0]) + segment[1..]));
 }

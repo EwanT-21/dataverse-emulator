@@ -8,7 +8,7 @@ namespace Dataverse.Emulator.AspireTests;
 public sealed class LocalWorkflowAspireTests(DataverseEmulatorFixture fixture)
     : IClassFixture<DataverseEmulatorFixture>
 {
-    [Fact]
+    [WindowsOnlyFact]
     public async Task Reset_Restores_Default_Seed_State()
     {
         await fixture.ResetAsync();
@@ -104,7 +104,7 @@ public sealed class LocalWorkflowAspireTests(DataverseEmulatorFixture fixture)
         Assert.Equal(accountId, restoredContacts.GetProperty("value")[0].GetProperty("parentcustomerid").GetGuid());
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task Xrm_Traces_Capture_Supported_And_Unsupported_Request_Flows()
     {
         await fixture.ResetAsync();

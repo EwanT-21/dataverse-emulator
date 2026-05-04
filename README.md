@@ -126,10 +126,10 @@ Supported query breadth:
 
 ### Optional Compatibility Telemetry
 
-- If `DATAVERSE_EMULATOR_TELEMETRY_ENDPOINT` is configured, the host can emit sanitized unsupported-capability telemetry.
+- Compatibility telemetry is disabled by default. Configure `DATAVERSE_EMULATOR_TELEMETRY_ENDPOINT` (or call `WithCompatibilityTelemetryEndpoint(...)` from the AppHost) to opt in; both the endpoint and the enable flag must be set for delivery.
 - Events are intentionally narrow: protocol, source, emulator error code, capability kind, capability key, timestamp, emulator version, and runtime version.
 - Request payloads, record data, entity IDs, connection strings, raw trace messages, and raw custom request names are not sent.
-- Set `DATAVERSE_EMULATOR_TELEMETRY_ENABLED=false` to disable delivery explicitly.
+- Set `DATAVERSE_EMULATOR_TELEMETRY_ENABLED=false` to override and disable delivery even when an endpoint is configured.
 
 ## Intentional Limits
 

@@ -3,7 +3,7 @@ namespace Dataverse.Emulator.AspireTests;
 public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixture fixture)
     : IClassFixture<DataverseEmulatorFixture>
 {
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_Crud_And_QueryExpression_Flow_Works()
     {
         await fixture.ResetAsync();
@@ -16,7 +16,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.False(result.GetProperty("moreRecords").GetBoolean());
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_QueryExpression_Paging_RoundTrips()
     {
         await fixture.ResetAsync();
@@ -30,7 +30,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Equal(1, result.GetProperty("secondPageCount").GetInt32());
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_Advanced_QueryExpression_Filters_RoundTrip()
     {
         await fixture.ResetAsync();
@@ -46,7 +46,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Equal(["Alpine", "Bravo"], result.ReadStringArray("rangeNames"));
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_QueryByAttribute_RoundTrips()
     {
         await fixture.ResetAsync();
@@ -57,7 +57,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Equal([true], result.ReadBooleanArray("isActiveFlags"));
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_Linked_QueryExpression_RoundTrips_Across_Tables()
     {
         await fixture.ResetAsync();
@@ -69,7 +69,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Equal(["A-100", "A-100"], result.ReadStringArray("accountNumbers"));
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_LeftOuter_Linked_QueryExpression_Preserves_Orphans()
     {
         await fixture.ResetAsync();
@@ -81,7 +81,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Null(result.ReadNullableStringArray("parentNames")[1]);
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_FetchXml_RetrieveMultiple_RoundTrips()
     {
         await fixture.ResetAsync();
@@ -96,7 +96,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.False(result.GetProperty("secondMoreRecords").GetBoolean());
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_FetchXml_LinkEntity_RoundTrips()
     {
         await fixture.ResetAsync();
@@ -107,7 +107,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Equal(["Alpha Account", "Bravo Account"], result.ReadStringArray("parentNames"));
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_ExecuteMultiple_Composes_Existing_Request_Slices()
     {
         await fixture.ResetAsync();
@@ -120,7 +120,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Equal(["Alpha", "Bravo"], result.ReadStringArray("createdNames"));
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_ExecuteTransaction_Commits_Supported_Request_Slices_Atomically()
     {
         await fixture.ResetAsync();
@@ -131,7 +131,7 @@ public sealed class CrmServiceClientOperationsAspireTests(DataverseEmulatorFixtu
         Assert.Equal(["Transactional Alpha", "Transactional Bravo"], result.ReadStringArray("createdNames"));
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_UpsertRequest_Composes_Create_And_Update_Flow()
     {
         await fixture.ResetAsync();

@@ -90,6 +90,56 @@ public sealed class DataverseXrmCompatibilityTelemetryTests
         Assert.Equal("DisplayName", compatibilityEvent.CapabilityKey);
     }
 
+    [Theory]
+    [InlineData("QueryExpression feature 'Condition operator 'CustomerCommitmentLevel''", "query-condition-operator", "custom-or-unknown")]
+    [InlineData("QueryExpression feature 'Condition operator 'Equal''", "query-condition-operator", "Equal")]
+    [InlineData("QueryExpression feature 'Join operator 'ContosoFancyJoin''", "query-join-operator", "custom-or-unknown")]
+    [InlineData("QueryExpression feature 'Join operator 'Inner''", "query-join-operator", "Inner")]
+    [InlineData("QueryExpression feature 'LinkFromEntityName 'contoso_secret''", "query-link-from-entity", "custom-or-unknown")]
+    [InlineData("QueryExpression feature 'LinkEntity'", "query-feature", "LinkEntity")]
+    [InlineData("QueryExpression feature 'CustomFancyFeature'", "query-feature", "custom-or-unknown")]
+    public void Query_Unsupported_Feature_Variants_Are_Sanitized(
+        string rawFeature,
+        string expectedCapabilityKind,
+        string expectedCapabilityKey)
+    {
+        var classifier = new DataverseXrmCompatibilityTelemetryClassifier();
+        var fault = CreateFault(
+            "Protocol.Xrm.Query.Unsupported",
+            $"{rawFeature} is not supported by the local Dataverse emulator.");
+
+        var compatibilityEvent = classifier.Classify("RetrieveMultipleRequest", "RetrieveMultiple", fault);
+
+        Assert.NotNull(compatibilityEvent);
+        Assert.Equal(expectedCapabilityKind, compatibilityEvent!.CapabilityKind);
+        Assert.Equal(expectedCapabilityKey, compatibilityEvent.CapabilityKey);
+    }
+
+    [Theory]
+    [InlineData("FetchXML feature 'condition operator 'eq''", "fetchxml-condition-operator", "eq")]
+    [InlineData("FetchXML feature 'condition operator 'contoso-secret''", "fetchxml-condition-operator", "custom-or-unknown")]
+    [InlineData("FetchXML feature 'link-type 'inner''", "fetchxml-link-type", "inner")]
+    [InlineData("FetchXML feature 'link-type 'contoso-special''", "fetchxml-link-type", "custom-or-unknown")]
+    [InlineData("FetchXML feature 'filter child 'contoso-element''", "fetchxml-filter-child", "custom-or-unknown")]
+    [InlineData("FetchXML feature 'aggregate'", "fetchxml-feature", "aggregate")]
+    [InlineData("FetchXML feature 'novel-thing'", "fetchxml-feature", "custom-or-unknown")]
+    public void FetchXml_Unsupported_Feature_Variants_Are_Sanitized(
+        string rawFeature,
+        string expectedCapabilityKind,
+        string expectedCapabilityKey)
+    {
+        var classifier = new DataverseXrmCompatibilityTelemetryClassifier();
+        var fault = CreateFault(
+            "Protocol.Xrm.FetchXml.Unsupported",
+            $"{rawFeature} is not supported by the local Dataverse emulator.");
+
+        var compatibilityEvent = classifier.Classify("RetrieveMultipleRequest", "RetrieveMultiple", fault);
+
+        Assert.NotNull(compatibilityEvent);
+        Assert.Equal(expectedCapabilityKind, compatibilityEvent!.CapabilityKind);
+        Assert.Equal(expectedCapabilityKey, compatibilityEvent.CapabilityKey);
+    }
+
     private static OrganizationServiceFault CreateFault(string errorCode, string message)
     {
         var fault = new OrganizationServiceFault

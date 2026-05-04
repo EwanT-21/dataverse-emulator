@@ -8,7 +8,7 @@ namespace Dataverse.Emulator.AspireTests;
 public sealed class CrossSurfaceAspireTests(DataverseEmulatorFixture fixture)
     : IClassFixture<DataverseEmulatorFixture>
 {
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_Create_Can_Be_Read_Over_WebApi()
     {
         var created = await fixture.RunCrmHarnessAsync("create", "Tailspin", "TS-100");
@@ -22,7 +22,7 @@ public sealed class CrossSurfaceAspireTests(DataverseEmulatorFixture fixture)
         Assert.Equal("TS-100", payload.GetProperty("accountnumber").GetString());
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task WebApi_Create_Can_Be_Read_Through_CrmServiceClient()
     {
         using var client = fixture.CreateClient();

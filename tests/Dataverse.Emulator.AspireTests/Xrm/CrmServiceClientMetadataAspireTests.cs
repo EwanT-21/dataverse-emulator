@@ -3,7 +3,7 @@ namespace Dataverse.Emulator.AspireTests;
 public sealed class CrmServiceClientMetadataAspireTests(DataverseEmulatorFixture fixture)
     : IClassFixture<DataverseEmulatorFixture>
 {
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_Can_Read_Seeded_Metadata()
     {
         await fixture.ResetAsync();
@@ -21,7 +21,7 @@ public sealed class CrmServiceClientMetadataAspireTests(DataverseEmulatorFixture
         Assert.Equal(2, result.GetProperty("allEntitiesCount").GetInt32());
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_Can_Read_Bounded_Metadata_Changes()
     {
         await fixture.ResetAsync();
@@ -34,7 +34,7 @@ public sealed class CrmServiceClientMetadataAspireTests(DataverseEmulatorFixture
         Assert.True(result.GetProperty("serverVersionStampPresent").GetBoolean());
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_Can_Associate_And_Disassociate_Seeded_Lookup_Relationship()
     {
         await fixture.ResetAsync();
@@ -47,7 +47,7 @@ public sealed class CrmServiceClientMetadataAspireTests(DataverseEmulatorFixture
         Assert.False(result.GetProperty("disassociatedParentPresent").GetBoolean());
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task CrmServiceClient_Can_Read_Seeded_Relationship_Metadata()
     {
         await fixture.ResetAsync();

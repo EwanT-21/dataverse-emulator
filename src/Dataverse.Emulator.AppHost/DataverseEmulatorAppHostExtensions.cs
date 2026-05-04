@@ -105,14 +105,22 @@ public static class DataverseEmulatorAppHostExtensions
         string endpoint)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(endpoint);
-        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out _))
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var parsedEndpoint))
         {
             throw new ArgumentException("Compatibility telemetry endpoint must be an absolute URI.", nameof(endpoint));
+        }
+
+        if (parsedEndpoint.Scheme != Uri.UriSchemeHttps && !parsedEndpoint.IsLoopback)
+        {
+            throw new ArgumentException("Compatibility telemetry endpoint must use https except for loopback hosts.", nameof(endpoint));
         }
 
         resource.Service.WithEnvironment(
             TelemetryEndpointEnvironmentVariableName,
             endpoint);
+        resource.Service.WithEnvironment(
+            TelemetryEnabledEnvironmentVariableName,
+            bool.TrueString.ToLowerInvariant());
 
         return resource;
     }

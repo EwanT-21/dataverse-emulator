@@ -20,6 +20,45 @@ public sealed class DataverseXrmCompatibilityTelemetryClassifier
     private static readonly IReadOnlySet<string> KnownMetadataConditionOperatorNames = Enum
         .GetNames<MetadataConditionOperator>()
         .ToHashSet(StringComparer.Ordinal);
+    private static readonly IReadOnlySet<string> KnownConditionOperatorNames = Enum
+        .GetNames<ConditionOperator>()
+        .ToHashSet(StringComparer.Ordinal);
+    private static readonly IReadOnlySet<string> KnownJoinOperatorNames = Enum
+        .GetNames<JoinOperator>()
+        .ToHashSet(StringComparer.Ordinal);
+    private static readonly IReadOnlySet<string> KnownQueryFeatureNames = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "LinkEntity",
+        "Distinct",
+        "Cross-entity conditions",
+        "Cross-entity ordering",
+        "ReturnTotalRecordCount"
+    };
+    private static readonly IReadOnlySet<string> KnownFetchXmlFeatureNames = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "aggregate",
+        "distinct",
+        "returntotalrecordcount",
+        "link-entity",
+        "link-entity entityname",
+        "multiple entity elements",
+        "attribute alias",
+        "order alias",
+        "cross-entity ordering",
+        "cross-entity conditions",
+        "valueof conditions",
+        "combining 'top' with paging",
+        "intersect"
+    };
+    private static readonly IReadOnlySet<string> KnownFetchXmlConditionOperatorNames = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "eq", "ne", "null", "not-null", "like", "begins-with", "ends-with",
+        "gt", "ge", "lt", "le", "in"
+    };
+    private static readonly IReadOnlySet<string> KnownFetchXmlLinkTypeNames = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "inner", "outer"
+    };
 
     public DataverseCompatibilityTelemetryEvent? Classify(
         string source,
@@ -44,13 +83,7 @@ public sealed class DataverseXrmCompatibilityTelemetryClassifier
                 "organization-request",
                 SanitizeRequestName(name)),
             "Protocol.Xrm.Operation.Unsupported" => ClassifyUnsupportedOperation(source, errorCode, fault.Message),
-            "Protocol.Xrm.Query.Unsupported" => ClassifyWrappedValue(
-                source,
-                errorCode,
-                fault.Message,
-                "QueryExpression feature '",
-                "' is not supported by the local Dataverse emulator.",
-                "query-feature"),
+            "Protocol.Xrm.Query.Unsupported" => ClassifyQueryFeature(source, errorCode, fault.Message),
             "Protocol.Xrm.Query.UnsupportedType" => ClassifyWrappedValue(
                 source,
                 errorCode,
@@ -59,15 +92,97 @@ public sealed class DataverseXrmCompatibilityTelemetryClassifier
                 "' is not supported by the local Dataverse emulator.",
                 "query-type",
                 value => SanitizeIdentifier(value, KnownQueryTypeNames)),
-            "Protocol.Xrm.FetchXml.Unsupported" => ClassifyWrappedValue(
-                source,
-                errorCode,
-                fault.Message,
-                "FetchXML feature '",
-                "' is not supported by the local Dataverse emulator.",
-                "fetchxml-feature"),
+            "Protocol.Xrm.FetchXml.Unsupported" => ClassifyFetchXmlFeature(source, errorCode, fault.Message),
             _ => null
         };
+    }
+
+    private DataverseCompatibilityTelemetryEvent ClassifyQueryFeature(
+        string source,
+        string errorCode,
+        string? message)
+    {
+        var feature = TryExtractWrappedValue(
+            message,
+            "QueryExpression feature '",
+            "' is not supported by the local Dataverse emulator.");
+        if (string.IsNullOrWhiteSpace(feature))
+        {
+            return CreateEvent(source, errorCode, "query-feature", CustomOrUnknownCapabilityKey);
+        }
+
+        if (TryMatchWrappedValue(feature, "Condition operator '", "'", out var conditionOperator))
+        {
+            return CreateEvent(
+                source,
+                errorCode,
+                "query-condition-operator",
+                SanitizeIdentifier(conditionOperator, KnownConditionOperatorNames));
+        }
+
+        if (TryMatchWrappedValue(feature, "Join operator '", "'", out var joinOperator))
+        {
+            return CreateEvent(
+                source,
+                errorCode,
+                "query-join-operator",
+                SanitizeIdentifier(joinOperator, KnownJoinOperatorNames));
+        }
+
+        if (TryMatchWrappedValue(feature, "LinkFromEntityName '", "'", out _))
+        {
+            return CreateEvent(source, errorCode, "query-link-from-entity", CustomOrUnknownCapabilityKey);
+        }
+
+        return CreateEvent(
+            source,
+            errorCode,
+            "query-feature",
+            SanitizeIdentifier(feature, KnownQueryFeatureNames));
+    }
+
+    private DataverseCompatibilityTelemetryEvent ClassifyFetchXmlFeature(
+        string source,
+        string errorCode,
+        string? message)
+    {
+        var feature = TryExtractWrappedValue(
+            message,
+            "FetchXML feature '",
+            "' is not supported by the local Dataverse emulator.");
+        if (string.IsNullOrWhiteSpace(feature))
+        {
+            return CreateEvent(source, errorCode, "fetchxml-feature", CustomOrUnknownCapabilityKey);
+        }
+
+        if (TryMatchWrappedValue(feature, "condition operator '", "'", out var conditionOperator))
+        {
+            return CreateEvent(
+                source,
+                errorCode,
+                "fetchxml-condition-operator",
+                SanitizeIdentifier(conditionOperator, KnownFetchXmlConditionOperatorNames));
+        }
+
+        if (TryMatchWrappedValue(feature, "link-type '", "'", out var linkType))
+        {
+            return CreateEvent(
+                source,
+                errorCode,
+                "fetchxml-link-type",
+                SanitizeIdentifier(linkType, KnownFetchXmlLinkTypeNames));
+        }
+
+        if (TryMatchWrappedValue(feature, "filter child '", "'", out _))
+        {
+            return CreateEvent(source, errorCode, "fetchxml-filter-child", CustomOrUnknownCapabilityKey);
+        }
+
+        return CreateEvent(
+            source,
+            errorCode,
+            "fetchxml-feature",
+            SanitizeIdentifier(feature, KnownFetchXmlFeatureNames));
     }
 
     private DataverseCompatibilityTelemetryEvent? ClassifyUnsupportedOperation(

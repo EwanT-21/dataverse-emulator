@@ -18,10 +18,11 @@ public static class DataverseCompatibilityTelemetryServiceCollectionExtensions
         }
 
         services.AddSingleton(options);
-        services.AddHttpClient<DataverseCompatibilityTelemetryHttpClient>(client =>
+        services.AddHttpClient(DataverseCompatibilityTelemetryHttpClient.HttpClientName, client =>
         {
             client.Timeout = TimeSpan.FromSeconds(5);
         });
+        services.AddSingleton<DataverseCompatibilityTelemetryHttpClient>();
         services.AddSingleton<DataverseCompatibilityTelemetryDispatcher>();
         services.AddSingleton<IDataverseCompatibilityTelemetry>(serviceProvider =>
             serviceProvider.GetRequiredService<DataverseCompatibilityTelemetryDispatcher>());

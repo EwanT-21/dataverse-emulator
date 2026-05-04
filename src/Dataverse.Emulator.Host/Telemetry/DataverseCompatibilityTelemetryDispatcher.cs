@@ -9,11 +9,18 @@ namespace Dataverse.Emulator.Host.Telemetry;
 public sealed class DataverseCompatibilityTelemetryDispatcher(
     DataverseCompatibilityTelemetryOptions options,
     DataverseCompatibilityTelemetryHttpClient telemetryHttpClient,
-    ILogger<DataverseCompatibilityTelemetryDispatcher> logger)
+    ILogger<DataverseCompatibilityTelemetryDispatcher> logger,
+    TimeProvider? timeProvider = null)
     : BackgroundService, IDataverseCompatibilityTelemetry
 {
+    public const int CircuitBreakerFailureThreshold = 5;
+    public static readonly TimeSpan CircuitBreakerCoolDown = TimeSpan.FromSeconds(60);
+    public static readonly TimeSpan ShutdownDrainTimeout = TimeSpan.FromSeconds(2);
+
     private static readonly string EmulatorVersion = ResolveEmulatorVersion();
     private static readonly string RuntimeVersion = RuntimeInformation.FrameworkDescription;
+
+    private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
     private readonly Channel<DataverseCompatibilityTelemetryEvent> events = Channel.CreateBounded<DataverseCompatibilityTelemetryEvent>(
         new BoundedChannelOptions(256)
         {
@@ -21,6 +28,9 @@ public sealed class DataverseCompatibilityTelemetryDispatcher(
             SingleWriter = false,
             FullMode = BoundedChannelFullMode.DropOldest
         });
+
+    private int consecutiveFailures;
+    private DateTimeOffset circuitOpenUntilUtc;
 
     public void Record(DataverseCompatibilityTelemetryEvent telemetryEvent)
     {
@@ -49,19 +59,70 @@ public sealed class DataverseCompatibilityTelemetryDispatcher(
 
         await foreach (var compatibilityEvent in events.Reader.ReadAllAsync(stoppingToken))
         {
+            await TryDeliverAsync(compatibilityEvent, stoppingToken);
+        }
+    }
+
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        events.Writer.TryComplete();
+
+        if (options.IsActive)
+        {
+            using var drainCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            drainCts.CancelAfter(ShutdownDrainTimeout);
             try
             {
-                var envelope = DataverseCompatibilityTelemetryEnvelope.FromEvent(
-                    compatibilityEvent,
-                    EmulatorVersion,
-                    RuntimeVersion);
-                await telemetryHttpClient.SendAsync(options.Endpoint!, envelope, stoppingToken);
+                while (events.Reader.TryRead(out var pendingEvent))
+                {
+                    await TryDeliverAsync(pendingEvent, drainCts.Token);
+                }
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            catch (OperationCanceledException)
             {
-                break;
+                // Drain budget exceeded; remaining events are discarded.
             }
-            catch (Exception ex)
+        }
+
+        await base.StopAsync(cancellationToken);
+    }
+
+    private async Task TryDeliverAsync(
+        DataverseCompatibilityTelemetryEvent compatibilityEvent,
+        CancellationToken cancellationToken)
+    {
+        if (clock.GetUtcNow() < circuitOpenUntilUtc)
+        {
+            return;
+        }
+
+        try
+        {
+            var envelope = DataverseCompatibilityTelemetryEnvelope.FromEvent(
+                compatibilityEvent,
+                EmulatorVersion,
+                RuntimeVersion);
+            await telemetryHttpClient.SendAsync(options.Endpoint!, envelope, cancellationToken);
+            consecutiveFailures = 0;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            consecutiveFailures++;
+            if (consecutiveFailures >= CircuitBreakerFailureThreshold)
+            {
+                circuitOpenUntilUtc = clock.GetUtcNow().Add(CircuitBreakerCoolDown);
+                logger.LogWarning(
+                    ex,
+                    "Compatibility telemetry circuit opened after {FailureCount} consecutive failures; suppressing delivery for {CoolDownSeconds}s.",
+                    consecutiveFailures,
+                    CircuitBreakerCoolDown.TotalSeconds);
+                consecutiveFailures = 0;
+            }
+            else
             {
                 logger.LogWarning(
                     ex,
@@ -70,12 +131,6 @@ public sealed class DataverseCompatibilityTelemetryDispatcher(
                     compatibilityEvent.CapabilityKind);
             }
         }
-    }
-
-    public override async Task StopAsync(CancellationToken cancellationToken)
-    {
-        events.Writer.TryComplete();
-        await base.StopAsync(cancellationToken);
     }
 
     private static string ResolveEmulatorVersion()

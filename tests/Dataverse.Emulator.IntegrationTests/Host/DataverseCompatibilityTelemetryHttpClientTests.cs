@@ -11,8 +11,8 @@ public sealed class DataverseCompatibilityTelemetryHttpClientTests
     public async Task Http_Client_Posts_Only_The_Sanitized_Telemetry_Envelope()
     {
         var handler = new RecordingHttpMessageHandler();
-        using var httpClient = new HttpClient(handler);
-        var telemetryHttpClient = new DataverseCompatibilityTelemetryHttpClient(httpClient);
+        var telemetryHttpClient = new DataverseCompatibilityTelemetryHttpClient(
+            new TestHttpClientFactory(handler));
         var compatibilityEvent = new DataverseCompatibilityTelemetryEvent(
             "unsupported-capability",
             "xrm",
@@ -40,6 +40,12 @@ public sealed class DataverseCompatibilityTelemetryHttpClientTests
         Assert.Contains("\"capabilityKey\":\"custom-or-unknown\"", handler.RequestBody, StringComparison.Ordinal);
         Assert.DoesNotContain("ContosoSecretSync", handler.RequestBody, StringComparison.Ordinal);
         Assert.DoesNotContain("\"message\":", handler.RequestBody, StringComparison.Ordinal);
+        Assert.NotNull(handler.UserAgent);
+        Assert.Contains(
+            DataverseCompatibilityTelemetryHttpClient.UserAgentProductName,
+            handler.UserAgent!,
+            StringComparison.Ordinal);
+        Assert.Contains("1.2.3.4", handler.UserAgent!, StringComparison.Ordinal);
     }
 
     private sealed class RecordingHttpMessageHandler : HttpMessageHandler
@@ -50,12 +56,15 @@ public sealed class DataverseCompatibilityTelemetryHttpClientTests
 
         public string? RequestBody { get; private set; }
 
+        public string? UserAgent { get; private set; }
+
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             Method = request.Method.Method;
             RequestUri = request.RequestUri?.ToString();
+            UserAgent = request.Headers.UserAgent.ToString();
             RequestBody = request.Content is null
                 ? null
                 : await request.Content.ReadAsStringAsync(cancellationToken);
@@ -65,5 +74,10 @@ public sealed class DataverseCompatibilityTelemetryHttpClientTests
                 Content = new StringContent(string.Empty, Encoding.UTF8, "application/json")
             };
         }
+    }
+
+    private sealed class TestHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
     }
 }

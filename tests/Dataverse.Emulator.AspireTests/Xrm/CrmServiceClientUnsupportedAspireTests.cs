@@ -5,7 +5,7 @@ namespace Dataverse.Emulator.AspireTests;
 public sealed class CrmServiceClientUnsupportedAspireTests(DataverseEmulatorFixture fixture)
     : IClassFixture<DataverseEmulatorFixture>
 {
-    [Fact]
+    [WindowsOnlyFact]
     public async Task Unsupported_QueryExpression_Features_Surface_As_SdkFaults()
     {
         await fixture.ResetAsync();
@@ -15,7 +15,7 @@ public sealed class CrmServiceClientUnsupportedAspireTests(DataverseEmulatorFixt
         Assert.Contains("Distinct", result.GetProperty("message").GetString(), StringComparison.Ordinal);
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task Unsupported_FetchXml_Features_Surface_As_SdkFaults()
     {
         await fixture.ResetAsync();
@@ -25,7 +25,7 @@ public sealed class CrmServiceClientUnsupportedAspireTests(DataverseEmulatorFixt
         Assert.Contains("aggregate", result.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task Unsupported_Upsert_AlternateKey_Features_Surface_As_SdkFaults()
     {
         await fixture.ResetAsync();
@@ -35,7 +35,7 @@ public sealed class CrmServiceClientUnsupportedAspireTests(DataverseEmulatorFixt
         Assert.Contains("alternate keys", result.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
+    [WindowsOnlyFact]
     public async Task Unsupported_Installed_Language_Pack_Version_Requests_Surface_As_SdkFaults()
     {
         await fixture.ResetAsync();
